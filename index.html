@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1B3A5C">
+<title>QCDMS Smart Dashboard</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUUNETVMgRGFzaGJvYXJkIiwic2hvcnRfbmFtZSI6IlFDRE1TIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0YwRjJGNSIsInRoZW1lX2NvbG9yIjoiIzFCM0E1QyJ9">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--dk:#1B3A5C;--md:#2E5D8A;--lt:#D6E4F0;--bg:#F0F2F5;--wh:#FFF;--gn:#28A745;--rd:#DC3545;--or:#FD7E14;--yl:#FFC107;--tl:#17A2B8;--gr:#6C757D;--safe-b:env(safe-area-inset-bottom,0px);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:#333;font-size:13px;padding-bottom:calc(64px + var(--safe-b));overscroll-behavior:contain;}
+
+/* ===== HEADER ===== */
+.header{background:linear-gradient(135deg,var(--dk),var(--md));color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.header h1{font-size:16px;white-space:nowrap;}
+.header .right{display:flex;gap:6px;align-items:center;}
+.header .date{font-size:10px;opacity:.7;display:block;}
+
+/* ===== BUTTONS ===== */
+.btn{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;touch-action:manipulation;min-height:36px;}
+.btn:active{transform:scale(.96);}
+.btn-primary{background:var(--md);color:#fff;}
+.btn-success{background:var(--gn);color:#fff;}
+.btn-danger{background:var(--rd);color:#fff;}
+.btn-warning{background:var(--yl);color:#333;}
+.btn-info{background:var(--tl);color:#fff;}
+.btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,.6);color:#fff;padding:6px 10px;font-size:11px;}
+.btn-sm{padding:4px 8px;font-size:11px;min-height:28px;}
+.btn-fab{position:fixed;bottom:calc(72px + var(--safe-b));right:16px;width:52px;height:52px;border-radius:50%;background:var(--gn);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:90;border:none;cursor:pointer;touch-action:manipulation;}
+.btn-fab:active{transform:scale(.9);}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--wh);display:flex;justify-content:space-around;align-items:stretch;border-top:1px solid #ddd;z-index:100;padding-bottom:var(--safe-b);box-shadow:0 -2px 10px rgba(0,0,0,.06);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;cursor:pointer;color:var(--gr);font-size:10px;font-weight:500;transition:color .15s;touch-action:manipulation;text-decoration:none;min-height:52px;}
+.nav-item .icon{font-size:20px;margin-bottom:2px;}
+.nav-item.active{color:var(--md);font-weight:700;}
+.nav-item.active .icon{transform:scale(1.1);}
+.nav-item:active{background:var(--lt);}
+
+/* ===== TAB CONTENT ===== */
+.tab-content{display:none;padding:12px;min-height:calc(100vh - 130px);}
+.tab-content.active{display:block;}
+
+/* ===== KPI ===== */
+.kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.kpi{background:var(--wh);border-radius:10px;padding:12px 8px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid var(--dk);}
+.kpi .value{font-size:24px;font-weight:700;margin:2px 0;}
+.kpi .label{font-size:10px;color:var(--gr);text-transform:uppercase;letter-spacing:.3px;}
+
+/* ===== CHARTS ===== */
+.chart-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px;}
+.chart-card{background:var(--wh);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.chart-card h3{font-size:12px;color:var(--dk);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--lt);}
+
+/* ===== TOOLBAR / FILTERS ===== */
+.toolbar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center;}
+.toolbar select,.toolbar input{padding:8px;border:1px solid #ccc;border-radius:8px;font-size:13px;min-height:36px;background:var(--wh);flex:1;min-width:0;}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--md);outline:none;box-shadow:0 0 0 2px rgba(46,93,138,.15);}
+.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+
+/* ===== CARDS (Mobile table replacement) ===== */
+.card-list{display:flex;flex-direction:column;gap:8px;}
+.card{background:var(--wh);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid var(--md);transition:all .15s;}
+.card:active{background:var(--lt);}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.card-id{font-weight:700;color:var(--dk);font-size:13px;}
+.card-badges{display:flex;gap:4px;flex-wrap:wrap;}
+.card-body{font-size:12px;color:#555;line-height:1.5;}
+.card-body .row{display:flex;gap:4px;margin-bottom:3px;}
+.card-body .lbl{font-weight:600;color:var(--dk);min-width:70px;font-size:11px;}
+.card-body .val{flex:1;word-break:break-word;}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid #eee;}
+.card-actions{display:flex;gap:6px;}
+.card-link{display:flex;gap:4px;flex-wrap:wrap;}
+.act-btn{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;min-height:32px;touch-action:manipulation;}
+.act-btn:active{transform:scale(.95);}
+.act-edit{background:#E3F2FD;color:var(--md);}
+.act-del{background:#FFEBEE;color:var(--rd);}
+.act-rca{background:#FFF3E0;color:var(--or);}
+.act-capa{background:#E8F5E9;color:var(--gn);}
+
+/* Desktop table (hidden on mobile) */
+.table-wrap{display:none;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--dk);color:#fff;padding:8px 6px;text-align:center;position:sticky;top:0;white-space:nowrap;z-index:2;}
+tbody td{padding:6px;border-bottom:1px solid #eee;text-align:center;vertical-align:middle;}
+tbody tr:nth-child(even){background:#F8F9FA;}
+tbody tr:hover{background:var(--lt);}
+td.left{text-align:left;}
+
+/* ===== BADGES ===== */
+.badge{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;display:inline-block;}
+.b-complete{background:var(--gn);}.b-progress{background:var(--or);}.b-overdue,.b-open{background:var(--rd);}
+.b-pending{background:var(--gr);}.b-closed{background:var(--gn);}.b-onhold{background:var(--gr);}
+.b-critical{background:var(--rd);}.b-high{background:var(--or);}.b-medium{background:var(--yl);color:#333;}.b-low{background:var(--tl);}
+.b-ca{background:var(--md);}.b-pa{background:var(--or);}
+.b-man{background:#DC3545;}.b-machine{background:#FD7E14;}.b-method{background:#2E5D8A;}.b-material{background:#28A745;}.b-environment{background:#17A2B8;}
+.link{color:var(--md);cursor:pointer;text-decoration:underline;font-weight:600;font-size:11px;}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.modal-overlay.show{display:block;}
+.modal{background:var(--wh);width:100%;min-height:100vh;max-width:100%;}
+.modal-header{background:var(--dk);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1;}
+.modal-header h3{font-size:15px;}
+.modal-close{background:none;border:none;color:#fff;font-size:28px;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;}
+.modal-body{padding:16px;}
+.form-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:11px;font-weight:600;color:var(--dk);text-transform:uppercase;}
+.form-group input,.form-group select,.form-group textarea{padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;min-height:42px;background:var(--wh);}
+.form-group textarea{resize:vertical;min-height:60px;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--md);outline:none;box-shadow:0 0 0 3px rgba(46,93,138,.15);}
+.auto-id{background:#f0f0f0;font-weight:700;color:var(--md);}
+.modal-footer{padding:12px 16px;border-top:1px solid #eee;display:flex;gap:8px;position:sticky;bottom:0;background:var(--wh);}
+.modal-footer .btn{flex:1;min-height:44px;font-size:14px;}
+
+/* ===== SECTION TITLE ===== */
+.sec-title{font-size:13px;font-weight:700;color:var(--dk);margin:10px 0 6px;padding-left:8px;border-left:3px solid var(--md);}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;color:#fff;font-weight:600;z-index:300;font-size:13px;text-align:center;max-width:90%;animation:slideDown .3s,fadeOut .3s 2s forwards;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+@keyframes slideDown{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:translateX(-50%) translateY(-10px);}}
+
+/* ===== SUMMARY STRIP ===== */
+.summary-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0;margin-bottom:8px;-webkit-overflow-scrolling:touch;}
+.summary-strip::-webkit-scrollbar{display:none;}
+.summary-chip{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;display:flex;align-items:center;gap:4px;}
+.summary-chip .num{font-size:15px;font-weight:800;}
+
+/* ===== WHY CHAIN (RCA mobile) ===== */
+.why-chain{display:flex;flex-direction:column;gap:2px;margin:6px 0;}
+.why-step{display:flex;align-items:flex-start;gap:6px;font-size:11px;}
+.why-num{background:var(--lt);color:var(--dk);font-weight:700;border-radius:4px;padding:1px 5px;font-size:10px;flex-shrink:0;}
+.why-arrow{color:var(--or);flex-shrink:0;}
+.root-cause{background:#FFEBEE;border-radius:6px;padding:6px 8px;font-size:11px;font-weight:600;color:var(--rd);margin-top:4px;}
+
+/* ===== DESKTOP ===== */
+@media(min-width:768px){
+  .header h1{font-size:20px;}
+  .kpi-row{grid-template-columns:repeat(4,1fr);}
+  .chart-grid{grid-template-columns:1fr 1fr;}
+  .card-list{display:none;}
+  .table-wrap{display:block;background:var(--wh);border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow-x:auto;margin-bottom:16px;}
+  .scroll-table{max-height:500px;overflow-y:auto;}
+  .filter-row{grid-template-columns:repeat(4,1fr);}
+  .bottom-nav{display:none;}
+  body{padding-bottom:0;}
+  .tabs-desktop{display:flex;background:var(--wh);border-bottom:2px solid var(--lt);position:sticky;top:46px;z-index:99;}
+  .tab-d{padding:12px 24px;cursor:pointer;font-weight:600;color:var(--gr);border-bottom:3px solid transparent;transition:all .15s;}
+  .tab-d:hover{color:var(--dk);background:#f8f9fa;}
+  .tab-d.active{color:var(--dk);border-bottom-color:var(--md);background:var(--lt);}
+  .btn-fab{display:none;}
+  .toolbar .btn-success{display:inline-flex;}
+  .modal{max-width:720px;min-height:auto;margin:40px auto;border-radius:12px;max-height:90vh;overflow-y:auto;}
+  .modal-header{border-radius:12px 12px 0 0;}
+  .form-grid{grid-template-columns:1fr 1fr;}
+  .tab-content{padding:16px 20px;}
+}
+@media(max-width:767px){
+  .tabs-desktop{display:none;}
+  .toolbar .btn-success{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>📊 QCDMS Dashboard</h1>
+    <span class="date" id="dtNow"></span>
+  </div>
+  <div class="right">
+    <button class="btn btn-outline btn-sm" onclick="exportJSON()">📥</button>
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📤</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+</div>
+
+<!-- DESKTOP TABS -->
+<div class="tabs-desktop">
+  <div class="tab-d active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+  <div class="tab-d" onclick="switchTab('items')">📌 Items</div>
+  <div class="tab-d" onclick="switchTab('rca')">🔍 RCA</div>
+  <div class="tab-d" onclick="switchTab('capa')">✅ CAPA</div>
+  <div class="tab-d" onclick="switchTab('meeting')">📋 Meeting</div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div class="tab-content active" id="tab-dashboard">
+  <div class="summary-strip" id="summaryStrip"></div>
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>📌 Items Status</h3><canvas id="cStatus"></canvas></div>
+    <div class="chart-card"><h3>🏷️ TQM (S/Q/D/C/M)</h3><canvas id="cTQM"></canvas></div>
+    <div class="chart-card"><h3>⚡ Priority</h3><canvas id="cPri"></canvas></div>
+    <div class="chart-card"><h3>🔍 RCA 4M+E</h3><canvas id="cRCA"></canvas></div>
+    <div class="chart-card"><h3>✅ CAPA Status</h3><canvas id="cCAPA"></canvas></div>
+    <div class="chart-card"><h3>🏢 Department</h3><canvas id="cDept"></canvas></div>
+    <div class="chart-card"><h3>📊 CA vs PA</h3><canvas id="cType"></canvas></div>
+    <div class="chart-card"><h3>📈 Trend</h3><canvas id="cTrend"></canvas></div>
+  </div>
+</div>
+
+<!-- ==================== ITEMS ==================== -->
+<div class="tab-content" id="tab-items">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openItemForm()">➕ เพิ่มรายการ</button>
+    <input id="fQ" placeholder="🔍 ค้นหา Part / ปัญหา..." oninput="renderItems()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fSt" onchange="renderItems()"><option value="">ทุกสถานะ</option><option>Pending</option><option>In Progress</option><option>Complete</option><option>Overdue</option><option>On Hold</option></select>
+    <select id="fTq" onchange="renderItems()"><option value="">ทุก TQM</option><option>S</option><option>Q</option><option>D</option><option>C</option><option>M</option></select>
+    <select id="fDp" onchange="renderItems()"><option value="">ทุกแผนก</option><option>QA</option><option>QC</option><option>PD</option><option>SALE</option><option>PI</option><option>STORE</option><option>MT</option><option>PE</option><option>AC</option></select>
+    <select id="fPr" onchange="renderItems()"><option value="">ทุก Priority</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+  </div>
+  <div class="card-list" id="cardItems"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>ID</th><th>Meeting</th><th>Date</th><th>Part</th><th>TQM</th><th>Dept</th><th>Loc</th><th>Pain Point</th><th>Temp Action</th><th>Action Plan</th><th>Resp</th><th>Due</th><th>Status</th><th>Priority</th><th>RCA</th><th>CAPA</th></tr></thead>
+    <tbody id="tbItems"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== RCA ==================== -->
+<div class="tab-content" id="tab-rca">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openRCAForm()">➕ เพิ่ม RCA</button>
+    <input id="fRcaQ" placeholder="🔍 ค้นหา..." oninput="renderRCA()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fRcaCat" onchange="renderRCA()"><option value="">ทุก 4M+E</option><option>Man</option><option>Machine</option><option>Method</option><option>Material</option><option>Environment</option></select>
+  </div>
+  <div class="card-list" id="cardRCA"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>RCA_ID</th><th>Item</th><th>ปัญหา</th><th>4M+E</th><th>Why1</th><th>Why2</th><th>Why3</th><th>Why4</th><th>Why5</th><th>Root Cause</th><th>Owner</th><th>Date</th></tr></thead>
+    <tbody id="tbRCA"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== CAPA ==================== -->
+<div class="tab-content" id="tab-capa">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openCAPAForm()">➕ เพิ่ม CAPA</button>
+    <input id="fCapaQ" placeholder="🔍 ค้นหา..." oninput="renderCAPA()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fCapaSt" onchange="renderCAPA()"><option value="">ทุกสถานะ</option><option>Open</option><option>In Progress</option><option>Closed</option></select>
+    <select id="fCapaTy" onchange="renderCAPA()"><option value="">ทุกประเภท</option><option>CA</option><option>PA</option></select>
+  </div>
+  <div class="card-list" id="cardCAPA"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>CAPA</th><th>Item</th><th>RCA</th><th>Type</th><th>มาตรการ</th><th>Resp</th><th>Target</th><th>Actual</th><th>Verify</th><th>Result</th><th>Score</th><th>Status</th><th>Days</th><th>Recur</th></tr></thead>
+    <tbody id="tbCAPA"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== MEETING ==================== -->
+<div class="tab-content" id="tab-meeting">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openMtgForm()">➕ เพิ่มประชุม</button>
+  </div>
+  <div class="card-list" id="cardMtg"></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>Meeting_ID</th><th>Date</th><th>Type</th><th>Week</th><th>Year</th><th>Facilitator</th><th>Total</th><th>Comp</th><th>IP</th><th>OD</th><th>%</th></tr></thead>
+    <tbody id="tbMtg"></tbody>
+  </table></div>
+</div>
+
+<!-- BOTTOM NAV (Mobile) -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('dashboard')" data-tab="dashboard"><span class="icon">📊</span>Dashboard</div>
+  <div class="nav-item" onclick="switchTab('items')" data-tab="items"><span class="icon">📌</span>Items</div>
+  <div class="nav-item" onclick="switchTab('rca')" data-tab="rca"><span class="icon">🔍</span>RCA</div>
+  <div class="nav-item" onclick="switchTab('capa')" data-tab="capa"><span class="icon">✅</span>CAPA</div>
+  <div class="nav-item" onclick="switchTab('meeting')" data-tab="meeting"><span class="icon">📋</span>Meeting</div>
+</div>
+
+<!-- FAB (Mobile Add) -->
+<button class="btn-fab" id="fabAdd" onclick="fabAction()">➕</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalTitle"></h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="modalSave">💾 บันทึก</button>
+      <button class="btn" style="background:#eee" onclick="closeModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+const SK='QCDMS_DATA_V3';
+const defaultData={meetings:[
+{id:"MTG-2026-01",date:"2026-01-09",type:"Weekly QCDMS",week:"W01",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-02",date:"2026-01-16",type:"Weekly QCDMS",week:"W02",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-03",date:"2026-01-23",type:"Weekly QCDMS",week:"W03",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-04",date:"2026-01-30",type:"Weekly QCDMS",week:"W04",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-05",date:"2026-02-06",type:"Weekly QCDMS",week:"W05",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-06",date:"2026-02-13",type:"Weekly QCDMS",week:"W06",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-07",date:"2026-05-29",type:"Weekly QCDMS",week:"W07",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-08",date:"2026-03-13",type:"Weekly QCDMS",week:"W08",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-09",date:"2026-03-23",type:"Weekly QCDMS",week:"W09",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-10",date:"2026-03-27",type:"Weekly QCDMS",week:"W10",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-11",date:"2026-04-04",type:"Weekly QCDMS",week:"W11",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-12",date:"2026-04-10",type:"Weekly QCDMS",week:"W12",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-13",date:"2026-04-24",type:"Weekly QCDMS",week:"W13",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-14",date:"2026-05-08",type:"Weekly QCDMS",week:"W14",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-15",date:"2026-05-15",type:"Weekly QCDMS",week:"W15",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-16",date:"2026-05-21",type:"Weekly QCDMS",week:"W16",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-17",date:"2026-05-29",type:"Weekly QCDMS",week:"W17",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""}],
+items:[
+{id:"ITM-2026-001",mid:"MTG-2026-01",date:"2026-01-09",no:1,part:"YT03M01425P1_LIVER-LH",tqm:"Q",dept:"QA",loc:"A.T.T",pain:"กลึง : ชิ้นงานยาว",rca_sum:"OPS กำหนด 107",action:"ตัดความยาว 103±0.2",temp:"Stock A.T.T. Replacement",total:200,ok:0,ng:200,remark:"Before:107 After:103",resp:"พัฒนเดช-QA",start:"2026-01-09",due:"2026-01-16",finish:"2026-01-16",status:"Complete",priority:"Medium",rca_id:"RCA-2026-001",capa_id:"CAPA-2026-001"},
+{id:"ITM-2026-002",mid:"MTG-2026-01",date:"2026-01-09",no:2,part:"YT03M01426P1_LIVER-RH",tqm:"Q",dept:"QA",loc:"A.T.T.",pain:"กลึง : ชิ้นงานยาว",rca_sum:"OPS กำหนด 107",action:"ตัดความยาว 103±0.2",temp:"Stock A.T.T. Replacement",total:120,ok:0,ng:120,remark:"Before:107 After:103",resp:"พัฒนเดช-QA",start:"2026-01-09",due:"2026-01-16",finish:"2026-01-16",status:"Complete",priority:"Medium",rca_id:"RCA-2026-002",capa_id:"CAPA-2026-002"},
+{id:"ITM-2026-003",mid:"MTG-2026-01",date:"2026-01-09",no:3,part:"SIS-02-W720456-S900_CLIP",tqm:"Q",dept:"QA",loc:"SPV",pain:"ประกอบ : ประกอบไม่ล๊อค",rca_sum:"Over Spec ดันติด",action:"ทำพิมพ์ผลิตใหม่",temp:"Stock Customer Claim",total:150000,ok:0,ng:150000,remark:"",resp:"พัฒนเดช-QA",start:"2026-01-09",due:"2026-01-09",finish:"2026-01-09",status:"Complete",priority:"High",rca_id:"RCA-2026-003",capa_id:"CAPA-2026-003"},
+{id:"ITM-2026-004",mid:"MTG-2026-01",date:"2026-01-09",no:4,part:"40051899_INSERT",tqm:"D",dept:"SALE",loc:"RTK",pain:"Kick off : New Model",rca_sum:"",action:"ผลิตตัวอย่าง / ผลิตจริง",temp:"",total:0,ok:0,ng:0,remark:"จัดส่ง 15/1/26",resp:"ธัญลักษณ์-SA",start:"2026-01-09",due:"2026-01-15",finish:"2026-01-15",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-005",mid:"MTG-2026-01",date:"2026-01-09",no:5,part:"40051900_SPACER_V21",tqm:"D",dept:"SALE",loc:"RTK",pain:"Kick off : New Model",rca_sum:"",action:"ผลิตตัวอย่าง / ผลิตจริง",temp:"",total:0,ok:0,ng:0,remark:"จัดส่ง 15/1/26",resp:"ธัญลักษณ์-SA",start:"2026-01-09",due:"2026-01-15",finish:"2026-01-15",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-006",mid:"MTG-2026-02",date:"2026-02-09",no:1,part:"AM1T033F0_NUT",tqm:"C",dept:"QC",loc:"CAPCO",pain:"Follow-up : Thread NG",rca_sum:"Lot: PO6801347",action:"QC ตรวจด้วยสายตา 100%",temp:"",total:0,ok:0,ng:0,remark:"OK 37,282 NG 2,718",resp:"มานพ-QC",start:"2026-02-09",due:"2026-02-15",finish:"2026-02-15",status:"Complete",priority:"High",rca_id:"RCA-2026-004",capa_id:"CAPA-2026-004"},
+{id:"ITM-2026-007",mid:"MTG-2026-02",date:"2026-02-09",no:2,part:"41110692_INSERT",tqm:"D",dept:"SALE",loc:"RTK",pain:"Prototype : ทดลองผลิต",rca_sum:"",action:"RTK-K จัดส่ง PI/QA",temp:"",total:0,ok:0,ng:0,remark:"",resp:"ธัญลักษณ์-SA",start:"2026-02-09",due:"2026-02-10",finish:"2026-02-15",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-008",mid:"MTG-2026-03",date:"2026-03-19",no:1,part:"Safety first",tqm:"S",dept:"QC",loc:"RTK",pain:"Safety : โซ่ขาด อุบัติเหตุ",rca_sum:"การบำรุงรักษา",action:"เปลี่ยนโซ่ใหม่",temp:"",total:0,ok:0,ng:0,remark:"ไม่มีใครได้รับอันตราย",resp:"ประทีป-MT",start:"2026-03-19",due:"2026-03-20",finish:"2026-03-20",status:"Complete",priority:"Critical",rca_id:"RCA-2026-005",capa_id:"CAPA-2026-005"},
+{id:"ITM-2026-009",mid:"MTG-2026-03",date:"2026-03-20",no:2,part:"3105129_INSERT BOLD",tqm:"Q",dept:"QC",loc:"RTK",pain:"กลึง : ลบเหลี่ยมมาก",rca_sum:"รอวิเคราะห์",action:"QC ตรวจด้วยสายตา 100%",temp:"",total:0,ok:0,ng:0,remark:"QA : สรุป ให้จัดส่ง",resp:"พัฒนเดช-QA",start:"2026-03-20",due:"2026-03-20",finish:"2026-03-20",status:"Complete",priority:"Medium",rca_id:"RCA-2026-006",capa_id:""},
+{id:"ITM-2026-010",mid:"MTG-2026-03",date:"2026-03-20",no:3,part:"40051327_PIVOT",tqm:"Q",dept:"QA",loc:"C.B. PARTS",pain:"กลึง : ผิวกลมเล็ก NG 49 ชิ้น",rca_sum:"รอวิเคราะห์",action:"PI รอรับเข้า 637 ชิ้น",temp:"",total:0,ok:0,ng:0,remark:"Claim cost 2,751.58",resp:"พัฒนเดช-QA",start:"2026-03-20",due:"2026-03-23",finish:"2026-03-23",status:"Complete",priority:"High",rca_id:"RCA-2026-007",capa_id:"CAPA-2026-006"},
+{id:"ITM-2026-011",mid:"MTG-2026-03",date:"2026-03-20",no:4,part:"50175-K3FG-T500-H1_BAR",tqm:"Q",dept:"PD",loc:"RTK",pain:"เจาะ : รูโตเกินค่ามาตรฐาน",rca_sum:"เจาะรู 6.9+0.05/-0.1",action:"PE แก้ไข DWG, OPS, Check sheet",temp:"",total:0,ok:0,ng:0,remark:"JIS B0209",resp:"ธีรสิทธิ์-PE",start:"2026-03-20",due:"2026-03-20",finish:"2026-03-20",status:"Complete",priority:"High",rca_id:"RCA-2026-008",capa_id:"CAPA-2026-007"},
+{id:"ITM-2026-012",mid:"MTG-2026-03",date:"2026-03-21",no:5,part:"สื่อสารภายในองค์กร",tqm:"C",dept:"STORE",loc:"RTK",pain:"JD : ACC ตัดสต๊อคผิด",rca_sum:"ไม่ตัดยอด 20,000",action:"ตรวจสอบ Check stock",temp:"",total:0,ok:0,ng:0,remark:"Follow-up #1",resp:"ขวัญใจ-AC",start:"2026-03-21",due:"2026-03-21",finish:"2026-03-21",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-013",mid:"MTG-2026-04",date:"2026-04-24",no:1,part:"75051547_STAY_9898",tqm:"Q",dept:"PD",loc:"RTK",pain:"Review : ใช้ DATA ผลิตไม่ถูกต้อง",rca_sum:"ข้อมูลไม่ชัดเจน",action:"ใช้ DWG ผลิต / ทวนสอบ",temp:"",total:0,ok:0,ng:0,remark:"",resp:"ธีรสิทธิ์-PE",start:"2026-04-24",due:"2026-04-24",finish:"2026-04-24",status:"Complete",priority:"High",rca_id:"RCA-2026-009",capa_id:"CAPA-2026-008"},
+{id:"ITM-2026-014",mid:"MTG-2026-04",date:"2026-04-26",no:2,part:"75051556_STAY_K97",tqm:"M",dept:"PD",loc:"RTK",pain:"ECR : เปลี่ยนความโตผิว",rca_sum:"Before Ø5.8 After Ø5.925",action:"Production Trial 30 Pcs.",temp:"",total:0,ok:0,ng:0,remark:"VS4 ผลิต ควบคุมค่า Ø5.925",resp:"พัฒนเดช-QA",start:"2026-04-26",due:"2026-04-30",finish:"2026-04-28",status:"Complete",priority:"Medium",rca_id:"RCA-2026-010",capa_id:""},
+{id:"ITM-2026-015",mid:"MTG-2026-04",date:"2026-04-26",no:3,part:"14642-KWBA-600A",tqm:"Q",dept:"QC",loc:"RTK",pain:"Skip : ไม่ต๊าปเกลียว",rca_sum:"รอวิเคราะห์",action:"QC Recheck 100% by Visual",temp:"",total:0,ok:0,ng:0,remark:"Stock RTK 6,000 Pcs.",resp:"พัฒนเดช-QA",start:"2026-04-26",due:"2026-04-27",finish:"2026-04-28",status:"Complete",priority:"High",rca_id:"RCA-2026-011",capa_id:"CAPA-2026-009"},
+{id:"ITM-2026-016",mid:"MTG-2026-04",date:"2026-04-26",no:4,part:"40051852_WASHER",tqm:"Q",dept:"QC",loc:"RTK",pain:"วัตถุดิบ : เสียรูป (RTK-N)",rca_sum:"รอวิเคราะห์",action:"QC ตรวจด้วยสายตา 100%",temp:"",total:0,ok:0,ng:0,remark:"AMPAS 17,000 Pcs.",resp:"พัฒนเดช-QA",start:"2026-04-26",due:"2026-04-27",finish:"2026-04-28",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-017",mid:"MTG-2026-04",date:"2026-04-27",no:5,part:"40051894_WEIGHT",tqm:"C",dept:"PD",loc:"RTK",pain:"Kick off : New Model MLZA",rca_sum:"",action:"สั่งผลิตตัวอย่าง / จัดทำ DWG",temp:"",total:0,ok:0,ng:0,remark:"จัดส่ง AMPAS",resp:"ธัญลักษณ์-SA",start:"2026-04-27",due:"2026-04-30",finish:"",status:"In Progress",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-018",mid:"MTG-2026-05",date:"2026-05-27",no:1,part:"N1WB-E31406-APIA-07_INSERT",tqm:"Q",dept:"PD",loc:"RTK",pain:"Kick off : New Model MLZA",rca_sum:"",action:"สั่งผลิตตัวอย่าง / จัดทำ DWG",temp:"",total:0,ok:0,ng:0,remark:"",resp:"ธัญลักษณ์-SA",start:"2026-05-27",due:"2026-05-30",finish:"",status:"In Progress",priority:"Low",rca_id:"",capa_id:""},
+{id:"ITM-2026-019",mid:"MTG-2026-05",date:"2026-05-27",no:2,part:"SYS",tqm:"Q",dept:"QA",loc:"SYS",pain:"Appearance : ชิ้นงานขึ้นสนิม",rca_sum:"",action:"",temp:"",total:0,ok:0,ng:0,remark:"",resp:"พัฒนเดช-QA",start:"2026-05-27",due:"2026-05-30",finish:"",status:"In Progress",priority:"Low",rca_id:"",capa_id:""},
+{id:"ITM-2026-020",mid:"MTG-2026-05",date:"2026-05-27",no:3,part:"N1WB-E31406-APIA-07_INSERT",tqm:"Q",dept:"QA",loc:"SPV",pain:"ชิ้นงาน ไม่เข้า Jig & Mold",rca_sum:"Dimension Jig ติดค่า Max",action:"ลดขนาด Jig & Mold",temp:"",total:0,ok:0,ng:0,remark:"",resp:"พัฒนเดช-QA",start:"2026-05-27",due:"2026-05-30",finish:"",status:"In Progress",priority:"High",rca_id:"",capa_id:""}],
+rcas:[
+{id:"RCA-2026-001",item:"ITM-2026-001",prob:"กลึงชิ้นงานยาว LIVER-LH ผิดสเปก",cat:"Method",w1:"ชิ้นงานยาวเกินสเปก",w2:"OPS กำหนดความยาว 107 ผิด",w3:"DWG ระบุ 107 ไม่ถูกต้อง",w4:"ไม่มีการทบทวน DWG ก่อนผลิต",w5:"ขาด QC Gate ก่อนเริ่ม Process",root:"DWG ผิด OPS ไม่ตรวจสอบ",owner:"พัฒนเดช-QA",date:"2026-01-09",verBy:"พัฒนเดช-QA",verDate:"2026-01-09"},
+{id:"RCA-2026-002",item:"ITM-2026-002",prob:"กลึงชิ้นงานยาว LIVER-RH ผิดสเปก",cat:"Method",w1:"ชิ้นงานยาวเกินสเปก",w2:"OPS กำหนดความยาว 107 ผิด",w3:"DWG ระบุ 107 ไม่ถูกต้อง",w4:"ไม่มีการทบทวน DWG",w5:"ขาด QC Gate",root:"DWG ผิด OPS ไม่ตรวจสอบ",owner:"พัฒนเดช-QA",date:"2026-01-09",verBy:"พัฒนเดช-QA",verDate:"2026-01-09"},
+{id:"RCA-2026-003",item:"ITM-2026-003",prob:"ประกอบไม่ล๊อค CLIP",cat:"Machine",w1:"Clip ประกอบไม่ล๊อค",w2:"Over Spec ดันติด",w3:"ขนาดชิ้นงาน Oversize",w4:"QC ไม่ตรวจ Incoming",w5:"ขาด Inspection Record",root:"ชิ้นงาน Over Spec ขาด Incoming QC",owner:"พัฒนเดช-QA",date:"2026-01-09",verBy:"พัฒนเดช-QA",verDate:"2026-01-09"},
+{id:"RCA-2026-004",item:"ITM-2026-006",prob:"Thread NG NUT AM1T033F0",cat:"Machine",w1:"Plug Gauge GO ไม่เข้า",w2:"Thread NG จาก Process",w3:"Tool สึกหรอ",w4:"PM ไม่ครบถ้วน",w5:"ไม่มี Tool Change Criteria",root:"Tool สึก ไม่มี PM Schedule",owner:"มานพ-QC",date:"2026-01-16",verBy:"มานพ-QC",verDate:"2026-01-16"},
+{id:"RCA-2026-005",item:"ITM-2026-008",prob:"โซ่ขาด เครื่องจักรเสียหาย",cat:"Machine",w1:"โซ่ขาดระหว่างการผลิต",w2:"โซ่สึกหรอเกินอายุ",w3:"ไม่มี PM Schedule โซ่",w4:"PM แผนไม่ครอบคลุม",w5:"ไม่มี Inspection ก่อนใช้งาน",root:"โซ่ขาดเพราะ PM ไม่ครบถ้วน",owner:"ประทีป-MT",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-006",item:"ITM-2026-009",prob:"ลบเหลี่ยมมาก INSERT BOLD",cat:"Man",w1:"ลบเหลี่ยมมากเกิน",w2:"พนักงานลบมากกว่า Spec",w3:"ไม่มี Visual Standard",w4:"Training ไม่เพียงพอ",w5:"ไม่มี Work Instruction ภาพ",root:"ขาด WI ภาพ / Visual Aid",owner:"พัฒนเดช-QA",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-007",item:"ITM-2026-010",prob:"ผิวกลมเล็ก PIVOT NG",cat:"Machine",w1:"ผิวกลมเล็กกว่า Spec",w2:"Tool สึก",w3:"PM ไม่สม่ำเสมอ",w4:"ไม่มี SPC",w5:"ขาด Control Chart",root:"Tool สึก ไม่มี SPC Control",owner:"พัฒนเดช-QA",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-008",item:"ITM-2026-011",prob:"รูโตเกิน Spec BAR",cat:"Machine",w1:"รูโตเกิน เจาะ 6.9+0.05",w2:"Jig/Fixture หลวม",w3:"Jig สึก ไม่ได้เปลี่ยน",w4:"ไม่มี Jig Inspection",w5:"PM Jig ไม่มี",root:"Jig สึก ไม่มี PM และ Inspection",owner:"ธีรสิทธิ์-PE",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-009",item:"ITM-2026-013",prob:"ใช้ DATA ผลิต ไม่ใช้ DWG",cat:"Method",w1:"ผลิตด้วย DATA ผิด",w2:"ไม่ใช้ DWG ที่ถูกต้อง",w3:"System ควบคุมเอกสารไม่ดี",w4:"Document Control ไม่ครบถ้วน",w5:"ขาด ECN Process",root:"Document Control ล้มเหลว",owner:"ธีรสิทธิ์-PE",date:"2026-01-30",verBy:"พัฒนเดช-QA",verDate:"2026-01-30"},
+{id:"RCA-2026-010",item:"ITM-2026-014",prob:"ผิวโต ECR เปลี่ยน Spec",cat:"Method",w1:"ผิว Ø5.8 → 5.925",w2:"ECR ไม่ได้แจ้ง Production",w3:"แจ้ง ECR ไม่ครบ",w4:"ขาด ECR Checklist",w5:"ไม่มีขั้นตอน ECR จาก Customer",root:"กระบวนการ ECR ไม่สมบูรณ์",owner:"พัฒนเดช-QA",date:"2026-01-30",verBy:"พัฒนเดช-QA",verDate:"2026-01-30"},
+{id:"RCA-2026-011",item:"ITM-2026-015",prob:"Skip ต๊าปเกลียว KWBA",cat:"Man",w1:"ไม่ต๊าปเกลียว ผ่าน QC",w2:"พนักงาน Skip Process",w3:"ไม่มี Foolproofing",w4:"Poka-yoke ไม่มี",w5:"Process Design ไม่มี Error Detection",root:"ขาด Poka-yoke ในกระบวนการ",owner:"พัฒนเดช-QA",date:"2026-01-30",verBy:"พัฒนเดช-QA",verDate:""}],
+capas:[
+{id:"CAPA-2026-001",item:"ITM-2026-001",rca:"RCA-2026-001",type:"CA",action:"แก้ไข OPS ใหม่ ตัดความยาว 103±0.2 / อัพเดท DWG Rev",resp:"พัฒนเดช-QA",target:"2026-01-16",actual:"2026-01-16",verify:"ตรวจชิ้นงาน Lot ถัดไป",result:"OK ทุกชิ้น ไม่มี NG",score:5,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-002",item:"ITM-2026-002",rca:"RCA-2026-002",type:"CA",action:"แก้ไข OPS ใหม่ LIVER-RH / อัพเดท DWG",resp:"พัฒนเดช-QA",target:"2026-01-16",actual:"2026-01-16",verify:"ตรวจชิ้นงาน Lot ถัดไป",result:"OK",score:5,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-003",item:"ITM-2026-003",rca:"RCA-2026-003",type:"CA",action:"กำหนด Incoming Inspection / เพิ่ม Sampling Plan",resp:"พัฒนเดช-QA",target:"2026-01-09",actual:"2026-01-09",verify:"Inspection Record",result:"OK 100%",score:4,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-003b",item:"ITM-2026-003",rca:"RCA-2026-003",type:"PA",action:"ทำ Supplier Audit / กำหนด Spec Sheet ชัดเจน",resp:"พัฒนเดช-QA",target:"2026-02-28",actual:"",verify:"Audit Report",result:"รอดำเนินการ",score:"",status:"In Progress",recur:"",closeBy:""},
+{id:"CAPA-2026-004",item:"ITM-2026-006",rca:"RCA-2026-004",type:"CA",action:"คัดแยก 100% Lot NG / Claim Supplier",resp:"มานพ-QC",target:"2026-01-15",actual:"2026-01-15",verify:"ตรวจ Gauge",result:"OK คัดแยกเสร็จ",score:5,status:"Closed",recur:"N",closeBy:"มานพ-QC"},
+{id:"CAPA-2026-004b",item:"ITM-2026-006",rca:"RCA-2026-004",type:"PA",action:"กำหนด PM Schedule เปลี่ยน Tool / SPC Control",resp:"มานพ-QC",target:"2026-02-15",actual:"",verify:"PM Record + SPC Chart",result:"รอดำเนินการ",score:"",status:"In Progress",recur:"",closeBy:""},
+{id:"CAPA-2026-005",item:"ITM-2026-008",rca:"RCA-2026-005",type:"CA",action:"เปลี่ยนโซ่ใหม่ทันที",resp:"ประทีป-MT",target:"2026-01-20",actual:"2026-01-20",verify:"ทดสอบเดินเครื่อง",result:"OK ใช้งานได้ปกติ",score:5,status:"Closed",recur:"N",closeBy:"ประทีป-MT"},
+{id:"CAPA-2026-005b",item:"ITM-2026-008",rca:"RCA-2026-005",type:"PA",action:"จัดทำ PM Plan โซ่ / Inspection Checklist",resp:"ประทีป-MT",target:"2026-02-28",actual:"",verify:"PM Record",result:"รอจัดทำ",score:"",status:"Open",recur:"",closeBy:""},
+{id:"CAPA-2026-006",item:"ITM-2026-010",rca:"RCA-2026-007",type:"CA",action:"ส่งชิ้นงาน NG Claim / PI รับ NG 637 ชิ้น",resp:"พัฒนเดช-QA",target:"2026-01-23",actual:"2026-01-23",verify:"Claim Record",result:"OK Claim สำเร็จ",score:5,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-007",item:"ITM-2026-011",rca:"RCA-2026-008",type:"CA",action:"แก้ DWG ให้ถูกต้อง / เปลี่ยน Jig ใหม่",resp:"ธีรสิทธิ์-PE",target:"2026-01-20",actual:"2026-01-20",verify:"ตรวจ First Article",result:"OK",score:5,status:"Closed",recur:"N",closeBy:"ธีรสิทธิ์-PE"},
+{id:"CAPA-2026-007b",item:"ITM-2026-011",rca:"RCA-2026-008",type:"PA",action:"กำหนด Jig PM Schedule / ทำ Jig Inspection Checklist",resp:"ธีรสิทธิ์-PE",target:"2026-03-31",actual:"",verify:"PM Record",result:"รอดำเนินการ",score:"",status:"Open",recur:"",closeBy:""},
+{id:"CAPA-2026-008",item:"ITM-2026-013",rca:"RCA-2026-009",type:"CA",action:"ประกาศ DWG Version ใหม่ ยกเลิกฉบับเก่า",resp:"ธีรสิทธิ์-PE",target:"2026-01-24",actual:"2026-01-24",verify:"Document Control",result:"OK อัพเดทแล้ว",score:5,status:"Closed",recur:"N",closeBy:"ธีรสิทธิ์-PE"},
+{id:"CAPA-2026-008b",item:"ITM-2026-013",rca:"RCA-2026-009",type:"PA",action:"ปรับปรุง Document Control Procedure / Training",resp:"ธีรสิทธิ์-PE",target:"2026-03-31",actual:"",verify:"Training Record + Procedure",result:"รอดำเนินการ",score:"",status:"Open",recur:"",closeBy:""},
+{id:"CAPA-2026-009",item:"ITM-2026-015",rca:"RCA-2026-011",type:"CA",action:"QC Recheck 100% Visual inspection Stock RTK",resp:"พัฒนเดช-QA",target:"2026-01-27",actual:"",verify:"Inspection Record",result:"กำลังตรวจ",score:"",status:"In Progress",recur:"",closeBy:""},
+{id:"CAPA-2026-009b",item:"ITM-2026-015",rca:"RCA-2026-011",type:"PA",action:"ออกแบบ Jig ป้องกัน Skip / ประเมิน Poka-yoke",resp:"ธีรสิทธิ์-PE",target:"2026-03-15",actual:"",verify:"Poka-yoke Design",result:"รอออกแบบ",score:"",status:"Open",recur:"",closeBy:""}]};
+
+let DB;
+function loadDB(){const s=localStorage.getItem(SK);DB=s?JSON.parse(s):JSON.parse(JSON.stringify(defaultData));}
+function saveDB(){localStorage.setItem(SK,JSON.stringify(DB));refreshAll();}
+
+// ============ HELPERS ============
+function cnt(a,k,v){return a.filter(x=>x[k]===v).length;}
+function bg(t,c){return `<span class="badge b-${c}">${t}</span>`;}
+function stB(s){const m={Complete:'complete','In Progress':'progress',Overdue:'overdue',Closed:'closed',Open:'open',Pending:'pending','On Hold':'onhold'};return bg(s||'-',m[s]||'pending');}
+function prB(p){const m={Critical:'critical',High:'high',Medium:'medium',Low:'low'};return p?bg(p,m[p]||'low'):'-';}
+function catB(c){return c?bg(c,c.toLowerCase()):'-';}
+function dL(t,a){if(!t)return'-';if(a)return'<span style="color:var(--gn)">✓</span>';const d=Math.ceil((new Date(t)-new Date())/(864e5));return `<span style="color:${d<0?'var(--rd)':'var(--gn)'};font-weight:700">${d}d</span>`;}
+function toast(m,b){const d=document.createElement('div');d.className='toast';d.style.background=b||'var(--gn)';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2500);}
+function opts(a,s){return a.map(v=>`<option ${v===s?'selected':''}>${v}</option>`).join('');}
+function esc(o){return JSON.stringify(o).replace(/'/g,"&#39;").replace(/"/g,"&quot;");}
+
+// ============ ID GEN ============
+function nxtId(p,a,f){const y=new Date().getFullYear(),ns=a.map(x=>{const m=x[f].match(new RegExp(p+'-'+y+'-(\\d+)'));return m?parseInt(m[1]):0;});return `${p}-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(3,'0')}`;}
+function nxtMtg(){const y=new Date().getFullYear(),ns=DB.meetings.map(m=>{const p=m.id.match(/MTG-\d+-(\d+)/);return p?parseInt(p[1]):0;});return `MTG-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(2,'0')}`;}
+
+// ============ TABS ============
+let curTab='dashboard';
+function switchTab(name){
+  curTab=name;
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.tab===name));
+  document.querySelectorAll('.tab-d').forEach((t,i)=>t.classList.toggle('active',['dashboard','items','rca','capa','meeting'][i]===name));
+  document.getElementById('fabAdd').style.display=name==='dashboard'?'none':'flex';
+  if(name==='dashboard')renderDashboard();
+}
+function fabAction(){const m={items:openItemForm,rca:openRCAForm,capa:openCAPAForm,meeting:openMtgForm};if(m[curTab])m[curTab]();}
+
+// ============ MODAL ============
+function openModal(t,h,fn){document.getElementById('modalTitle').textContent=t;document.getElementById('modalBody').innerHTML=h;document.getElementById('modalSave').onclick=()=>{fn();closeModal();};document.getElementById('modal').classList.add('show');document.body.style.overflow='hidden';}
+function closeModal(){document.getElementById('modal').classList.remove('show');document.body.style.overflow='';}
+
+// ============ MEETING ============
+function openMtgForm(e){
+  const m=e||{id:nxtMtg(),date:new Date().toISOString().slice(0,10),type:'Weekly QCDMS',week:'',year:new Date().getFullYear(),fac:'ธีรสิทธิ์-QMR',notes:''};
+  openModal(e?'แก้ไขประชุม':'เพิ่มประชุมใหม่',`<div class="form-grid">
+    <div class="form-group"><label>Meeting ID</label><input id="fm_id" value="${m.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fm_dt" value="${m.date}"></div>
+    <div class="form-group"><label>ประเภท</label><select id="fm_tp">${opts(['Weekly QCDMS','Monthly Review','Special'],m.type)}</select></div>
+    <div class="form-group"><label>สัปดาห์</label><input id="fm_wk" value="${m.week}" placeholder="W01"></div>
+    <div class="form-group"><label>ปี</label><input type="number" id="fm_yr" value="${m.year}"></div>
+    <div class="form-group"><label>ผู้ดำเนินการ</label><input id="fm_fc" value="${m.fac}"></div>
+    <div class="form-group full"><label>หมายเหตุ</label><textarea id="fm_nt">${m.notes||''}</textarea></div></div>`,()=>{
+    const o={id:$('fm_id').value,date:$('fm_dt').value,type:$('fm_tp').value,week:$('fm_wk').value,year:+$('fm_yr').value,fac:$('fm_fc').value,notes:$('fm_nt').value};
+    if(e){const i=DB.meetings.findIndex(x=>x.id===e.id);DB.meetings[i]=o;}else DB.meetings.push(o);
+    saveDB();toast(e?'อัพเดทแล้ว':'เพิ่มประชุมแล้ว');});
+}
+function delMtg(id){if(confirm('ลบ '+id+'?')){DB.meetings=DB.meetings.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+function renderMeetings(){
+  const rows=DB.meetings.map(m=>{const its=DB.items.filter(i=>i.mid===m.id),t=its.length,c=its.filter(i=>i.status==='Complete').length,p=its.filter(i=>i.status==='In Progress').length,o=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(c/t*100)+'%':'-';
+    return{m,t,c,p,o,pc};});
+  // Cards (mobile)
+  document.getElementById('cardMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<div class="card">
+    <div class="card-header"><span class="card-id">${m.id}</span><span style="color:var(--gr);font-size:11px">${m.date}</span></div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">Week</span><span class="val">${m.week} · ${m.type}</span></div>
+      <div class="row"><span class="lbl">Facilitator</span><span class="val">${m.fac}</span></div>
+      <div class="row"><span class="lbl">Items</span><span class="val">${t} total · ${c} ✅ · ${p} 🔄 · ${o} ⚠️ · ${pc}</span></div>
+    </div>
+    <div class="card-footer"><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️ แก้ไข</button>
+      <button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button>
+    </div></div></div>`).join('');
+  // Table (desktop)
+  document.getElementById('tbMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️</button><button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button></td>
+    <td><b>${m.id}</b></td><td>${m.date}</td><td>${m.type}</td><td>${m.week}</td><td>${m.year}</td><td>${m.fac}</td>
+    <td>${t}</td><td>${c}</td><td>${p}</td><td>${o}</td><td>${pc}</td></tr>`).join('');
+}
+
+// ============ ITEMS ============
+function openItemForm(e){
+  const i=e||{id:nxtId('ITM',DB.items,'id'),mid:'',date:new Date().toISOString().slice(0,10),no:'',part:'',tqm:'Q',dept:'QA',loc:'',pain:'',rca_sum:'',action:'',temp:'',total:0,ok:0,ng:0,remark:'',resp:'',start:new Date().toISOString().slice(0,10),due:'',finish:'',status:'Pending',priority:'Medium',rca_id:'',capa_id:''};
+  const mo=DB.meetings.map(m=>`<option value="${m.id}" ${m.id===i.mid?'selected':''}>${m.id} — ${m.date}</option>`).join('');
+  openModal(e?'แก้ไขรายการ':'เพิ่มรายการใหม่',`<div class="form-grid">
+    <div class="form-group"><label>Item ID</label><input id="fi_id" value="${i.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>🔗 Meeting</label><select id="fi_mid"><option value="">— เลือก —</option>${mo}</select></div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fi_dt" value="${i.date}"></div>
+    <div class="form-group"><label>ลำดับ</label><input type="number" id="fi_no" value="${i.no}"></div>
+    <div class="form-group full"><label>Part / Task</label><input id="fi_pt" value="${i.part}"></div>
+    <div class="form-group"><label>TQM</label><select id="fi_tq">${opts(['S','Q','D','C','M'],i.tqm)}</select></div>
+    <div class="form-group"><label>แผนก</label><select id="fi_dp">${opts(['QA','QC','PD','SALE','PI','STORE','MT','PE','AC'],i.dept)}</select></div>
+    <div class="form-group"><label>สถานที่</label><input id="fi_lc" value="${i.loc}"></div>
+    <div class="form-group full"><label>Pain Point</label><textarea id="fi_pn">${i.pain}</textarea></div>
+    <div class="form-group full"><label>Temp Action</label><textarea id="fi_tm">${i.temp}</textarea></div>
+    <div class="form-group full"><label>Action Plan</label><textarea id="fi_ac">${i.action}</textarea></div>
+    <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fi_rs" value="${i.resp}"></div>
+    <div class="form-group"><label>วันเริ่ม</label><input type="date" id="fi_st" value="${i.start}"></div>
+    <div class="form-group"><label>กำหนดเสร็จ</label><input type="date" id="fi_du" value="${i.due}"></div>
+    <div class="form-group"><label>วันเสร็จจริง</label><input type="date" id="fi_fn" value="${i.finish}"></div>
+    <div class="form-group"><label>สถานะ</label><select id="fi_ss">${opts(['Pending','In Progress','Complete','Overdue','On Hold'],i.status)}</select></div>
+    <div class="form-group"><label>Priority</label><select id="fi_pr">${opts(['Critical','High','Medium','Low'],i.priority)}</select></div>
+    <div class="form-group full"><label>หมายเหตุ</label><textarea id="fi_rm">${i.remark}</textarea></div></div>`,()=>{
+    const o={id:$('fi_id').value,mid:$('fi_mid').value,date:$('fi_dt').value,no:+$('fi_no').value||0,part:$('fi_pt').value,tqm:$('fi_tq').value,dept:$('fi_dp').value,loc:$('fi_lc').value,pain:$('fi_pn').value,rca_sum:i.rca_sum,action:$('fi_ac').value,temp:$('fi_tm').value,total:i.total,ok:i.ok,ng:i.ng,remark:$('fi_rm').value,resp:$('fi_rs').value,start:$('fi_st').value,due:$('fi_du').value,finish:$('fi_fn').value,status:$('fi_ss').value,priority:$('fi_pr').value,rca_id:i.rca_id,capa_id:i.capa_id};
+    if(e){const x=DB.items.findIndex(x=>x.id===e.id);DB.items[x]=o;}else DB.items.push(o);
+    saveDB();toast(e?'อัพเดทแล้ว':'เพิ่มรายการแล้ว');});
+}
+function delItem(id){if(confirm('ลบ '+id+'?')){DB.items=DB.items.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+function qRCA(id){const i=DB.items.find(x=>x.id===id);openRCAForm({id:nxtId('RCA',DB.rcas,'id'),item:id,prob:i.pain,cat:'Method',w1:'',w2:'',w3:'',w4:'',w5:'',root:'',owner:i.resp,date:new Date().toISOString().slice(0,10),verBy:'',verDate:''},true);}
+function qCAPA(id){const i=DB.items.find(x=>x.id===id);const rs=DB.rcas.filter(r=>r.item===id);openCAPAForm({id:nxtId('CAPA',DB.capas,'id'),item:id,rca:rs.length?rs[0].id:'',type:'CA',action:'',resp:i.resp,target:'',actual:'',verify:'',result:'',score:'',status:'Open',recur:'',closeBy:''},true);}
+
+function renderItems(){
+  const fs=$('fSt').value,ft=$('fTq').value,fd=$('fDp').value,fp=$('fPr').value,q=$('fQ').value.toLowerCase();
+  const data=DB.items.filter(i=>{if(fs&&i.status!==fs)return!1;if(ft&&i.tqm!==ft)return!1;if(fd&&i.dept!==fd)return!1;if(fp&&i.priority!==fp)return!1;if(q&&!i.part.toLowerCase().includes(q)&&!i.pain.toLowerCase().includes(q)&&!i.id.toLowerCase().includes(q))return!1;return!0;});
+  // Cards
+  document.getElementById('cardItems').innerHTML=data.map(i=>{
+    const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca" onclick="qRCA('${i.id}')">➕RCA</button>`;
+    const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa" onclick="qCAPA('${i.id}')">➕CAPA</button>`;
+    return `<div class="card" style="border-left-color:${i.status==='Complete'?'var(--gn)':i.status==='In Progress'?'var(--or)':'var(--rd)'}">
+      <div class="card-header"><span class="card-id">${i.id}</span><div class="card-badges">${stB(i.status)} ${prB(i.priority)}</div></div>
+      <div class="card-body">
+        <div class="row"><span class="lbl">Part</span><span class="val" style="font-weight:600">${i.part}</span></div>
+        <div class="row"><span class="lbl">Pain</span><span class="val">${i.pain}</span></div>
+        ${i.temp?`<div class="row"><span class="lbl">Temp</span><span class="val" style="color:var(--or)">${i.temp}</span></div>`:''}
+        ${i.action?`<div class="row"><span class="lbl">Action</span><span class="val">${i.action}</span></div>`:''}
+        <div class="row"><span class="lbl">Info</span><span class="val">${i.tqm} · ${i.dept} · ${i.loc} · ${i.resp}</span></div>
+        <div class="row"><span class="lbl">Due</span><span class="val">${i.due} ${dL(i.due,i.finish)}</span></div>
+      </div>
+      <div class="card-footer"><div class="card-link">${rcaL} ${capaL}</div><div class="card-actions">
+        <button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button>
+        <button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button>
+      </div></div></div>`;}).join('');
+  // Table
+  document.getElementById('tbItems').innerHTML=data.map(i=>{
+    const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca btn-sm" onclick="qRCA('${i.id}')">+RCA</button>`;
+    const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa btn-sm" onclick="qCAPA('${i.id}')">+CAPA</button>`;
+    return `<tr><td><button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button><button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button></td>
+    <td><b>${i.id}</b></td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
+    <td class="left" style="max-width:160px">${i.pain}</td><td class="left" style="max-width:120px">${i.temp}</td><td class="left" style="max-width:160px">${i.action}</td>
+    <td>${i.resp}</td><td>${i.due}</td><td>${stB(i.status)}</td><td>${prB(i.priority)}</td><td>${rcaL}</td><td>${capaL}</td></tr>`;}).join('');
+}
+
+// ============ RCA ============
+function openRCAForm(e,isN){
+  const r=e||{id:nxtId('RCA',DB.rcas,'id'),item:'',prob:'',cat:'Method',w1:'',w2:'',w3:'',w4:'',w5:'',root:'',owner:'',date:new Date().toISOString().slice(0,10),verBy:'',verDate:''};
+  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===r.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  openModal(e&&!isN?'แก้ไข RCA':'เพิ่ม RCA',`<div class="form-grid">
+    <div class="form-group"><label>RCA ID</label><input id="fr_id" value="${r.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>🔗 Item</label><select id="fr_it" ${isN&&r.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&r.item?`<input type="hidden" id="fr_ith" value="${r.item}">`:''}</div>
+    <div class="form-group full"><label>ปัญหา</label><textarea id="fr_pb">${r.prob}</textarea></div>
+    <div class="form-group"><label>4M+E</label><select id="fr_ct">${opts(['Man','Machine','Method','Material','Environment'],r.cat)}</select></div>
+    <div class="form-group"><label>ผู้วิเคราะห์</label><input id="fr_ow" value="${r.owner}"></div>
+    <div class="form-group full"><label>Why #1</label><input id="fr_w1" value="${r.w1}"></div>
+    <div class="form-group full"><label>Why #2</label><input id="fr_w2" value="${r.w2}"></div>
+    <div class="form-group full"><label>Why #3</label><input id="fr_w3" value="${r.w3}"></div>
+    <div class="form-group full"><label>Why #4</label><input id="fr_w4" value="${r.w4}"></div>
+    <div class="form-group full"><label>Why #5 (Root)</label><input id="fr_w5" value="${r.w5}"></div>
+    <div class="form-group full"><label>สรุป Root Cause</label><textarea id="fr_rt">${r.root}</textarea></div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fr_dt" value="${r.date}"></div>
+    <div class="form-group"><label>ผู้ตรวจสอบ</label><input id="fr_vb" value="${r.verBy}"></div></div>`,()=>{
+    const iv=$('fr_ith')?$('fr_ith').value:$('fr_it').value;
+    const o={id:$('fr_id').value,item:iv,prob:$('fr_pb').value,cat:$('fr_ct').value,w1:$('fr_w1').value,w2:$('fr_w2').value,w3:$('fr_w3').value,w4:$('fr_w4').value,w5:$('fr_w5').value,root:$('fr_rt').value,owner:$('fr_ow').value,date:$('fr_dt').value,verBy:$('fr_vb').value,verDate:r.verDate};
+    if(e&&!isN){const x=DB.rcas.findIndex(x=>x.id===e.id);DB.rcas[x]=o;}else DB.rcas.push(o);
+    const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0){DB.items[ix].rca_id=o.id;DB.items[ix].rca_sum=o.root;}
+    saveDB();toast('บันทึก RCA — เชื่อมโยงอัตโนมัติ');});
+}
+function delRCA(id){if(confirm('ลบ '+id+'?')){DB.items.forEach(i=>{if(i.rca_id===id)i.rca_id='';});DB.rcas=DB.rcas.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+
+function renderRCA(){
+  const fc=$('fRcaCat').value,q=$('fRcaQ').value.toLowerCase();
+  const data=DB.rcas.filter(r=>{if(fc&&r.cat!==fc)return!1;if(q&&!r.prob.toLowerCase().includes(q)&&!r.root.toLowerCase().includes(q))return!1;return!0;});
+  // Cards
+  document.getElementById('cardRCA').innerHTML=data.map(r=>`<div class="card" style="border-left-color:${r.cat==='Man'?'var(--rd)':r.cat==='Machine'?'var(--or)':r.cat==='Method'?'var(--md)':'var(--gn)'}">
+    <div class="card-header"><span class="card-id">${r.id}</span>${catB(r.cat)}</div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">Item</span><span class="val link" onclick="switchTab('items')">${r.item}</span></div>
+      <div class="row"><span class="lbl">ปัญหา</span><span class="val" style="font-weight:600">${r.prob}</span></div>
+      <div class="why-chain">
+        ${r.w1?`<div class="why-step"><span class="why-num">W1</span>${r.w1}</div>`:''}
+        ${r.w2?`<div class="why-step"><span class="why-num">W2</span>${r.w2}</div>`:''}
+        ${r.w3?`<div class="why-step"><span class="why-num">W3</span>${r.w3}</div>`:''}
+        ${r.w4?`<div class="why-step"><span class="why-num">W4</span>${r.w4}</div>`:''}
+        ${r.w5?`<div class="why-step"><span class="why-num">W5</span>${r.w5}</div>`:''}
+      </div>
+      ${r.root?`<div class="root-cause">🎯 ${r.root}</div>`:''}
+      <div class="row" style="margin-top:4px"><span class="lbl">Owner</span><span class="val">${r.owner} · ${r.date}</span></div>
+    </div>
+    <div class="card-footer"><div></div><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button>
+      <button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button>
+    </div></div></div>`).join('');
+  // Table
+  document.getElementById('tbRCA').innerHTML=data.map(r=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button><button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button></td>
+    <td><b>${r.id}</b></td><td class="link" onclick="switchTab('items')">${r.item}</td><td class="left">${r.prob}</td><td>${catB(r.cat)}</td>
+    <td class="left" style="font-size:11px">${r.w1}</td><td class="left" style="font-size:11px">${r.w2}</td><td class="left" style="font-size:11px">${r.w3}</td>
+    <td class="left" style="font-size:11px">${r.w4}</td><td class="left" style="font-size:11px">${r.w5}</td>
+    <td class="left" style="font-weight:700;color:var(--rd)">${r.root}</td><td>${r.owner}</td><td>${r.date}</td></tr>`).join('');
+}
+
+// ============ CAPA ============
+function openCAPAForm(e,isN){
+  const c=e||{id:nxtId('CAPA',DB.capas,'id'),item:'',rca:'',type:'CA',action:'',resp:'',target:'',actual:'',verify:'',result:'',score:'',status:'Open',recur:'',closeBy:''};
+  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===c.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  const ro=DB.rcas.map(r=>`<option value="${r.id}" ${r.id===c.rca?'selected':''}>${r.id}</option>`).join('');
+  openModal(e&&!isN?'แก้ไข CAPA':'เพิ่ม CAPA',`<div class="form-grid">
+    <div class="form-group"><label>CAPA ID</label><input id="fc_id" value="${c.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>ประเภท</label><select id="fc_tp">${opts(['CA','PA','CA+PA'],c.type)}</select></div>
+    <div class="form-group"><label>🔗 Item</label><select id="fc_it" ${isN&&c.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&c.item?`<input type="hidden" id="fc_ith" value="${c.item}">`:''}</div>
+    <div class="form-group"><label>🔗 RCA</label><select id="fc_rc"><option value="">—</option>${ro}</select></div>
+    <div class="form-group full"><label>มาตรการ</label><textarea id="fc_ac">${c.action}</textarea></div>
+    <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fc_rs" value="${c.resp}"></div>
+    <div class="form-group"><label>กำหนดเสร็จ</label><input type="date" id="fc_tg" value="${c.target}"></div>
+    <div class="form-group"><label>เสร็จจริง</label><input type="date" id="fc_at" value="${c.actual}"></div>
+    <div class="form-group"><label>สถานะ</label><select id="fc_st">${opts(['Open','In Progress','Closed'],c.status)}</select></div>
+    <div class="form-group full"><label>วิธีตรวจสอบ</label><textarea id="fc_vr">${c.verify}</textarea></div>
+    <div class="form-group full"><label>ผลตรวจสอบ</label><textarea id="fc_re">${c.result}</textarea></div>
+    <div class="form-group"><label>Score (1-5)</label><input type="number" id="fc_sc" min="1" max="5" value="${c.score}"></div>
+    <div class="form-group"><label>เกิดซ้ำ?</label><select id="fc_rr"><option value="">-</option><option ${c.recur==='Y'?'selected':''}>Y</option><option ${c.recur==='N'?'selected':''}>N</option></select></div>
+    <div class="form-group"><label>ปิดงานโดย</label><input id="fc_cb" value="${c.closeBy}"></div></div>`,()=>{
+    const iv=$('fc_ith')?$('fc_ith').value:$('fc_it').value;
+    const o={id:$('fc_id').value,item:iv,rca:$('fc_rc').value,type:$('fc_tp').value,action:$('fc_ac').value,resp:$('fc_rs').value,target:$('fc_tg').value,actual:$('fc_at').value,verify:$('fc_vr').value,result:$('fc_re').value,score:$('fc_sc').value?+$('fc_sc').value:'',status:$('fc_st').value,recur:$('fc_rr').value,closeBy:$('fc_cb').value};
+    if(e&&!isN){const x=DB.capas.findIndex(x=>x.id===e.id);DB.capas[x]=o;}else DB.capas.push(o);
+    const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0&&!DB.items[ix].capa_id)DB.items[ix].capa_id=o.id;
+    saveDB();toast('บันทึก CAPA — เชื่อมโยงอัตโนมัติ');});
+}
+function delCAPA(id){if(confirm('ลบ '+id+'?')){DB.items.forEach(i=>{if(i.capa_id===id)i.capa_id='';});DB.capas=DB.capas.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+
+function renderCAPA(){
+  const fs=$('fCapaSt').value,ft=$('fCapaTy').value,q=$('fCapaQ').value.toLowerCase();
+  const data=DB.capas.filter(c=>{if(fs&&c.status!==fs)return!1;if(ft&&c.type!==ft)return!1;if(q&&!c.action.toLowerCase().includes(q)&&!c.id.toLowerCase().includes(q))return!1;return!0;});
+  document.getElementById('cardCAPA').innerHTML=data.map(c=>`<div class="card" style="border-left-color:${c.status==='Closed'?'var(--gn)':c.status==='In Progress'?'var(--or)':'var(--rd)'}">
+    <div class="card-header"><span class="card-id">${c.id}</span><div class="card-badges">${bg(c.type,c.type==='CA'?'ca':'pa')} ${stB(c.status)}</div></div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">มาตรการ</span><span class="val" style="font-weight:600">${c.action}</span></div>
+      <div class="row"><span class="lbl">Link</span><span class="val"><span class="link" onclick="switchTab('items')">${c.item}</span> · <span class="link" onclick="switchTab('rca')">${c.rca||'-'}</span></span></div>
+      <div class="row"><span class="lbl">Resp</span><span class="val">${c.resp}</span></div>
+      <div class="row"><span class="lbl">Target</span><span class="val">${c.target} ${dL(c.target,c.actual)}</span></div>
+      ${c.verify?`<div class="row"><span class="lbl">Verify</span><span class="val">${c.verify} → ${c.result}</span></div>`:''}
+      ${c.score?`<div class="row"><span class="lbl">Score</span><span class="val">${'⭐'.repeat(c.score)}</span></div>`:''}
+    </div>
+    <div class="card-footer"><div></div><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button>
+      <button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button>
+    </div></div></div>`).join('');
+  document.getElementById('tbCAPA').innerHTML=data.map(c=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button><button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button></td>
+    <td><b>${c.id}</b></td><td class="link" onclick="switchTab('items')">${c.item}</td><td class="link" onclick="switchTab('rca')">${c.rca||'-'}</td>
+    <td>${bg(c.type,c.type==='CA'?'ca':'pa')}</td><td class="left" style="max-width:220px">${c.action}</td><td>${c.resp}</td>
+    <td>${c.target}</td><td>${c.actual||'-'}</td><td class="left">${c.verify}</td><td class="left">${c.result}</td>
+    <td>${c.score||'-'}</td><td>${stB(c.status)}</td><td>${dL(c.target,c.actual)}</td><td>${c.recur||'-'}</td></tr>`).join('');
+}
+
+// ============ DASHBOARD ============
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+function renderDashboard(){
+  const t=DB.items.length,co=cnt(DB.items,'status','Complete'),ip=cnt(DB.items,'status','In Progress'),
+    od=cnt(DB.items,'status','Overdue'),pc=t?Math.round(co/t*100):0,
+    ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed'),cx=ct-cc;
+  // Summary strip
+  document.getElementById('summaryStrip').innerHTML=
+    `<div class="summary-chip" style="background:var(--md)"><span class="num">${t}</span>Items</div>
+     <div class="summary-chip" style="background:var(--gn)"><span class="num">${co}</span>Done</div>
+     <div class="summary-chip" style="background:var(--or)"><span class="num">${ip}</span>IP</div>
+     <div class="summary-chip" style="background:var(--rd)"><span class="num">${od}</span>OD</div>
+     <div class="summary-chip" style="background:var(--tl)"><span class="num">${pc}%</span></div>
+     <div class="summary-chip" style="background:var(--md)"><span class="num">${ct}</span>CAPA</div>
+     <div class="summary-chip" style="background:var(--gn)"><span class="num">${cc}</span>Closed</div>`;
+  // KPIs
+  const kpis=[{l:'Total Items',v:t,c:'var(--md)'},{l:'Complete',v:co,c:'var(--gn)'},{l:'In Progress',v:ip,c:'var(--or)'},{l:'Overdue',v:od,c:'var(--rd)'},{l:'% สำเร็จ',v:pc+'%',c:'var(--tl)'},{l:'CAPA Total',v:ct,c:'var(--md)'},{l:'CAPA Closed',v:cc,c:'var(--gn)'},{l:'CAPA Open',v:cx,c:'var(--rd)'}];
+  document.getElementById('kpiRow').innerHTML=kpis.map(k=>`<div class="kpi"><div class="label">${k.l}</div><div class="value" style="color:${k.c}">${k.v}</div></div>`).join('');
+  // Charts
+  destroyCharts();
+  const O={responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}}}};
+  charts.push(new Chart($('cStatus'),{type:'doughnut',data:{labels:['Complete','In Progress','Overdue','Pending'],datasets:[{data:[co,ip,od,cnt(DB.items,'status','Pending')],backgroundColor:['#28A745','#FD7E14','#DC3545','#6C757D'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
+  charts.push(new Chart($('cTQM'),{type:'bar',data:{labels:['S','Q','D','C','M'],datasets:[{data:['S','Q','D','C','M'].map(x=>cnt(DB.items,'tqm',x)),backgroundColor:['#DC3545','#2E5D8A','#17A2B8','#FFC107','#28A745'],borderRadius:4}]},options:{...O,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cPri'),{type:'bar',data:{labels:['Critical','High','Medium','Low'],datasets:[{data:['Critical','High','Medium','Low'].map(x=>cnt(DB.items,'priority',x)),backgroundColor:['#DC3545','#FD7E14','#FFC107','#17A2B8'],borderRadius:4}]},options:{...O,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cRCA'),{type:'doughnut',data:{labels:['Man','Machine','Method','Material','Env'],datasets:[{data:['Man','Machine','Method','Material','Environment'].map(x=>cnt(DB.rcas,'cat',x)),backgroundColor:['#DC3545','#FD7E14','#2E5D8A','#28A745','#17A2B8'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
+  charts.push(new Chart($('cCAPA'),{type:'doughnut',data:{labels:['Closed','In Progress','Open'],datasets:[{data:['Closed','In Progress','Open'].map(x=>cnt(DB.capas,'status',x)),backgroundColor:['#28A745','#FFC107','#DC3545'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
+  const ds=['QA','QC','PD','SALE','STORE','MT','PE'];
+  charts.push(new Chart($('cDept'),{type:'bar',data:{labels:ds,datasets:[{data:ds.map(x=>cnt(DB.items,'dept',x)),backgroundColor:'#17A2B8',borderRadius:4}]},options:{...O,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cType'),{type:'doughnut',data:{labels:['CA','PA'],datasets:[{data:[cnt(DB.capas,'type','CA'),cnt(DB.capas,'type','PA')],backgroundColor:['#2E5D8A','#FD7E14'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
+  const mw=DB.meetings.filter(m=>DB.items.some(i=>i.mid===m.id));
+  charts.push(new Chart($('cTrend'),{type:'line',data:{labels:mw.map(m=>m.week),datasets:[
+    {label:'Total',data:mw.map(m=>DB.items.filter(i=>i.mid===m.id).length),borderColor:'#2E5D8A',backgroundColor:'rgba(46,93,138,.1)',fill:true,tension:.3,pointRadius:4},
+    {label:'Done',data:mw.map(m=>DB.items.filter(i=>i.mid===m.id&&i.status==='Complete').length),borderColor:'#28A745',backgroundColor:'rgba(40,167,69,.1)',fill:true,tension:.3,pointRadius:4}
+  ]},options:{...O,scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+}
+
+// ============ EXPORT/IMPORT ============
+function exportJSON(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`QCDMS_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Export สำเร็จ','var(--tl)');}
+function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.meetings&&d.items&&d.rcas&&d.capas){DB=d;saveDB();toast('Import สำเร็จ','var(--gn)');}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};r.readAsText(f);e.target.value='';}
+
+// ============ UTIL ============
+function $(id){return document.getElementById(id);}
+function refreshAll(){renderDashboard();renderItems();renderRCA();renderCAPA();renderMeetings();}
+
+// ============ INIT ============
+$('dtNow').textContent=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+loadDB();refreshAll();
+$('fabAdd').style.display='none';
+</script>
+</body>
+</html>
