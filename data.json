@@ -284,7 +284,7 @@
       "mid": "MTG-2026-01",
       "date": "2026-01-09",
       "no": 5,
-      "part": "40051900_SPACER_V21",
+      "part": "40051900_SPACER",
       "tqm": "D",
       "dept": "SALE",
       "loc": "RTK",
@@ -303,7 +303,12 @@
       "status": "Complete",
       "priority": "Medium",
       "rca_id": "",
-      "capa_id": ""
+      "capa_id": "",
+      "img_ok": "",
+      "img_ng": "",
+      "img_tag": "",
+      "snr": "",
+      "maker": ""
     },
     {
       "id": "ITM-2026-006",
