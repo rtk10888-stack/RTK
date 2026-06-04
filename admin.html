@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RTK Admin — Content Manager</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/logo-mark.svg">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<style>
+  body{background:var(--bg-soft)}
+  .admin-wrap{max-width:1080px;margin:0 auto;padding:20px}
+  .login-box{max-width:380px;margin:8vh auto}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1.4rem;box-shadow:var(--shadow);margin-bottom:1.2rem}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.6rem}
+  .tabs2{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+  .tab2{background:#fff;border:1px solid var(--line);color:var(--steel);padding:.5rem 1.1rem;border-radius:30px;cursor:pointer;font-weight:700;font-size:.88rem;font-family:inherit}
+  .tab2.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .coll{display:none}.coll.active{display:block}
+  .btn-sm{padding:.4rem .8rem;font-size:.82rem}
+  .btn-del{background:#fff;border:2px solid var(--orange);color:var(--orange)}
+  .btn-del:hover{background:var(--orange);color:#fff}
+  .btn-line{background:#06C755;color:#fff;border:none}
+  .hint{font-size:.82rem;color:var(--muted);margin-top:.6rem}
+  .icard{border:1px solid var(--line);border-radius:8px;padding:1rem;margin-bottom:.8rem;background:#fff}
+  .irow{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem}
+  .irow .field{margin-bottom:.4rem}
+  .field label{display:block;font-weight:700;font-size:.8rem;color:var(--navy);margin-bottom:.25rem}
+  .field input,.field select,.field textarea{width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.88rem}
+  .dropz{border:2px dashed var(--steel-light);border-radius:8px;padding:.8rem;text-align:center;color:var(--muted);font-size:.84rem;cursor:pointer;background:var(--bg-soft)}
+  .thumbs{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+  .thumb{position:relative;width:70px;height:56px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--bg-soft)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb .x{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--orange);color:#fff;border:none;cursor:pointer;font-size:.8rem;line-height:1}
+  .acts{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem}
+  .chkrow{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;color:var(--navy)}
+  @media(max-width:700px){.irow{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.irow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="login" class="admin-wrap">
+  <div class="panel login-box">
+    <div style="text-align:center;margin-bottom:1rem"><img src="assets/logo-navy.svg" alt="RTK" style="height:70px"></div>
+    <h2 style="font-size:1.3rem;text-align:center;margin-bottom:1.2rem">Content Manager</h2>
+    <div class="field"><label>Username</label><input id="u" value="admin"></div>
+    <div class="field" style="margin-top:.6rem"><label>Password</label>
+      <div style="position:relative">
+        <input id="p" type="password" placeholder="admin123" style="padding-right:2.6rem" onkeydown="if(event.key==='Enter')login()">
+        <button type="button" id="pwEye" onclick="togglePw()" title="show/hide" style="position:absolute;right:.45rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--steel);display:flex">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:1rem" onclick="login()">Sign in</button>
+    <p class="hint">admin / admin123 — เปลี่ยนใน admin.html ก่อนใช้จริง</p>
+  </div>
+</div>
+
+<div id="dash" class="admin-wrap" style="display:none">
+  <div class="topbar">
+    <div class="logo" style="gap:.6rem"><img src="assets/logo-navy.svg" alt="RTK" style="height:46px"><span style="color:var(--navy);font-weight:800">Content Manager</span></div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <a href="index.html" class="btn btn-outline btn-sm">View Site</a>
+      <a href="dashboard.html" class="btn btn-outline btn-sm">Dashboard</a>
+      <button class="btn btn-outline btn-sm" onclick="exportData()">⬇ Export</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('impFile').click()">⬆ Import</button>
+      <input id="impFile" type="file" accept="application/json" style="display:none" onchange="importData(this)">
+      <button class="btn btn-primary btn-sm" onclick="doSignout()">⏻ Sign out</button>
+    </div>
+  </div>
+
+  <div class="tabs2">
+    <button class="tab2 active" data-c="products" onclick="showColl('products')">Items / ผลงาน</button>
+    <button class="tab2" data-c="machines" onclick="showColl('machines')">Machinery</button>
+    <button class="tab2" data-c="qc" onclick="showColl('qc')">QC Equipment</button>
+    <button class="tab2" data-c="dash" onclick="showColl('dash')">Dashboard</button>
+  </div>
+
+  <!-- PRODUCTS / ITEMS -->
+  <div class="coll active" id="coll_products">
+    <div class="panel">
+      <h3 style="margin-bottom:.8rem">เพิ่มรายการใหม่ (Add Item)</h3>
+      <div class="irow">
+        <div class="field"><label>ชื่อสินค้า / Name *</label><input id="p_name"></div>
+        <div class="field"><label>MAKER / ผู้ผลิต</label><input id="p_maker"></div>
+        <div class="field"><label>Industry</label><select id="p_industry"><option>Automotive</option><option>Motorcycle</option><option>Electronics</option><option>Industrial</option></select></div>
+        <div class="field"><label>วัสดุ / Material</label><input id="p_material"></div>
+        <div class="field"><label>กระบวนการ / Process</label><input id="p_process"></div>
+        <div class="field"><label>ปริมาณ/หมายเหตุ</label><input id="p_note"></div>
+      </div>
+      <div style="margin:.5rem 0" class="chkrow"><input type="checkbox" id="p_sr" onchange="document.getElementById('p_temp').style.display=this.checked?'block':'none'"> <label style="margin:0">Sorting &amp; Rework (S&amp;R)</label></div>
+      <div class="field" id="p_temp" style="display:none"><label>Temp action (มาตรการชั่วคราว เชื่อมโยง S&amp;R)</label><input id="p_tempv" placeholder="เช่น 100% sorting ที่ลูกค้า, แจ้ง 8D ..."></div>
+      <div class="dropz" id="p_drop" tabindex="0" onclick="document.getElementById('p_file').click()">📋 คลิกเพื่ออัปโหลด หรือ <b>วางรูป (Ctrl+V / paste)</b> ได้หลายรูป</div>
+      <input id="p_file" type="file" accept="image/*" multiple style="display:none" onchange="addFiles(this.files)">
+      <div class="thumbs" id="p_thumbs"></div>
+      <button class="btn btn-primary btn-sm" style="margin-top:.7rem" onclick="addProduct()">+ เพิ่มรายการ</button>
+      <p class="hint">วางรูปจากคลิปบอร์ดได้เลย (ถ่ายรูป/ก๊อปรูปมาแล้วกด Ctrl+V) · รูปถูกย่ออัตโนมัติเพื่อเก็บได้หลายรูป</p>
+    </div>
+    <div class="panel"><h3 style="margin-bottom:.8rem">รายการทั้งหมด (<span id="c_products">0</span>)</h3><div id="rows_products"></div></div>
+  </div>
+
+  <!-- MACHINES -->
+  <div class="coll" id="coll_machines">
+    <div class="panel">
+      <h3 style="margin-bottom:.8rem">Add Machine</h3>
+      <div class="irow">
+        <div class="field"><label>ชื่อเครื่องจักร *</label><input id="m_name"></div>
+        <div class="field"><label>Spec / capacity</label><input id="m_spec"></div>
+        <div class="field"><label>อัปโหลด/วางรูป</label><input id="m_file" type="file" accept="image/*" onchange="addOneFile('machines',this.files[0])"></div>
+      </div>
+      <div class="thumbs" id="m_thumbs"></div>
+      <button class="btn btn-primary btn-sm" onclick="addSimple('machines')">+ Add Machine</button>
+    </div>
+    <div class="panel"><h3 style="margin-bottom:.8rem">Machines (<span id="c_machines">0</span>)</h3><div id="rows_machines"></div></div>
+  </div>
+
+  <!-- QC -->
+  <div class="coll" id="coll_qc">
+    <div class="panel">
+      <h3 style="margin-bottom:.8rem">Add QC Equipment</h3>
+      <div class="irow">
+        <div class="field"><label>ชื่ออุปกรณ์ *</label><input id="q_name"></div>
+        <div class="field"><label>อัปโหลด/วางรูป</label><input id="q_file" type="file" accept="image/*" onchange="addOneFile('qc',this.files[0])"></div>
+      </div>
+      <div class="thumbs" id="q_thumbs"></div>
+      <button class="btn btn-primary btn-sm" onclick="addSimple('qc')">+ Add Equipment</button>
+    </div>
+    <div class="panel"><h3 style="margin-bottom:.8rem">QC Equipment (<span id="c_qc">0</span>)</h3><div id="rows_qc"></div></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="coll" id="coll_dash">
+    <div class="panel">
+      <h3 style="margin-bottom:1rem">Edit Dashboard — ตัวเลขรายไตรมาส</h3>
+      <div class="field" style="max-width:240px"><label>Quarter</label><select id="dq" onchange="loadDash()"></select></div>
+      <h4 style="margin:.6rem 0 .4rem;color:var(--navy)">Business Type (%)</h4>
+      <div class="irow"><div class="field"><label>Automotive</label><input id="d_auto" type="number"></div><div class="field"><label>Agricultural</label><input id="d_agri" type="number"></div><div class="field"><label>Electronic</label><input id="d_elec" type="number"></div><div class="field"><label>Etc</label><input id="d_etc" type="number"></div></div>
+      <h4 style="margin:.6rem 0 .4rem;color:var(--navy)">OEE</h4>
+      <div class="irow"><div class="field"><label>OEE</label><input id="d_oee" type="number" step="0.1"></div><div class="field"><label>Availability</label><input id="d_avail" type="number" step="0.1"></div><div class="field"><label>Performance</label><input id="d_perf" type="number" step="0.1"></div><div class="field"><label>Quality</label><input id="d_qual" type="number" step="0.1"></div></div>
+      <h4 style="margin:.6rem 0 .4rem;color:var(--navy)">Quality &amp; Delivery</h4>
+      <div class="irow"><div class="field"><label>OTD %</label><input id="d_otd" type="number" step="0.1"></div><div class="field"><label>OTIF %</label><input id="d_otif" type="number" step="0.1"></div><div class="field"><label>PPM</label><input id="d_ppm" type="number"></div><div class="field"><label>FPY %</label><input id="d_fpy" type="number" step="0.1"></div><div class="field"><label>Scrap %</label><input id="d_scrap" type="number" step="0.1"></div><div class="field"><label>Complaints</label><input id="d_compl" type="number"></div><div class="field"><label>Capacity %</label><input id="d_cap" type="number" step="0.1"></div><div class="field"><label>Output (M pcs)</label><input id="d_out" type="number" step="0.1"></div></div>
+      <h4 style="margin:.6rem 0 .4rem;color:var(--navy)">Sales &amp; Safety</h4>
+      <div class="irow"><div class="field"><label>RFQ</label><input id="d_rfq" type="number"></div><div class="field"><label>RFQ Conv %</label><input id="d_rfqc" type="number" step="0.1"></div><div class="field"><label>Lead days</label><input id="d_lead" type="number" step="0.1"></div><div class="field"><label>Safety days</label><input id="d_safe" type="number"></div></div>
+      <button class="btn btn-primary btn-sm" onclick="saveDash()">Save</button>
+      <button class="btn btn-outline btn-sm" onclick="exportDash()">Export for deploy</button>
+      <p class="hint">Save = เครื่องนี้ · Export = วางใน assets/dashboard-data.js แล้ว deploy · <a href="dashboard.html" target="_blank">เปิด Dashboard</a></p>
+      <textarea id="d_export" style="width:100%;height:140px;margin-top:.5rem;display:none;font-family:monospace;font-size:.78rem"></textarea>
+    </div>
+  </div>
+  <p class="hint">รูปอัปโหลด/วาง จะเก็บในเบราว์เซอร์เครื่องนี้ · ย้ายไปเครื่องอื่น: กด <b>Export</b> ได้ไฟล์ แล้วเครื่องอื่นกด <b>Import</b> ไฟล์นั้น</p>
+</div>
+
+<script src="assets/dashboard-data.js?v=10"></script>
+<script src="assets/portfolio.js?v=11"></script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function login(){ if(document.getElementById('u').value==='admin'&&document.getElementById('p').value==='admin123'){document.getElementById('login').style.display='none';document.getElementById('dash').style.display='block';renderAll();initDash();}else alert('Invalid credentials. Use admin / admin123'); }
+function logout(){ location.reload(); }
+function doSignout(){ if(confirm('ออกจากระบบ?')) logout(); }
+function togglePw(){ var f=document.getElementById('p'),b=document.getElementById('pwEye');var sh=(f.type==='password');f.type=sh?'text':'password';b.style.color=sh?'#E8640A':'var(--steel)'; }
+function toggleTemp(cb){ var c=cb.closest('.icard'); var t=c.querySelector('[data-k=tempAction]'); if(t)t.parentNode.style.display=cb.checked?'block':'none'; }
+var TAB='products';
+function showColl(c){TAB=c;var t=document.querySelectorAll('.tab2');for(var i=0;i<t.length;i++)t[i].classList.toggle('active',t[i].dataset.c===c);var d=document.querySelectorAll('.coll');for(var j=0;j<d.length;j++)d[j].classList.toggle('active',d[j].id==='coll_'+c);}
+
+/* ---------- image add buffers ---------- */
+var ADD_IMGS=[];           // new product images
+var SIMPLE_IMG={machines:'',qc:''};   // single image buffer for machines/qc add
+var pasteTarget='ADD';     // 'ADD' or item id (number)
+
+function renderAddThumbs(){ var el=document.getElementById('p_thumbs'); el.innerHTML=ADD_IMGS.map(function(src,i){return '<div class="thumb"><img src="'+src+'"><button class="x" onclick="ADD_IMGS.splice('+i+',1);renderAddThumbs()">×</button></div>';}).join(''); }
+function addFiles(files){ if(!files)return; var arr=[].slice.call(files); arr.forEach(function(f){ if(!f.type||f.type.indexOf('image')<0)return; rtkFileToImg(f,function(d){ ADD_IMGS.push(d); renderAddThumbs(); }); }); }
+function addOneFile(coll,file){ if(!file)return; rtkFileToImg(file,function(d){ SIMPLE_IMG[coll]=d; document.getElementById((coll==='machines'?'m':'q')+'_thumbs').innerHTML='<div class="thumb"><img src="'+d+'"></div>'; }); }
+
+/* paste anywhere -> add image to current target */
+document.addEventListener('paste',function(e){
+  var items=(e.clipboardData||window.clipboardData).items; if(!items)return;
+  for(var i=0;i<items.length;i++){ if(items[i].type.indexOf('image')>-1){ var f=items[i].getAsFile(); rtkFileToImg(f,function(d){
+        if(pasteTarget==='ADD'){ if(TAB==='machines'){SIMPLE_IMG.machines=d;document.getElementById('m_thumbs').innerHTML='<div class="thumb"><img src="'+d+'"></div>';}
+          else if(TAB==='qc'){SIMPLE_IMG.qc=d;document.getElementById('q_thumbs').innerHTML='<div class="thumb"><img src="'+d+'"></div>';}
+          else { ADD_IMGS.push(d); renderAddThumbs(); } }
+        else { var id=pasteTarget; var list=rtkLoad(); for(var k=0;k<list.length;k++){ if(list[k].id===id){ list[k].imgs=rtkImgs(list[k]); list[k].imgs.push(d); list[k].img=''; } } trySave(RTK_STORE_KEY,list,'products'); }
+      }); e.preventDefault(); return; } }
+});
+
+function trySave(key,list,coll){ try{ key===RTK_STORE_KEY?rtkSave(list):rtkSaveKey(key,list); renderColl(coll); }catch(e){ alert('บันทึกไม่สำเร็จ — พื้นที่เก็บเต็ม ลองลบรูปเก่า/รูปใหญ่ออกบ้าง'); } }
+
+/* ---------- PRODUCTS ---------- */
+function addProduct(){
+  var name=document.getElementById('p_name').value.trim(); if(!name){alert('ใส่ชื่อสินค้า');return;}
+  var list=rtkLoad();
+  list.push({id:Date.now(),name:name,maker:document.getElementById('p_maker').value.trim(),
+    material:document.getElementById('p_material').value.trim(),process:document.getElementById('p_process').value.trim(),
+    note:document.getElementById('p_note').value.trim(),industry:document.getElementById('p_industry').value,
+    sr:document.getElementById('p_sr').checked,tempAction:document.getElementById('p_tempv').value.trim(),
+    imgs:ADD_IMGS.slice()});
+  try{ rtkSave(list); }catch(e){ alert('บันทึกไม่สำเร็จ — รูปอาจใหญ่เกิน ลองลดจำนวนรูป'); return; }
+  ['p_name','p_maker','p_material','p_process','p_note','p_tempv'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('p_sr').checked=false; document.getElementById('p_temp').style.display='none';
+  ADD_IMGS=[]; renderAddThumbs(); renderColl('products');
+}
+function renderProducts(){
+  var list=rtkLoad(); document.getElementById('c_products').textContent=list.length;
+  document.getElementById('rows_products').innerHTML=list.map(function(p){
+    var imgs=rtkImgs(p);
+    var thumbs=imgs.map(function(src,i){return '<div class="thumb"><img src="'+src+'"><button class="x" onclick="delImg('+p.id+','+i+')">×</button></div>';}).join('');
+    return '<div class="icard" data-id="'+p.id+'">'+
+      '<div class="irow">'+
+        '<div class="field"><label>Name</label><input value="'+esc(p.name)+'" data-k="name"></div>'+
+        '<div class="field"><label>MAKER</label><input value="'+esc(p.maker)+'" data-k="maker"></div>'+
+        '<div class="field"><label>Industry</label><select data-k="industry">'+['Automotive','Motorcycle','Electronics','Industrial'].map(function(x){return '<option '+(x===p.industry?'selected':'')+'>'+x+'</option>';}).join('')+'</select></div>'+
+        '<div class="field"><label>Material</label><input value="'+esc(p.material)+'" data-k="material"></div>'+
+        '<div class="field"><label>Process</label><input value="'+esc(p.process)+'" data-k="process"></div>'+
+        '<div class="field"><label>หมายเหตุ</label><input value="'+esc(p.note)+'" data-k="note"></div>'+
+      '</div>'+
+      '<div class="chkrow" style="margin:.4rem 0"><input type="checkbox" data-k="sr" '+(p.sr?'checked':'')+' onchange="toggleTemp(this)"> <label style="margin:0">Sorting &amp; Rework (S&amp;R)</label></div>'+
+      '<div class="field" style="display:'+(p.sr?'block':'none')+'"><label>Temp action</label><input value="'+esc(p.tempAction)+'" data-k="tempAction"></div>'+
+      '<div class="thumbs">'+thumbs+'</div>'+
+      '<div class="acts">'+
+        '<input type="file" accept="image/*" multiple style="font-size:.78rem" onchange="addImgsToItem('+p.id+',this.files)">'+
+        '<button class="btn btn-outline btn-sm" onclick="pasteTo('+p.id+')">📋 วางรูป</button>'+
+        '<button class="btn btn-primary btn-sm" onclick="saveProduct('+p.id+')">Save</button>'+
+        '<button class="btn btn-line btn-sm" onclick="lineItem('+p.id+')">ส่ง LINE</button>'+
+        '<button class="btn btn-del btn-sm" onclick="delRow(\'products\','+p.id+')">Delete</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function saveProduct(id){
+  var card=document.querySelector('#rows_products .icard[data-id="'+id+'"]');
+  var list=rtkLoad().map(function(p){ if(p.id!==id)return p;
+    card.querySelectorAll('[data-k]').forEach(function(el){ p[el.dataset.k]= el.type==='checkbox'?el.checked:el.value; }); return p; });
+  try{ rtkSave(list); }catch(e){ alert('บันทึกไม่สำเร็จ — พื้นที่เต็ม'); return; }
+  renderProducts(); alert('Saved');
+}
+function addImgsToItem(id,files){ var arr=[].slice.call(files); var n=arr.length,done=0; arr.forEach(function(f){ if(!f.type||f.type.indexOf('image')<0){done++;return;} rtkFileToImg(f,function(d){ var list=rtkLoad(); for(var k=0;k<list.length;k++){ if(list[k].id===id){ list[k].imgs=rtkImgs(list[k]); list[k].imgs.push(d); list[k].img=''; } } trySave(RTK_STORE_KEY,list,'products'); }); }); }
+function delImg(id,idx){ var list=rtkLoad(); for(var k=0;k<list.length;k++){ if(list[k].id===id){ list[k].imgs=rtkImgs(list[k]); list[k].imgs.splice(idx,1); list[k].img=''; } } trySave(RTK_STORE_KEY,list,'products'); }
+function pasteTo(id){ pasteTarget=id; alert('กด Ctrl+V เพื่อวางรูปเข้ารายการนี้'); }
+function lineItem(id){ var list=rtkLoad(); for(var k=0;k<list.length;k++){ if(list[k].id===id){ rtkLineShare(list[k]); return; } } }
+
+/* ---------- MACHINES / QC (generic single-image) ---------- */
+var SIMPLE={machines:{key:MACH_KEY,seed:MACH_SEED,fields:['name','spec']},qc:{key:QC_KEY,seed:QC_SEED,fields:['name']}};
+function addSimple(coll){ var cfg=SIMPLE[coll]; var pre=(coll==='machines'?'m':'q'); var name=document.getElementById(pre+'_name').value.trim(); if(!name){alert('ใส่ชื่อ');return;}
+  var obj={id:Date.now(),name:name,img:SIMPLE_IMG[coll]||''}; if(coll==='machines')obj.spec=document.getElementById('m_spec').value.trim();
+  var list=rtkLoadKey(cfg.key,cfg.seed); list.push(obj);
+  try{ rtkSaveKey(cfg.key,list); }catch(e){ alert('บันทึกไม่สำเร็จ — พื้นที่เต็ม'); return; }
+  document.getElementById(pre+'_name').value=''; if(coll==='machines')document.getElementById('m_spec').value=''; SIMPLE_IMG[coll]=''; document.getElementById(pre+'_thumbs').innerHTML=''; renderColl(coll);
+}
+function renderSimple(coll){ var cfg=SIMPLE[coll]; var list=rtkLoadKey(cfg.key,cfg.seed); document.getElementById('c_'+coll).textContent=list.length;
+  document.getElementById('rows_'+coll).innerHTML=list.map(function(p){ var img=rtkImgs(p)[0]||'';
+    var f=cfg.fields.map(function(k){return '<div class="field"><label>'+k+'</label><input value="'+esc(p[k])+'" data-k="'+k+'"></div>';}).join('');
+    return '<div class="icard" data-id="'+p.id+'"><div class="irow">'+f+
+      '<div class="field"><label>รูป</label><input type="file" accept="image/*" onchange="setSimpleImg(\''+coll+'\','+p.id+',this.files[0])"></div></div>'+
+      '<div class="thumbs">'+(img?'<div class="thumb"><img src="'+img+'"></div>':'')+'</div>'+
+      '<div class="acts"><button class="btn btn-primary btn-sm" onclick="saveSimple(\''+coll+'\','+p.id+')">Save</button>'+
+      '<button class="btn btn-del btn-sm" onclick="delRow(\''+coll+'\','+p.id+')">Delete</button></div></div>';
+  }).join('');
+}
+function setSimpleImg(coll,id,file){ if(!file)return; rtkFileToImg(file,function(d){ var cfg=SIMPLE[coll]; var list=rtkLoadKey(cfg.key,cfg.seed); for(var k=0;k<list.length;k++){ if(list[k].id===id){ list[k].img=d; list[k].imgs=[d]; } } trySave(cfg.key,list,coll); }); }
+function saveSimple(coll,id){ var cfg=SIMPLE[coll]; var card=document.querySelector('#rows_'+coll+' .icard[data-id="'+id+'"]'); var list=rtkLoadKey(cfg.key,cfg.seed).map(function(p){ if(p.id!==id)return p; card.querySelectorAll('[data-k]').forEach(function(el){p[el.dataset.k]=el.value;}); return p; }); try{ rtkSaveKey(cfg.key,list); }catch(e){ alert('เต็ม'); return; } renderSimple(coll); alert('Saved'); }
+
+function delRow(coll,id){ if(!confirm('ลบรายการนี้?'))return; if(coll==='products'){ rtkSave(rtkLoad().filter(function(p){return p.id!==id;})); } else { var cfg=SIMPLE[coll]; rtkSaveKey(cfg.key,rtkLoadKey(cfg.key,cfg.seed).filter(function(p){return p.id!==id;})); } renderColl(coll); }
+function renderColl(c){ if(c==='products')renderProducts(); else renderSimple(c); }
+function renderAll(){ renderProducts(); renderSimple('machines'); renderSimple('qc'); }
+
+/* ---------- Export / Import ---------- */
+function exportData(){ var data={products:rtkLoad(),machines:rtkLoadKey(MACH_KEY,MACH_SEED),qc:rtkLoadKey(QC_KEY,QC_SEED),dash:dashLoad()};
+  var blob=new Blob([JSON.stringify(data)],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='rtk-data-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); }
+function importData(input){ var f=input.files[0]; if(!f)return; var r=new FileReader(); r.onload=function(){ try{ var d=JSON.parse(r.result);
+    if(d.products)rtkSave(d.products); if(d.machines)rtkSaveKey(MACH_KEY,d.machines); if(d.qc)rtkSaveKey(QC_KEY,d.qc); if(d.dash)dashSave(d.dash);
+    renderAll(); alert('นำเข้าข้อมูลสำเร็จ'); }catch(e){ alert('ไฟล์ไม่ถูกต้อง'); } }; r.readAsText(f); input.value=''; }
+
+/* ---------- Dashboard editor ---------- */
+var DB=dashLoad();
+var DF=[['d_auto','bt','Automotive'],['d_agri','bt','Agricultural'],['d_elec','bt','Electronic'],['d_etc','bt','Etc'],['d_oee','k','oee'],['d_avail','k','availability'],['d_perf','k','performance'],['d_qual','k','quality'],['d_otd','k','otd'],['d_otif','k','otif'],['d_ppm','k','ppm'],['d_fpy','k','fpy'],['d_scrap','k','scrap'],['d_compl','k','complaints'],['d_cap','k','capacity'],['d_out','k','output'],['d_rfq','k','rfq'],['d_rfqc','k','rfqConv'],['d_lead','k','leadDays'],['d_safe','k','safetyDays']];
+function initDash(){ var s=document.getElementById('dq'); s.innerHTML=DB.quarters.map(function(q){return '<option>'+q+'</option>';}).join(''); s.value=DB.quarters[DB.quarters.length-1]; loadDash(); }
+function loadDash(){ var q=document.getElementById('dq').value; var d=DB.data[q]||{businessType:{},kpis:{}}; DF.forEach(function(a){ var v=(a[1]==='bt'?(d.businessType||{})[a[2]]:(d.kpis||{})[a[2]]); document.getElementById(a[0]).value=(v==null?'':v); }); }
+function collectDash(){ var q=document.getElementById('dq').value; var bt={},k={}; DF.forEach(function(a){ var x=document.getElementById(a[0]).value; var n=x===''?0:Number(x); if(a[1]==='bt')bt[a[2]]=n; else k[a[2]]=n; }); DB.data[q]={businessType:bt,kpis:k}; return q; }
+function saveDash(){ collectDash(); dashSave({quarters:DB.quarters,data:DB.data}); alert('บันทึกแล้ว (เครื่องนี้) — เปิด Dashboard เพื่อดู'); }
+function exportDash(){ collectDash(); var t=document.getElementById('d_export'); t.style.display='block'; var NL=String.fromCharCode(10); t.value='/* paste over const DASH_DEFAULT = {...}; in assets/dashboard-data.js (keep targets) */'+NL+'const DASH_DEFAULT = '+JSON.stringify({quarters:DB.quarters,targets:DASH_DEFAULT.targets,data:DB.data},null,2)+';'; t.select(); }
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RTK — Management Dashboard</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/logo-mark.svg">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<style>
+  body{background:var(--bg-soft)}
+  .dwrap{max-width:1180px;margin:0 auto;padding:24px 20px}
+  .dtop{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem}
+  .dtop h1{font-size:1.45rem;margin:0}
+  .qsel{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+  .qsel select{padding:.55rem .8rem;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-weight:700;color:var(--navy);background:#fff}
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:.9rem;margin-bottom:1.4rem}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;box-shadow:var(--shadow);border-left:5px solid var(--steel);position:relative}
+  .kpi.g{border-left-color:#16a34a}.kpi.a{border-left-color:#d97706}.kpi.r{border-left-color:#dc2626}
+  .kpi .k{font-size:.74rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.3}
+  .kpi .v{font-size:1.7rem;font-weight:800;color:var(--navy);margin-top:.25rem}
+  .kpi .v small{font-size:.9rem;color:var(--steel);font-weight:700}
+  .kpi .meta{display:flex;justify-content:space-between;align-items:center;margin-top:.25rem;font-size:.74rem}
+  .kpi .tg{color:var(--muted)}
+  .kpi .dl{font-weight:800}.up{color:#16a34a}.down{color:#dc2626}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:.3rem;vertical-align:middle}
+  .dot.g{background:#16a34a}.dot.a{background:#d97706}.dot.r{background:#dc2626}
+  .charts{display:grid;grid-template-columns:repeat(2,1fr);gap:1.1rem}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.3rem;box-shadow:var(--shadow)}
+  .panel.full{grid-column:1/-1}
+  .panel h3{font-size:1rem;margin-bottom:.9rem}
+  canvas{max-height:300px}
+  @media(max-width:980px){.kpis{grid-template-columns:repeat(3,1fr)}.charts{grid-template-columns:1fr}}
+  @media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="dwrap">
+  <div class="dtop">
+    <div style="display:flex;align-items:center;gap:.7rem">
+      <img src="assets/logo-navy.svg" alt="RTK" style="height:52px">
+      <h1>Management Dashboard</h1>
+    </div>
+    <div class="qsel">
+      <label style="font-weight:700;color:var(--muted)">ไตรมาส</label>
+      <select id="qsel" onchange="renderDash()"></select>
+      <a href="index.html" class="btn btn-outline btn-sm" style="padding:.5rem .9rem">View Site</a>
+      <a href="admin.html" class="btn btn-outline btn-sm" style="padding:.5rem .9rem">Admin</a>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="charts">
+    <div class="panel"><h3>OEE Breakdown — Availability · Performance · Quality</h3><canvas id="oee"></canvas></div>
+    <div class="panel"><h3>Defect PPM — แนวโน้ม (เป้า ≤ 50)</h3><canvas id="ppm"></canvas></div>
+    <div class="panel"><h3>Quality & Delivery — FPY / OTD / OTIF (%)</h3><canvas id="qd"></canvas></div>
+    <div class="panel"><h3>Production Output — ล้านชิ้น/ไตรมาส</h3><canvas id="out"></canvas></div>
+    <div class="panel full"><h3>Business Type — สัดส่วนธุรกิจ</h3><div style="max-width:520px;margin:0 auto"><canvas id="pie"></canvas></div></div>
+  </div>
+  <p style="font-size:.82rem;color:var(--muted);margin-top:1rem">เขียว = ถึงเป้า · เหลือง = ใกล้เป้า · แดง = ต่ำกว่าเป้า · แก้ถาวร: <code>assets/dashboard-data.js</code> · แก้เร็ว: Admin &gt; Dashboard</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="assets/dashboard-data.js?v=10"></script>
+<script>
+const DASH=dashLoad();
+const NAVY='#1A2B4A',ORANGE='#E8640A',STEEL='#5C6B7A';
+const PIE=['#1A2B4A','#E8640A','#5C6B7A','#9aa7b4'];
+const CARDS=[
+ {k:'OEE',key:'oee',u:'%'},{k:'On-time Delivery',key:'otd',u:'%'},{k:'OTIF',key:'otif',u:'%'},
+ {k:'Defect PPM',key:'ppm',u:''},{k:'First Pass Yield',key:'fpy',u:'%'},{k:'Scrap Rate',key:'scrap',u:'%'},
+ {k:'Capacity Util.',key:'capacity',u:'%'},{k:'RFQ Conversion',key:'rfqConv',u:'%'},
+ {k:'Customer Complaints',key:'complaints',u:''},{k:'Safety (วันปลอดเหตุ)',key:'safetyDays',u:''}
+];
+function status(key,val){
+  const t=DASH.targets[key]; if(!t) return '';
+  if(t.dir==='up'){ if(val>=t.t)return'g'; if(val>=t.t*0.95)return'a'; return'r'; }
+  else { if(val<=t.t)return'g'; if(val<=t.t*1.15)return'a'; return'r'; }
+}
+let charts={};
+function mk(id,cfg){ if(charts[id])charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+function renderDash(){
+  const q=document.getElementById('qsel').value, d=DASH.data[q]; if(!d)return;
+  const k=d.kpis, idx=DASH.quarters.indexOf(q), prev=idx>0?DASH.data[DASH.quarters[idx-1]]:null;
+  document.getElementById('kpis').innerHTML=CARDS.map(c=>{
+    const v=k[c.key], st=status(c.key,v), t=DASH.targets[c.key];
+    let dl=''; if(prev){const pv=prev.kpis[c.key]; const diff=Math.round((v-pv)*10)/10; if(diff){const good=(t&&t.dir==='down')?diff<0:diff>0; dl=`<span class="dl ${good?'up':'down'}">${diff>0?'▲':'▼'}${Math.abs(diff)}</span>`;}}
+    const tg=t?`<span class="tg">เป้า ${t.dir==='down'?'≤':'≥'} ${t.t}${c.u}</span>`:'<span></span>';
+    return `<div class="kpi ${st}"><div class="k">${c.k}<span class="dot ${st}"></span></div>
+      <div class="v">${(typeof v==='number'?v.toLocaleString():v)}<small>${c.u}</small></div>
+      <div class="meta">${tg}${dl}</div></div>`;
+  }).join('');
+
+  mk('oee',{type:'bar',data:{labels:['Availability','Performance','Quality','OEE'],
+    datasets:[{data:[k.availability,k.performance,k.quality,k.oee],backgroundColor:[STEEL,STEEL,STEEL,ORANGE],borderRadius:6}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:0,max:100}}}});
+
+  const qs=DASH.quarters, ppmS=qs.map(x=>DASH.data[x]?DASH.data[x].kpis.ppm:null);
+  mk('ppm',{type:'line',data:{labels:qs,datasets:[
+    {label:'PPM',data:ppmS,borderColor:ORANGE,backgroundColor:'rgba(232,100,10,.1)',fill:true,tension:.3,pointRadius:4},
+    {label:'Target',data:qs.map(()=>DASH.targets.ppm.t),borderColor:NAVY,borderDash:[6,4],pointRadius:0}]},
+    options:{plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}});
+
+  mk('qd',{type:'line',data:{labels:qs,datasets:[
+    {label:'FPY',data:qs.map(x=>DASH.data[x]&&DASH.data[x].kpis.fpy),borderColor:NAVY,tension:.3,pointRadius:3},
+    {label:'OTD',data:qs.map(x=>DASH.data[x]&&DASH.data[x].kpis.otd),borderColor:ORANGE,tension:.3,pointRadius:3},
+    {label:'OTIF',data:qs.map(x=>DASH.data[x]&&DASH.data[x].kpis.otif),borderColor:STEEL,tension:.3,pointRadius:3}]},
+    options:{scales:{y:{min:90,max:100}}}});
+
+  mk('out',{type:'bar',data:{labels:qs,datasets:[{label:'M pcs',data:qs.map(x=>DASH.data[x]&&DASH.data[x].kpis.output),
+    backgroundColor:qs.map(x=>x===q?ORANGE:NAVY),borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  const bt=d.businessType;
+  mk('pie',{type:'doughnut',data:{labels:Object.keys(bt),datasets:[{data:Object.values(bt),backgroundColor:PIE,borderWidth:2,borderColor:'#fff'}]},
+    options:{plugins:{legend:{position:'right'},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed}%`}}},cutout:'55%'}});
+}
+(function(){const s=document.getElementById('qsel');s.innerHTML=DASH.quarters.map(q=>`<option>${q}</option>`).join('');s.value=DASH.quarters[DASH.quarters.length-1];renderDash();})();
+</script>
+</body>
+</html>
