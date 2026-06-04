@@ -376,10 +376,10 @@
       "tqm": "S",
       "dept": "QC",
       "loc": "RTK",
-      "pain": "Safety : โซ่ขาด อุบัติเหตุ",
+      "pain": "อุบัติเหตุ ลิฟท์โซ่ขาด",
       "rca_sum": "การบำรุงรักษา",
       "action": "เปลี่ยนโซ่ใหม่",
-      "temp": "",
+      "temp": "-",
       "total": 0,
       "ok": 0,
       "ng": 0,
@@ -391,7 +391,12 @@
       "status": "Complete",
       "priority": "Critical",
       "rca_id": "RCA-2026-005",
-      "capa_id": "CAPA-2026-005"
+      "capa_id": "CAPA-2026-005",
+      "img_ok": "",
+      "img_ng": "",
+      "img_tag": "",
+      "snr": "",
+      "maker": ""
     },
     {
       "id": "ITM-2026-009",
