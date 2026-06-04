@@ -540,7 +540,7 @@
       "no": 2,
       "part": "75051556_STAY_K97",
       "tqm": "M",
-      "dept": "PD",
+      "dept": "QC",
       "loc": "RTK",
       "pain": "ECR : เปลี่ยนความโตผิว",
       "rca_sum": "Before Ø5.8 After Ø5.925",
@@ -557,7 +557,12 @@
       "status": "Complete",
       "priority": "Medium",
       "rca_id": "RCA-2026-010",
-      "capa_id": ""
+      "capa_id": "",
+      "img_ok": "",
+      "img_ng": "",
+      "img_tag": "",
+      "snr": "",
+      "maker": ""
     },
     {
       "id": "ITM-2026-015",
