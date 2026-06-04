@@ -706,7 +706,7 @@
       "pain": "ชิ้นงาน ไม่เข้า Jig & Mold",
       "rca_sum": "Dimension Jig ติดค่า Max",
       "action": "ลดขนาด Jig & Mold",
-      "temp": "ชิ้นงานอยู่ในค่ากำหนด ขอใช้ 1,800,000 ชิ้น",
+      "temp": "Jig & Mold ค่าติดบวก งานอยู่ในค่ากลาง ON DRAWING ขอใช้ 1,800,000 ชิ้น",
       "total": 0,
       "ok": 0,
       "ng": 0,
