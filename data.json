@@ -789,7 +789,7 @@
       "finish": "",
       "status": "Pending",
       "priority": "High",
-      "rca_id": "",
+      "rca_id": "RCA-2026-012",
       "capa_id": "",
       "img_ok": "",
       "img_ng": "",
@@ -973,6 +973,22 @@
       "owner": "พัฒนเดช-QA",
       "date": "2026-01-30",
       "verBy": "พัฒนเดช-QA",
+      "verDate": ""
+    },
+    {
+      "id": "RCA-2026-012",
+      "item": "ITM-2026-022",
+      "prob": "ประกอบไม่สุดเกลียวเสียรูป",
+      "cat": "Method",
+      "w1": "",
+      "w2": "",
+      "w3": "",
+      "w4": "",
+      "w5": "",
+      "root": "",
+      "owner": "พัฒนเดช-QA",
+      "date": "2026-06-04",
+      "verBy": "",
       "verDate": ""
     }
   ],
