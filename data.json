@@ -222,7 +222,7 @@
       "mid": "MTG-2026-01",
       "date": "2026-01-09",
       "no": 3,
-      "part": "SIS-02-W720456-S900_CLIP",
+      "part": "SIS-02-W720456-S900_PLASTIC CLIP",
       "tqm": "Q",
       "dept": "QA",
       "loc": "SPV",
@@ -241,7 +241,12 @@
       "status": "Complete",
       "priority": "High",
       "rca_id": "RCA-2026-003",
-      "capa_id": "CAPA-2026-003"
+      "capa_id": "CAPA-2026-003",
+      "img_ok": "",
+      "img_ng": "",
+      "img_tag": "",
+      "snr": "",
+      "maker": ""
     },
     {
       "id": "ITM-2026-004",
