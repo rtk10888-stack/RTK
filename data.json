@@ -1149,11 +1149,11 @@
       "action": "จัดทำ PM Plan โซ่ / Inspection Checklist",
       "resp": "ประทีป-MT",
       "target": "2026-02-28",
-      "actual": "",
+      "actual": "2026-04-14",
       "verify": "PM Record",
       "result": "รอจัดทำ",
       "score": "",
-      "status": "Open",
+      "status": "Closed",
       "recur": "",
       "closeBy": ""
     },
