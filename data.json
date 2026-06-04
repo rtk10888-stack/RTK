@@ -703,7 +703,7 @@
       "tqm": "Q",
       "dept": "QA",
       "loc": "SPV",
-      "pain": "ชิ้นงาน ไม่เข้า Jig & Mold",
+      "pain": "Jig & Mold ไม่เข้าชิ้นงาน",
       "rca_sum": "Dimension Jig ติดค่า Max",
       "action": "ลดขนาด Jig & Mold",
       "temp": "Jig & Mold ค่าติดบวก งานอยู่ในค่ากลาง ON DRAWING ขอใช้ 1,800,000 ชิ้น",
