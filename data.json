@@ -160,7 +160,7 @@
       "mid": "MTG-2026-01",
       "date": "2026-01-09",
       "no": 1,
-      "part": "YT03M01425P1_LIVER-LH",
+      "part": "YT03M01425P1",
       "tqm": "Q",
       "dept": "QA",
       "loc": "A.T.T",
@@ -179,7 +179,12 @@
       "status": "Complete",
       "priority": "Medium",
       "rca_id": "RCA-2026-001",
-      "capa_id": "CAPA-2026-001"
+      "capa_id": "CAPA-2026-001",
+      "img_ok": "",
+      "img_ng": "",
+      "img_tag": "",
+      "snr": "",
+      "maker": ""
     },
     {
       "id": "ITM-2026-002",
