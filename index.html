@@ -734,13 +734,40 @@ function renderMeetings(){
 }
 
 // ============ ITEMS ============
+// Auto-match Meeting จากวันที่ (เลือก Meeting ที่วันที่ใกล้เคียงที่สุด ≤ วันที่ Item)
+function autoMatchMtg(dateStr){
+  if(!dateStr||!DB.meetings.length)return'';
+  const d=new Date(dateStr).getTime();
+  let best='',bestDiff=Infinity;
+  DB.meetings.forEach(m=>{
+    const md=new Date(m.date).getTime();
+    const diff=d-md;
+    if(diff>=0&&diff<bestDiff){bestDiff=diff;best=m.id;}
+  });
+  // ถ้าไม่เจอ (วันที่ก่อน meeting แรก) เลือก meeting ที่ใกล้ที่สุด
+  if(!best){
+    let minDiff=Infinity;
+    DB.meetings.forEach(m=>{
+      const diff=Math.abs(d-new Date(m.date).getTime());
+      if(diff<minDiff){minDiff=diff;best=m.id;}
+    });
+  }
+  return best;
+}
+function autoSetMtg(){
+  const dt=$('fi_dt').value;
+  if(dt){const mid=autoMatchMtg(dt);if(mid)$('fi_mid').value=mid;}
+}
+
 function openItemForm(e){
   const i=e||{id:nxtId('ITM',DB.items,'id'),mid:'',date:new Date().toISOString().slice(0,10),no:'',part:'',tqm:'Q',dept:'QA',loc:'',pain:'',rca_sum:'',action:'',temp:'',total:0,ok:0,ng:0,remark:'',resp:'',start:new Date().toISOString().slice(0,10),due:'',finish:'',status:'Pending',priority:'Medium',rca_id:'',capa_id:'',img_ok:'',img_ng:'',img_tag:'',snr:'',maker:''};
+  // Auto-match meeting ตามวันที่ใกล้เคียง
+  if(!e&&!i.mid){i.mid=autoMatchMtg(i.date);}
   const mo=DB.meetings.map(m=>`<option value="${m.id}" ${m.id===i.mid?'selected':''}>${m.id} — ${m.date}</option>`).join('');
   openModal(e?'แก้ไขรายการ':'เพิ่มรายการใหม่',`<div class="form-grid">
     <div class="form-group"><label>Item ID</label><input id="fi_id" value="${i.id}" class="auto-id" readonly></div>
     <div class="form-group"><label>🔗 Meeting</label><select id="fi_mid"><option value="">— เลือก —</option>${mo}</select></div>
-    <div class="form-group"><label>วันที่</label><input type="date" id="fi_dt" value="${i.date}"></div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fi_dt" value="${i.date}" onchange="autoSetMtg()"></div>
     <div class="form-group"><label>ลำดับ</label><input type="number" id="fi_no" value="${i.no}"></div>
     <div class="form-group full"><label>Part / Task</label><input id="fi_pt" value="${i.part}" list="partList" autocomplete="off" placeholder="พิมพ์เพื่อค้นหา Part..."></div>
     <div class="form-group"><label>TQM</label><select id="fi_tq">${opts(['S','Q','D','C','M'],i.tqm)}</select></div>
