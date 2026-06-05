@@ -152,6 +152,16 @@
       "year": 2026,
       "fac": "ธีรสิทธิ์-QMR",
       "notes": ""
+    },
+    {
+      "id": "MTG-2026-18",
+      "date": "2026-06-05",
+      "type": "Weekly QCDMS",
+      "week": "W18",
+      "year": 2026,
+      "fac": "ธีรสิทธิ์-QMR",
+      "notes": "",
+      "attendees": []
     }
   ],
   "items": [
