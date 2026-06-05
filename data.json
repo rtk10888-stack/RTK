@@ -808,8 +808,8 @@
       "date": "2026-06-04",
       "no": 0,
       "part": "-",
-      "tqm": "Q",
-      "dept": "QA",
+      "tqm": "D",
+      "dept": "PL",
       "loc": "A.T.T.",
       "pain": "งานขาดจำนวน 100 ชิ้น",
       "rca_sum": "",
@@ -831,7 +831,7 @@
       "img_ng": "",
       "img_tag": "",
       "snr": "",
-      "maker": ""
+      "maker": "RTK-K"
     }
   ],
   "rcas": [
