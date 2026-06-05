@@ -941,7 +941,7 @@
       "mid": "MTG-2026-06",
       "date": "2026-06-05",
       "no": 6,
-      "part": "",
+      "part": "ALL",
       "tqm": "Q",
       "dept": "QA",
       "loc": "RTK",
