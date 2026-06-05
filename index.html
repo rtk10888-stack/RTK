@@ -209,6 +209,7 @@ td.left{text-align:left;}
     <button class="btn btn-outline btn-sm" onclick="cloudPull()" title="ดึงข้อมูล Cloud">☁️↓</button>
     <button class="btn btn-outline btn-sm" onclick="cloudPush()" title="ส่งข้อมูลขึ้น Cloud">☁️↑</button>
     <button class="btn btn-outline btn-sm" onclick="cloudSetup()" title="ตั้งค่า Cloud" id="cloudBtn">⚙️</button>
+    <button class="btn btn-outline btn-sm" onclick="printPage()" title="พิมพ์/PDF">🖨️</button>
     <button class="btn btn-outline btn-sm" onclick="exportJSON()">📥</button>
     <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📤</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -790,12 +791,13 @@ function renderItems(){
         <button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button>
         <button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button>
         <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE('${i.id}')">💬LINE</button>
+        <button class="act-btn" style="background:#F3E5F5;color:#7B1FA2" onclick="printItem('${i.id}')">🖨️</button>
       </div></div></div>`;}).join('');
   // Table
   document.getElementById('tbItems').innerHTML=data.map(i=>{
     const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca btn-sm" onclick="qRCA('${i.id}')">+RCA</button>`;
     const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa btn-sm" onclick="qCAPA('${i.id}')">+CAPA</button>`;
-    return `<tr><td><button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button><button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE('${i.id}')">💬</button></td>
+    return `<tr><td><button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button><button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE('${i.id}')">💬</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printItem('${i.id}')">🖨️</button></td>
     <td><b>${i.id}</b></td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
     <td class="left" style="max-width:160px">${i.pain}</td><td>${i.maker||''}</td><td class="left" style="max-width:120px">${i.temp}</td><td class="left" style="max-width:100px;color:var(--tl)">${i.snr||''}</td><td class="left" style="max-width:160px">${i.action}</td>
     <td>${i.resp}</td><td>${i.due}</td><td>${stB(i.status)}</td><td>${prB(i.priority)}</td><td>${rcaL}</td><td>${capaL}</td></tr>`;}).join('');
@@ -964,6 +966,131 @@ function renderDashboard(){
 }
 
 // ============ EXPORT/IMPORT ============
+// ============ PRINT / PDF ============
+function printPage(){
+  // พิมพ์หน้าปัจจุบัน (Dashboard/Items/RCA/CAPA/Meeting)
+  const style=document.createElement('style');
+  style.id='printCSS';
+  style.textContent=`@media print{
+    .header,.bottom-nav,.tabs-desktop,.toolbar,.filter-row,.btn-fab,.card-actions,.card-link,.act-btn,.photo-lightbox{display:none!important;}
+    .tab-content{display:block!important;padding:0!important;}
+    .tab-content:not(.active){display:none!important;}
+    .card-list{display:flex!important;flex-direction:column!important;}
+    .table-wrap{display:block!important;overflow:visible!important;}
+    .scroll-table{max-height:none!important;overflow:visible!important;}
+    body{padding:0!important;font-size:11px!important;}
+    .kpi-row{grid-template-columns:repeat(4,1fr)!important;}
+    .chart-grid{grid-template-columns:1fr 1fr!important;}
+    @page{size:A4 landscape;margin:10mm;}
+  }`;
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(()=>{const s=document.getElementById('printCSS');if(s)s.remove();},1000);
+}
+
+function printItem(id){
+  const i=DB.items.find(x=>x.id===id);if(!i)return;
+  // หา RCA และ CAPA ที่เชื่อมโยง
+  const rcas=DB.rcas.filter(r=>r.item===id);
+  const capas=DB.capas.filter(c=>c.item===id);
+
+  let h=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>RTK-QC ${id}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;font-size:13px;color:#333;}
+    .header{background:#1B3A5C;color:#fff;padding:12px 16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .header h1{font-size:16px;}
+    .header span{font-size:11px;opacity:.8;}
+    .card{border:1px solid #ddd;border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid ${i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545'};}
+    .card h2{font-size:15px;color:#1B3A5C;margin-bottom:8px;display:flex;justify-content:space-between;}
+    .badge{padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;color:#fff;display:inline-block;}
+    .row{display:flex;gap:8px;margin-bottom:4px;}
+    .lbl{font-weight:600;color:#1B3A5C;min-width:100px;font-size:12px;}
+    .val{flex:1;}
+    .photos{display:flex;gap:8px;margin-top:8px;}
+    .photos img{width:120px;height:120px;object-fit:cover;border-radius:6px;border:2px solid #ddd;}
+    .photos .ok{border-color:#28A745;} .photos .ng{border-color:#DC3545;} .photos .tag{border-color:#FD7E14;}
+    .section{margin-top:16px;padding-top:12px;border-top:2px solid #ddd;}
+    .section h3{font-size:14px;color:#1B3A5C;margin-bottom:8px;}
+    .why{background:#f8f9fa;padding:4px 8px;border-radius:4px;margin-bottom:3px;font-size:12px;}
+    .root{background:#FFEBEE;padding:6px 8px;border-radius:6px;font-weight:600;color:#DC3545;margin-top:4px;}
+    .flowout{background:#FFF3E0;padding:6px 8px;border-radius:6px;margin-top:8px;font-size:12px;}
+    .h5w2h{background:#E8F5E9;padding:6px 8px;border-radius:6px;margin-top:8px;font-size:12px;}
+    table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+    th{background:#1B3A5C;color:#fff;padding:6px;text-align:left;}
+    td{padding:6px;border-bottom:1px solid #eee;}
+    @media print{@page{size:A4;margin:15mm;}}
+    .btn-print{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-top:16px;}
+    @media print{.btn-print,.no-print{display:none!important;}}
+  </style></head><body>`;
+
+  // Header
+  h+=`<div class="header"><h1>📋 RTK-QC Item Report</h1><span>${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
+
+  // Item Card
+  h+=`<div class="card"><h2>${i.id} <span>`;
+  h+=`<span class="badge" style="background:${i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545'}">${i.status}</span> `;
+  h+=`<span class="badge" style="background:${i.priority==='Critical'?'#DC3545':i.priority==='High'?'#FD7E14':i.priority==='Medium'?'#FFC107':'#17A2B8'};${i.priority==='Medium'?'color:#333':''}">${i.priority}</span>`;
+  h+=`</span></h2>`;
+  h+=`<div class="row"><span class="lbl">Meeting</span><span class="val">${i.mid} — ${i.date}</span></div>`;
+  h+=`<div class="row"><span class="lbl">Part / Task</span><span class="val" style="font-weight:600">${i.part||'-'}</span></div>`;
+  if(i.maker)h+=`<div class="row"><span class="lbl">Maker</span><span class="val">${i.maker}</span></div>`;
+  h+=`<div class="row"><span class="lbl">TQM / Dept / Loc</span><span class="val">${i.tqm} · ${i.dept} · ${i.loc}</span></div>`;
+  h+=`<div class="row"><span class="lbl">Pain Point</span><span class="val">${i.pain||'-'}</span></div>`;
+  if(i.temp)h+=`<div class="row"><span class="lbl">Temp Action</span><span class="val" style="color:#FD7E14">${i.temp}</span></div>`;
+  if(i.snr)h+=`<div class="row"><span class="lbl">S&R</span><span class="val" style="color:#17A2B8">${i.snr}</span></div>`;
+  if(i.action)h+=`<div class="row"><span class="lbl">Action Plan</span><span class="val">${i.action}</span></div>`;
+  h+=`<div class="row"><span class="lbl">ผู้รับผิดชอบ</span><span class="val">${i.resp}</span></div>`;
+  h+=`<div class="row"><span class="lbl">Due / Finish</span><span class="val">${i.due} ${i.finish?'→ '+i.finish+' ✅':''}</span></div>`;
+  if(i.remark)h+=`<div class="row"><span class="lbl">หมายเหตุ</span><span class="val">${i.remark}</span></div>`;
+  // Photos
+  if(i.img_ok||i.img_ng||i.img_tag){
+    h+=`<div class="photos">`;
+    if(i.img_ok)h+=`<div><img src="${i.img_ok}" class="ok"><div style="text-align:center;font-size:10px;font-weight:600;color:#28A745">OK</div></div>`;
+    if(i.img_ng)h+=`<div><img src="${i.img_ng}" class="ng"><div style="text-align:center;font-size:10px;font-weight:600;color:#DC3545">NG</div></div>`;
+    if(i.img_tag)h+=`<div><img src="${i.img_tag}" class="tag"><div style="text-align:center;font-size:10px;font-weight:600;color:#FD7E14">TAG LOT NC</div></div>`;
+    h+=`</div>`;
+  }
+  h+=`</div>`;
+
+  // RCA Section
+  rcas.forEach(r=>{
+    h+=`<div class="section"><h3>🔍 RCA — ${r.id}</h3>`;
+    h+=`<div class="row"><span class="lbl">ปัญหา</span><span class="val">${r.prob}</span></div>`;
+    h+=`<div class="row"><span class="lbl">4M+E</span><span class="val">${r.cat}</span></div>`;
+    if(r.w1)h+=`<div class="why"><b>W1:</b> ${r.w1}</div>`;
+    if(r.w2)h+=`<div class="why"><b>W2:</b> ${r.w2}</div>`;
+    if(r.w3)h+=`<div class="why"><b>W3:</b> ${r.w3}</div>`;
+    if(r.w4)h+=`<div class="why"><b>W4:</b> ${r.w4}</div>`;
+    if(r.w5)h+=`<div class="why"><b>W5:</b> ${r.w5}</div>`;
+    if(r.root)h+=`<div class="root">🎯 Root Cause: ${r.root}</div>`;
+    if(r.fo_what||r.fo_why)h+=`<div class="flowout"><b>🔍 Flow Out:</b> What: ${r.fo_what||'-'} | When: ${r.fo_when||'-'} | Where: ${r.fo_where||'-'} | Who: ${r.fo_who||'-'} | Why: ${r.fo_why||'-'}</div>`;
+    h+=`<div class="row"><span class="lbl">Owner / Date</span><span class="val">${r.owner} — ${r.date}</span></div>`;
+    h+=`</div>`;
+  });
+
+  // CAPA Section
+  capas.forEach(c=>{
+    h+=`<div class="section"><h3>✅ CAPA — ${c.id} (${c.type})</h3>`;
+    h+=`<div class="row"><span class="lbl">มาตรการ</span><span class="val">${c.action}</span></div>`;
+    h+=`<div class="row"><span class="lbl">ผู้รับผิดชอบ</span><span class="val">${c.resp}</span></div>`;
+    h+=`<div class="row"><span class="lbl">Target / Actual</span><span class="val">${c.target} ${c.actual?'→ '+c.actual:''}</span></div>`;
+    h+=`<div class="row"><span class="lbl">Status</span><span class="val">${c.status}</span></div>`;
+    if(c.verify)h+=`<div class="row"><span class="lbl">ตรวจสอบ</span><span class="val">${c.verify} → ${c.result||'-'}</span></div>`;
+    if(c.h_what||c.h_how)h+=`<div class="h5w2h"><b>📋 5W2H:</b> What: ${c.h_what||'-'} | Why: ${c.h_why||'-'} | Where: ${c.h_where||'-'} | When: ${c.h_when||'-'} | Who: ${c.h_who||'-'} | How: ${c.h_how||'-'} | How Much: ${c.h_howmuch||'-'}</div>`;
+    h+=`</div>`;
+  });
+
+  h+=`<button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button>`;
+  h+=`<button class="btn-print no-print" onclick="window.close()" style="background:#eee;color:#333;margin-left:8px">✕ ปิด</button>`;
+  h+=`</body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(h);
+  w.document.close();
+}
+
 function exportJSON(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`QCDMS_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Export สำเร็จ','var(--tl)');}
 function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.meetings&&d.items&&d.rcas&&d.capas){DB=d;saveDB();toast('Import สำเร็จ','var(--gn)');}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};r.readAsText(f);e.target.value='';}
 
