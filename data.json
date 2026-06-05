@@ -486,7 +486,12 @@
       "status": "Complete",
       "priority": "High",
       "rca_id": "RCA-2026-007",
-      "capa_id": "CAPA-2026-006"
+      "capa_id": "CAPA-2026-006",
+      "img_ok": "",
+      "img_ng": "",
+      "img_tag": "",
+      "snr": "",
+      "maker": ""
     },
     {
       "id": "ITM-2026-011",
