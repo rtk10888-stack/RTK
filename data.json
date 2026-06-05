@@ -557,7 +557,7 @@
     },
     {
       "id": "ITM-2026-013",
-      "mid": "MTG-2026-04",
+      "mid": "MTG-2026-11",
       "date": "2026-04-24",
       "no": 1,
       "part": "75051547_STAY_9898",
@@ -579,7 +579,12 @@
       "status": "Complete",
       "priority": "High",
       "rca_id": "RCA-2026-009",
-      "capa_id": "CAPA-2026-008"
+      "capa_id": "CAPA-2026-008",
+      "img_ok": "",
+      "img_ng": "",
+      "img_tag": "",
+      "snr": "",
+      "maker": ""
     },
     {
       "id": "ITM-2026-014",
