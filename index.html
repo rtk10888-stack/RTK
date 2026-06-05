@@ -594,37 +594,8 @@ function shareLINE(id){
       window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
     }
   } else {
-    // Desktop: แคป Item เป็นภาพ แล้วส่งเข้า LINE PC
-    const rows=document.querySelectorAll('#tbItems tr');
-    let rowEl=null;
-    rows.forEach(r=>{const b=r.querySelector('b');if(b&&b.textContent===id)rowEl=r;});
-    if(rowEl&&typeof html2canvas!=='undefined'){
-      toast('📸 กำลังแคป...','var(--tl)');
-      const wrap=document.createElement('div');
-      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;padding:16px;min-width:600px;font-family:Segoe UI,Arial,sans-serif;';
-      wrap.innerHTML=`<div style="font-size:16px;font-weight:700;color:#1B3A5C;margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid #1B3A5C">📋 RTK-QC Item Report — ${id}</div><div style="font-size:13px;line-height:1.8;white-space:pre-wrap">${msg}</div>`;
-      document.body.appendChild(wrap);
-      html2canvas(wrap,{scale:2,backgroundColor:'#fff'}).then(canvas=>{
-        document.body.removeChild(wrap);
-        canvas.toBlob(blob=>{
-          const file=new File([blob],'RTK-QC_'+id+'.png',{type:'image/png'});
-          if(navigator.canShare&&navigator.canShare({files:[file]})){
-            navigator.share({title:'RTK-QC '+id,text:msg,files:[file]}).catch(()=>{
-              window.location.href='line://msg/text/'+encodeURIComponent(msg);
-            });
-          } else {
-            // fallback: บันทึกภาพ + เปิด LINE
-            const url=URL.createObjectURL(blob);
-            const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();
-            URL.revokeObjectURL(url);
-            setTimeout(()=>{window.location.href='line://msg/text/'+encodeURIComponent(msg);},500);
-            toast('📸 บันทึกภาพแล้ว — ลากไฟล์จาก Downloads วางใน LINE','var(--gn)');
-          }
-        },'image/png');
-      }).catch(()=>{window.location.href='line://msg/text/'+encodeURIComponent(msg);});
-    } else {
-      window.location.href='line://msg/text/'+encodeURIComponent(msg);
-    }
+    // Desktop: ส่งผ่าน LINE Share เว็บ (ไม่ต้องติดตั้ง LINE PC)
+    window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
   }
 }
 
