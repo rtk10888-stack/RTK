@@ -622,24 +622,25 @@ function shareLINE(id){
       html2canvas(wrap,{scale:2,backgroundColor:'#fff'}).then(canvas=>{
         document.body.removeChild(wrap);
         canvas.toBlob(blob=>{
-          const url=URL.createObjectURL(blob);
-          const a=document.createElement('a');
-          a.href=url;a.download='RTK-QC_'+id+'.png';a.click();
-          URL.revokeObjectURL(url);
-          navigator.clipboard.writeText(msg);
-          toast('📸 บันทึกภาพแล้ว + คัดลอกข้อความ — วางใน LINE ได้เลย','var(--gn)');
-          setTimeout(()=>{window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');},500);
+          // คัดลอกภาพเข้า clipboard โดยตรง
+          navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{
+            toast('📸 คัดลอกภาพแล้ว — เปิด LINE PC แล้วกด Ctrl+V วางได้เลย','var(--gn)');
+          }).catch(()=>{
+            // fallback: ดาวน์โหลดภาพแทน
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();
+            URL.revokeObjectURL(url);
+            toast('📸 ดาวน์โหลดภาพแล้ว — ลากไฟล์วางใน LINE','var(--gn)');
+          });
         },'image/png');
       }).catch(()=>{
         document.body.removeChild(wrap);
         navigator.clipboard.writeText(msg);
-        toast('📋 คัดลอกข้อความแล้ว','var(--gn)');
-        window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+        toast('📋 คัดลอกข้อความแล้ว — วางใน LINE (Ctrl+V)','var(--gn)');
       });
     } else {
       navigator.clipboard.writeText(msg);
-      toast('📋 คัดลอกแล้ว — วางใน LINE ได้เลย (Ctrl+V)','var(--gn)');
-      window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+      toast('📋 คัดลอกข้อความแล้ว — เปิด LINE กด Ctrl+V','var(--gn)');
     }
   }
 }
