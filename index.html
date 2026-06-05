@@ -646,6 +646,26 @@ function shareLINE(id){
 
 // ============ ID GEN ============
 function nxtId(p,a,f){const y=new Date().getFullYear(),ns=a.map(x=>{const m=x[f].match(new RegExp(p+'-'+y+'-(\\d+)'));return m?parseInt(m[1]):0;});return `${p}-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(3,'0')}`;}
+// ===== ATTENDEE HELPERS =====
+let _tmpAtt=[];
+function renderAttList(){
+  const el=$('fm_att_list');if(!el)return;
+  el.innerHTML=_tmpAtt.length?_tmpAtt.map((a,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:#f8f9fa;border-radius:6px;margin-bottom:4px;font-size:12px">
+    <span style="font-weight:700;color:var(--dk);min-width:20px">${i+1}.</span>
+    <span style="flex:2">${a.name}</span>
+    <span style="flex:1.5;color:var(--gr)">${a.pos}</span>
+    <span style="flex:1;color:var(--tl)">${a.time||'-'}</span>
+    <button type="button" onclick="_tmpAtt.splice(${i},1);renderAttList()" style="background:#FFEBEE;color:var(--rd);border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px">✕</button>
+  </div>`).join(''):'<div style="color:#999;font-size:11px;padding:4px">ยังไม่มีผู้เข้าร่วม</div>';
+}
+function addAttendee(){
+  const n=$('fm_att_name').value.trim(),p=$('fm_att_pos').value.trim(),t=$('fm_att_time').value;
+  if(!n){toast('กรอกชื่อก่อน','var(--rd)');return;}
+  _tmpAtt.push({name:n,pos:p,time:t});
+  $('fm_att_name').value='';$('fm_att_pos').value='';$('fm_att_time').value='';
+  renderAttList();$('fm_att_name').focus();
+}
+
 function nxtMtg(){const y=new Date().getFullYear(),ns=DB.meetings.map(m=>{const p=m.id.match(/MTG-\d+-(\d+)/);return p?parseInt(p[1]):0;});return `MTG-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(2,'0')}`;}
 
 // ============ TABS ============
@@ -666,18 +686,30 @@ function closeModal(){document.getElementById('modal').classList.remove('show');
 
 // ============ MEETING ============
 function openMtgForm(e){
-  const m=e||{id:nxtMtg(),date:new Date().toISOString().slice(0,10),type:'Weekly QCDMS',week:'',year:new Date().getFullYear(),fac:'ธีรสิทธิ์-QMR',notes:''};
-  openModal(e?'แก้ไขประชุม':'เพิ่มประชุมใหม่',`<div class="form-grid">
+  const m=e||{id:nxtMtg(),date:new Date().toISOString().slice(0,10),type:'Weekly QCDMS',week:'',year:new Date().getFullYear(),fac:'ธีรสิทธิ์-QMR',notes:'',attendees:[]};
+  _tmpAtt=m.attendees?JSON.parse(JSON.stringify(m.attendees)):[];
+  openModal(e?'แก้ไขประชุม':'เพิ่มประชุมใหม่',`<div style="display:none" id="fm_att_init"></div><div class="form-grid">
     <div class="form-group"><label>Meeting ID</label><input id="fm_id" value="${m.id}" class="auto-id" readonly></div>
     <div class="form-group"><label>วันที่</label><input type="date" id="fm_dt" value="${m.date}"></div>
     <div class="form-group"><label>ประเภท</label><select id="fm_tp">${opts(['Weekly QCDMS','Monthly Review','Special'],m.type)}</select></div>
     <div class="form-group"><label>สัปดาห์</label><input id="fm_wk" value="${m.week}" placeholder="W01"></div>
     <div class="form-group"><label>ปี</label><input type="number" id="fm_yr" value="${m.year}"></div>
     <div class="form-group"><label>ผู้ดำเนินการ</label><input id="fm_fc" value="${m.fac}"></div>
-    <div class="form-group full"><label>หมายเหตุ</label><textarea id="fm_nt">${m.notes||''}</textarea></div></div>`,()=>{
-    const o={id:$('fm_id').value,date:$('fm_dt').value,type:$('fm_tp').value,week:$('fm_wk').value,year:+$('fm_yr').value,fac:$('fm_fc').value,notes:$('fm_nt').value};
+    <div class="form-group full"><label>หมายเหตุ</label><textarea id="fm_nt">${m.notes||''}</textarea></div>
+    <div class="form-group full" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--md)">
+      <label style="color:var(--md)">👥 ผู้เข้าร่วมประชุม</label>
+      <div id="fm_att_list" style="margin:6px 0"></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <input id="fm_att_name" placeholder="ชื่อ-สกุล" style="flex:2;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <input id="fm_att_pos" placeholder="ตำแหน่ง/แผนก" style="flex:1.5;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <input id="fm_att_time" type="time" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <button type="button" class="btn btn-success btn-sm" onclick="addAttendee()" style="min-width:40px">＋</button>
+      </div>
+    </div></div>`,()=>{
+    const o={id:$('fm_id').value,date:$('fm_dt').value,type:$('fm_tp').value,week:$('fm_wk').value,year:+$('fm_yr').value,fac:$('fm_fc').value,notes:$('fm_nt').value,attendees:_tmpAtt||[]};
     if(e){const i=DB.meetings.findIndex(x=>x.id===e.id);DB.meetings[i]=o;}else DB.meetings.push(o);
     saveDB();toast(e?'อัพเดทแล้ว':'เพิ่มประชุมแล้ว');});
+  setTimeout(renderAttList,100);
 }
 function delMtg(id){if(confirm('ลบ '+id+'?')){DB.meetings=DB.meetings.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
 function renderMeetings(){
@@ -689,6 +721,7 @@ function renderMeetings(){
     <div class="card-body">
       <div class="row"><span class="lbl">Week</span><span class="val">${m.week} · ${m.type}</span></div>
       <div class="row"><span class="lbl">Facilitator</span><span class="val">${m.fac}</span></div>
+      ${m.attendees&&m.attendees.length?`<div class="row"><span class="lbl">ผู้เข้าร่วม</span><span class="val">${m.attendees.length} คน: ${m.attendees.map(a=>a.name).join(', ')}</span></div>`:''}
       <div class="row"><span class="lbl">Items</span><span class="val">${t} total · ${c} ✅ · ${p} 🔄 · ${o} ⚠️ · ${pc}</span></div>
     </div>
     <div class="card-footer"><div class="card-actions">
