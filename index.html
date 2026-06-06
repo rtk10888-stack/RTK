@@ -581,29 +581,49 @@ function shareLINE(id){
   _doShareItem(id,i,msg);
 }
 function _doShareItem(id,i,msg){
-  {
-    toast('📸 กำลังแคป...','var(--tl)');
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545')+';';
-    let h=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${i.id}</span><div style="display:flex;gap:4px"><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545'}">${i.status}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:${i.priority==='Medium'?'#333':'#fff'};background:${i.priority==='Critical'?'#DC3545':i.priority==='High'?'#FD7E14':i.priority==='Medium'?'#FFC107':'#17A2B8'}">${i.priority}</span></div></div>`;
-    h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
-    h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Part</span><span style="font-weight:600">${i.part||'-'}</span></div>`;
-    h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Pain</span><span>${i.pain||'-'}</span></div>`;
-    if(i.temp)h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Temp</span><span style="color:#FD7E14">${i.temp}</span></div>`;
-    if(i.maker)h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Maker</span><span>${i.maker}</span></div>`;
-    h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Info</span><span>${i.tqm} · ${i.dept} · ${i.loc} · ${i.resp}</span></div>`;
-    h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Due</span><span>${i.due} ${i.finish?'✅':''}</span></div>`;
-    if(i.action)h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Action</span><span>${i.action}</span></div>`;
+  toast('📸 กำลังแคป...','var(--tl)');
+  const stC=i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545';
+  const prC=i.priority==='Critical'?'#DC3545':i.priority==='High'?'#FD7E14':i.priority==='Medium'?'#FFC107':'#17A2B8';
+  const prTx=i.priority==='Medium'?'#333':'#fff';
+  const dDays=i.due?(i.finish?'<span style="color:#28A745">✓</span>':(()=>{const d=Math.ceil((new Date(i.due)-new Date())/(864e5));return `<span style="color:${d<0?'#DC3545':'#28A745'};font-weight:700">${d}d</span>`;})()):'';
+  const wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:14px;padding:18px 16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:5px solid '+stC+';box-shadow:0 2px 12px rgba(0,0,0,.08);';
+  let h=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+    <span style="font-weight:700;color:#1B3A5C;font-size:16px">${i.id}</span>
+    <div style="display:flex;gap:5px"><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;color:#fff;background:${stC}">${i.status}</span><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;color:${prTx};background:${prC}">${i.priority}</span></div></div>`;
+  const row=(l,v,vs)=>`<div style="display:flex;gap:8px;margin-bottom:5px;line-height:1.5"><span style="font-weight:600;color:#7A8A9E;min-width:55px;font-size:13px">${l}</span><span style="font-size:13px;color:${vs||'#333'};font-weight:${l==='Part'?'600':'400'};word-break:break-word;flex:1">${v}</span></div>`;
+  h+=row('Part',i.part||'-');
+  h+=row('Pain',i.pain||'-');
+  if(i.temp)h+=row('Temp',i.temp,'#FD7E14');
+  if(i.snr)h+=row('S&R',i.snr,'#17A2B8');
+  if(i.maker)h+=row('Maker',i.maker);
+  h+=row('Info',`${i.tqm} · ${i.dept} · ${i.loc} · ${i.resp}`);
+  h+=`<div style="display:flex;gap:8px;margin-bottom:5px;line-height:1.5"><span style="font-weight:600;color:#7A8A9E;min-width:55px;font-size:13px">Due</span><span style="font-size:13px">${i.due||'-'} ${dDays}</span></div>`;
+  if(i.action)h+=row('Action',i.action);
+  // รูปภาพ
+  if(i.img_ok||i.img_ng||i.img_tag){
+    h+=`<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">`;
+    if(i.img_ok)h+=`<img src="${i.img_ok}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid #28A745">`;
+    if(i.img_ng)h+=`<img src="${i.img_ng}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid #DC3545">`;
+    if(i.img_tag)h+=`<img src="${i.img_tag}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid #FD7E14">`;
     h+=`</div>`;
-    if(i.img_ok||i.img_ng||i.img_tag){h+=`<div style="display:flex;gap:4px;margin-top:8px">`;if(i.img_ok)h+=`<img src="${i.img_ok}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #28A745">`;if(i.img_ng)h+=`<img src="${i.img_ng}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #DC3545">`;if(i.img_tag)h+=`<img src="${i.img_tag}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #FD7E14">`;h+=`</div>`;}
-    wrap.innerHTML=h;document.body.appendChild(wrap);
-    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
-      document.body.removeChild(wrap);
-      canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(msg);},300);
-      },'image/png');
-    }).catch(()=>{document.body.removeChild(wrap);openLINE(msg);});
   }
+  // RCA / CAPA links
+  const links=[];
+  if(i.rca_id)links.push(`<span style="color:#1B3A5C;font-weight:600;text-decoration:underline">${i.rca_id}</span>`);
+  if(i.capa_id)links.push(`<span style="color:#1B3A5C;font-weight:600;text-decoration:underline">${i.capa_id}</span>`);
+  if(links.length)h+=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid #eee;font-size:13px">${links.join(' · ')}</div>`;
+  wrap.innerHTML=h;document.body.appendChild(wrap);
+  html2canvas(wrap,{scale:3,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+    document.body.removeChild(wrap);
+    const maxW=1200;let w=canvas.width,ht=canvas.height;
+    if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
+    const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
+    c2.getContext('2d').drawImage(canvas,0,0,w,ht);
+    c2.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+      toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(msg);},300);
+    },'image/png');
+  }).catch(()=>{document.body.removeChild(wrap);openLINE(msg);});
 }
 
 // ============ SHARE LINE — RCA / CAPA / MEETING / DASHBOARD ============
