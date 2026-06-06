@@ -581,21 +581,7 @@ function shareLINE(id){
   _doShareItem(id,i,msg);
 }
 function _doShareItem(id,i,msg){
-  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
-  if(isMobile){
-    const cards=document.querySelectorAll('#cardItems .card');let cardEl=null;
-    cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
-    if(cardEl&&typeof html2canvas!=='undefined'){
-      toast('📸 กำลังแคปหน้าจอ...','var(--tl)');
-      html2canvas(cardEl,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
-        canvas.toBlob(blob=>{
-          const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');
-          setTimeout(()=>{openLINE(msg);},500);
-        },'image/png');
-      }).catch(()=>{openLINE(msg);});
-    } else {openLINE(msg);}
-  } else {
+  {
     toast('📸 กำลังแคป...','var(--tl)');
     const wrap=document.createElement('div');
     wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545')+';';
@@ -622,42 +608,32 @@ function _doShareItem(id,i,msg){
 
 // ============ SHARE LINE — RCA / CAPA / MEETING / DASHBOARD ============
 function shareCardLINE(cardEl, title, msg){
-  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
-  if(isMobile){
-    if(cardEl&&typeof html2canvas!=='undefined'){
-      toast('📸 กำลังแคปหน้าจอ...','var(--tl)');
-      html2canvas(cardEl,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
-        canvas.toBlob(blob=>{
-          const url=URL.createObjectURL(blob);
-          const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
-          URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');
-          setTimeout(()=>{openLINE(msg);},500);
-        },'image/png');
-      }).catch(()=>{openLINE(msg);});
-    } else {
-      openLINE(msg);
-    }
-  } else {
-    // Desktop: สร้าง card clone แคป + ดาวน์โหลด + LINE Share
-    toast('📸 กำลังแคป...','var(--tl)');
-    const wrap=cardEl.cloneNode(true);
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:12px;padding:16px;font-family:Segoe UI,Arial,sans-serif;'+cardEl.style.cssText;
-    document.body.appendChild(wrap);
-    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
-      document.body.removeChild(wrap);
-      canvas.toBlob(blob=>{
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
-        URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว','var(--gn)');
-        setTimeout(()=>{openLINE(msg);},300);
-      },'image/png');
-    }).catch(()=>{
-      document.body.removeChild(wrap);
-      openLINE(msg);
-    });
-  }
+  if(!cardEl||typeof html2canvas==='undefined'){openLINE(msg);return;}
+  toast('📸 กำลังแคป...','var(--tl)');
+  const wrap=cardEl.cloneNode(true);
+  wrap.style.cssText='position:fixed;left:-9999px;top:0;width:380px;background:#fff;border-radius:12px;padding:16px;font-family:Segoe UI,Arial,sans-serif;';
+  // ปรับขนาดรูปภายใน
+  wrap.querySelectorAll('img').forEach(img=>{img.style.maxWidth='100%';img.style.height='auto';});
+  wrap.querySelectorAll('button,.line-btn,[onclick]').forEach(el=>el.remove());
+  document.body.appendChild(wrap);
+  html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+    document.body.removeChild(wrap);
+    // บีบอัดเป็น JPEG 70%
+    const maxW=800;let w=canvas.width,h=canvas.height;
+    if(w>maxW){h=Math.round(h*(maxW/w));w=maxW;}
+    const c2=document.createElement('canvas');c2.width=w;c2.height=h;
+    c2.getContext('2d').drawImage(canvas,0,0,w,h);
+    c2.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
+      URL.revokeObjectURL(url);
+      toast('📸 บันทึกภาพแล้ว','var(--gn)');
+      setTimeout(()=>{openLINE(msg);},300);
+    },'image/jpeg',0.7);
+  }).catch(()=>{
+    document.body.removeChild(wrap);
+    openLINE(msg);
+  });
 }
 
 function shareLINE_RCA(id){
