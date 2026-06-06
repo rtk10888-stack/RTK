@@ -556,47 +556,6 @@ function lbClose(){$('lightbox').classList.remove('show');}
 function lbZoom(d){if(d===0)_lbScale=1;else _lbScale=Math.max(0.5,Math.min(5,_lbScale+(d*0.5)));$('lbImg').style.transform='scale('+_lbScale+')';}
 function photoThumbs(i){if(!i.img_ok&&!i.img_ng&&!i.img_tag)return'';return `<div class="photo-row">${i.img_ok?`<img src="${i.img_ok}" class="ph-ok" onclick="lbShow(this.src)" title="OK">`:''}${i.img_ng?`<img src="${i.img_ng}" class="ph-ng" onclick="lbShow(this.src)" title="NG">`:''}${i.img_tag?`<img src="${i.img_tag}" class="ph-tag" onclick="lbShow(this.src)" title="TAG LOT NC">`:''}  </div>`;}
 
-// ============ LINE MENTION PICKER ============
-const LINE_MEMBERS=['ธีรสิทธิ์-QMR','ธีรสิทธิ์-DCC','ธีรสิทธิ์-PE','พัฒนเดช-QA','มานพ-QC','มิตรอังคาร-PI','เกื้อ-PD','วิละพงษ์-QC','เตย-QC','วัชราภรณ์-PC','วัชราภรณ์-ST','อลิสา-PL','ธัญลักษณ์-SA','ขวัญใจ-AC'];
-let _linePending=null;
-
-function showMentionPicker(msg,afterFn){
-  _linePending={msg,afterFn};
-  const html=`<div id="mentionModal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeMentionPicker()">
-    <div style="background:#fff;border-radius:14px;width:100%;max-width:360px;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)">
-      <div style="padding:14px 16px;border-bottom:1px solid #eee">
-        <span style="font-weight:700;color:var(--dk);font-size:14px">👥 Tag ใครใน LINE?</span>
-        <div style="font-size:11px;color:var(--gr);margin-top:2px">พิมพ์ชื่อ LINE ที่ต้องการ tag (คั่นด้วย , หรือเว้นวรรค)</div>
-      </div>
-      <div style="padding:12px 16px">
-        <textarea id="mentionInput" placeholder="เช่น @Teerasit @มานพ @เตย" style="width:100%;min-height:60px;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
-      </div>
-      <div style="padding:0 16px 12px;display:flex;gap:8px">
-        <button onclick="closeMentionPicker()" style="flex:1;padding:10px;border:1.5px solid #ddd;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;font-weight:600">ไม่ tag</button>
-        <button onclick="sendWithMentions()" style="flex:1;padding:10px;border:none;border-radius:8px;background:#06C755;color:#fff;font-size:13px;cursor:pointer;font-weight:700">💬 ส่ง LINE</button>
-      </div>
-    </div></div>`;
-  document.body.insertAdjacentHTML('beforeend',html);
-  setTimeout(()=>{const inp=$('mentionInput');if(inp)inp.focus();},200);
-}
-
-function closeMentionPicker(){
-  const el=$('mentionModal');if(el)el.remove();
-  if(_linePending)_linePending.afterFn(_linePending.msg);
-  _linePending=null;
-}
-function sendWithMentions(){
-  const raw=($('mentionInput')?$('mentionInput').value:'').trim();
-  const el=$('mentionModal');if(el)el.remove();
-  if(!_linePending)return;
-  let msg=_linePending.msg;
-  if(raw){
-    const tags=raw.split(/[,\s]+/).filter(s=>s).map(s=>s.startsWith('@')?s:'@'+s).join(' ');
-    msg+='\n\n👉 '+tags;
-  }
-  _linePending.afterFn(msg);
-  _linePending=null;
-}
 
 function openLINE(msg){
   // ใช้ LINE Share ทั้งมือถือและคอม — เลือกกลุ่มหรือบุคคลได้
@@ -619,7 +578,7 @@ function shareLINE(id){
   if(i.rca_id)msg+=`🔬 RCA: ${i.rca_id}\n`;
   if(i.capa_id)msg+=`📝 CAPA: ${i.capa_id}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  showMentionPicker(msg,function(finalMsg){_doShareItem(id,i,finalMsg);});
+  _doShareItem(id,i,msg);
 }
 function _doShareItem(id,i,msg){
   const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
@@ -710,7 +669,7 @@ function shareLINE_RCA(id){
   if(r.root)msg+=`🎯 Root Cause: ${r.root}\n`;
   if(r.fo_what||r.fo_why)msg+=`🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}\n`;
   msg+=`👤 Owner: ${r.owner}\n━━━━━━━━━━━━━━━`;
-  showMentionPicker(msg,function(finalMsg){
+  {let finalMsg=msg;
     const cards=document.querySelectorAll('#cardRCA .card');let cardEl=null;
     cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
     if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
@@ -737,7 +696,7 @@ function shareLINE_RCA(id){
         },'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
-  });
+  }
 }
 
 function shareLINE_CAPA(id){
@@ -752,7 +711,7 @@ function shareLINE_CAPA(id){
   if(c.verify)msg+=`✅ Verify: ${c.verify}\n`;
   if(c.result)msg+=`📊 Result: ${c.result}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  showMentionPicker(msg,function(finalMsg){
+  {let finalMsg=msg;
     const cards=document.querySelectorAll('#cardCAPA .card');let cardEl=null;
     cards.forEach(cd=>{if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;});
     if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
@@ -780,7 +739,7 @@ function shareLINE_CAPA(id){
         },'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
-  });
+  }
 }
 
 function shareLINE_MTG(id){
@@ -792,7 +751,7 @@ function shareLINE_MTG(id){
   if(m.attendees&&m.attendees.length)msg+=`👥 ผู้เข้าร่วม: ${m.attendees.map(a=>a.name).join(', ')}\n`;
   msg+=`📊 Items: ${t} total · ${co} ✅ · ${ip} 🔄 · ${od} ⚠️ · ${pc}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  showMentionPicker(msg,function(finalMsg){
+  {let finalMsg=msg;
     const cards=document.querySelectorAll('#cardMtg .card');let cardEl=null;
     cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
     if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
@@ -819,7 +778,7 @@ function shareLINE_MTG(id){
         },'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
-  });
+  }
 }
 
 function shareLINE_Dashboard(){
@@ -831,7 +790,7 @@ function shareLINE_Dashboard(){
   msg+=`📋 Items: ${t} total\n✅ Complete: ${co} | 🔄 IP: ${ip} | ⚠️ OD: ${od}\n`;
   msg+=`📈 สำเร็จ: ${pc}%\n📝 CAPA: ${ct} total | Closed: ${cc} | Open: ${ct-cc}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  showMentionPicker(msg,function(finalMsg){
+  {let finalMsg=msg;
     const dashEl=document.getElementById('tab-dashboard');
     if(dashEl&&typeof html2canvas!=='undefined'){
       toast('📸 กำลังแคป Dashboard...','var(--tl)');
@@ -843,7 +802,7 @@ function shareLINE_Dashboard(){
         },'image/png');
       }).catch(()=>{openLINE(finalMsg);});
     } else {openLINE(finalMsg);}
-  });
+  }
 }
 
 // ============ ID GEN ============
