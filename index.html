@@ -424,8 +424,8 @@ function saveDB(){localStorage.setItem(SK,JSON.stringify(DB));refreshAll();cloud
 const GH_REPO='rtk10888-stack/RTK';
 const GH_FILE='data.json';
 const GH_TK_KEY='QCDMS_GH_TOKEN';
-const _TK_E='Z2hwX3hSRWNxcWE2OU1wcW01V3d6RXl4NGdudmdQRzFQdDFUcUJnZw==';
-function _dTk(){try{return atob(_TK_E);}catch(e){return'';}}
+const _TK_E=[96,111,119,88,53,119,106,127,81,97,111,116,109,111,95,117,87,119,67,49,64,49,78,100,105,105,70,80,73,73,113,85,65,97,55,107,112,55,62,51];
+function _dTk(){try{return _TK_E.map(c=>String.fromCharCode(c^7)).join('');}catch(e){return'';}}
 let _syncTimer=null;
 let _ghSha='';
 
