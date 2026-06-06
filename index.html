@@ -424,10 +424,11 @@ function saveDB(){localStorage.setItem(SK,JSON.stringify(DB));refreshAll();cloud
 const GH_REPO='rtk10888-stack/RTK';
 const GH_FILE='data.json';
 const GH_TK_KEY='QCDMS_GH_TOKEN';
+const GH_TK_DEFAULT='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';
 let _syncTimer=null;
 let _ghSha='';
 
-function getGhToken(){return localStorage.getItem(GH_TK_KEY)||'';}
+function getGhToken(){return localStorage.getItem(GH_TK_KEY)||GH_TK_DEFAULT;}
 function setGhToken(t){localStorage.setItem(GH_TK_KEY,t);}
 function ghHeaders(){return{'Authorization':'token '+getGhToken(),'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};}
 
