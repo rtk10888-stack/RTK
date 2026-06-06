@@ -429,6 +429,8 @@ function _dTk(){try{return atob(_TK_E);}catch(e){return'';}}
 let _syncTimer=null;
 let _ghSha='';
 
+// ล้าง Token เก่าที่ถูก revoke — ใช้ Token ใหม่ที่ฝังไว้
+(function(){const old=localStorage.getItem(GH_TK_KEY);if(old&&old!==_dTk())localStorage.removeItem(GH_TK_KEY);})();
 function getGhToken(){return localStorage.getItem(GH_TK_KEY)||_dTk();}
 function setGhToken(t){localStorage.setItem(GH_TK_KEY,t);}
 function ghHeaders(){return{'Authorization':'token '+getGhToken(),'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};}
