@@ -586,18 +586,15 @@ function shareLINE(id){
       toast('📸 กำลังแคปหน้าจอ...','var(--tl)');
       html2canvas(cardEl,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         canvas.toBlob(blob=>{
-          if(navigator.share&&blob){
-            const file=new File([blob],id+'.png',{type:'image/png'});
-            navigator.share({title:'RTK-QC '+id,text:msg,files:[file]}).catch(()=>{
-              window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
-            });
-          } else {
-            window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
-          }
+          const url=URL.createObjectURL(blob);
+          const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();
+          URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
+          setTimeout(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');},500);
         },'image/png');
-      }).catch(()=>{window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+      }).catch(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');});
     } else {
-      window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+      window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
     }
   } else {
     // Desktop: แคปเป็น Card แบบเดียวกับมือถือ แล้วส่ง LINE
@@ -655,18 +652,15 @@ function shareCardLINE(cardEl, title, msg){
       toast('📸 กำลังแคปหน้าจอ...','var(--tl)');
       html2canvas(cardEl,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         canvas.toBlob(blob=>{
-          if(navigator.share&&blob){
-            const file=new File([blob],title+'.png',{type:'image/png'});
-            navigator.share({title:'RTK-QC '+title,text:msg,files:[file]}).catch(()=>{
-              window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
-            });
-          } else {
-            window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
-          }
+          const url=URL.createObjectURL(blob);
+          const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
+          URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
+          setTimeout(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');},500);
         },'image/png');
-      }).catch(()=>{window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+      }).catch(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');});
     } else {
-      window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+      window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
     }
   } else {
     // Desktop: สร้าง card clone แคป + ดาวน์โหลด + LINE Share
@@ -840,22 +834,22 @@ function shareLINE_Dashboard(){
     html2canvas(dashEl,{scale:2,backgroundColor:'#fff',useCORS:true,scrollY:-window.scrollY}).then(canvas=>{
       const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
       canvas.toBlob(blob=>{
-        if(isMobile&&navigator.share&&blob){
-          const file=new File([blob],'RTK-QC_Dashboard.png',{type:'image/png'});
-          navigator.share({title:'RTK-QC Dashboard',text:msg,files:[file]}).catch(()=>{
-            window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
-          });
-        } else if(!isMobile){
-          const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_Dashboard.png';a.click();URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');
-          setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=url;a.download='RTK-QC_Dashboard.png';a.click();
+        URL.revokeObjectURL(url);
+        toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
+        if(isMobile){
+          setTimeout(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');},500);
         } else {
-          window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+          setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
         }
       },'image/png');
-    }).catch(()=>{window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+    }).catch(()=>{
+      if(isMobile)window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
+      else window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
+    });
   } else {
-    window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+    window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
   }
 }
 
