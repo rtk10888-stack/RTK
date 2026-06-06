@@ -590,11 +590,11 @@ function shareLINE(id){
           const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();
           URL.revokeObjectURL(url);
           toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
-          setTimeout(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');},500);
+          setTimeout(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');},500);
         },'image/png');
-      }).catch(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');});
+      }).catch(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');});
     } else {
-      window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
+      window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
     }
   } else {
     // Desktop: แคปเป็น Card แบบเดียวกับมือถือ แล้วส่ง LINE
@@ -656,11 +656,11 @@ function shareCardLINE(cardEl, title, msg){
           const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
           URL.revokeObjectURL(url);
           toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
-          setTimeout(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');},500);
+          setTimeout(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');},500);
         },'image/png');
-      }).catch(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');});
+      }).catch(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');});
     } else {
-      window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
+      window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
     }
   } else {
     // Desktop: สร้าง card clone แคป + ดาวน์โหลด + LINE Share
@@ -839,17 +839,17 @@ function shareLINE_Dashboard(){
         URL.revokeObjectURL(url);
         toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
         if(isMobile){
-          setTimeout(()=>{window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');},500);
+          setTimeout(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');},500);
         } else {
           setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
         }
       },'image/png');
     }).catch(()=>{
-      if(isMobile)window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
+      if(isMobile)window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
       else window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
     });
   } else {
-    window.open('https://line.me/R/msg/text/?'+encodeURIComponent(msg),'_blank');
+    window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
   }
 }
 
