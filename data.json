@@ -1446,13 +1446,20 @@
       "action": "QC Recheck 100% Visual inspection Stock RTK",
       "resp": "พัฒนเดช-QA",
       "target": "2026-01-27",
-      "actual": "",
+      "actual": "2026-01-28",
       "verify": "Inspection Record",
       "result": "กำลังตรวจ",
       "score": "",
-      "status": "In Progress",
+      "status": "Closed",
       "recur": "",
-      "closeBy": ""
+      "closeBy": "",
+      "h_what": "",
+      "h_why": "",
+      "h_where": "",
+      "h_when": "",
+      "h_who": "",
+      "h_how": "",
+      "h_howmuch": ""
     },
     {
       "id": "CAPA-2026-009b",
