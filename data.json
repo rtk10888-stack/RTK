@@ -1055,11 +1055,11 @@
       "id": "ITM-2026-029",
       "mid": "MTG-2026-18",
       "date": "2026-06-05",
-      "no": 0,
+      "no": -3,
       "part": "40051621-_PIN BACK MIRROR B0BA",
       "tqm": "Q",
       "dept": "QA",
-      "loc": "",
+      "loc": "RTK",
       "pain": "",
       "rca_sum": "",
       "action": "",
@@ -1080,7 +1080,7 @@
       "img_ng": "",
       "img_tag": "",
       "snr": "",
-      "maker": ""
+      "maker": "่JARUN"
     }
   ],
   "rcas": [
