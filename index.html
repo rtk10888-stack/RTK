@@ -227,6 +227,7 @@ td.left{text-align:left;}
 
 <!-- ==================== DASHBOARD ==================== -->
 <div class="tab-content active" id="tab-dashboard">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn btn-sm" style="background:#E8FFE8;color:#06C755;font-weight:700;border:1px solid #06C755" onclick="shareLINE_Dashboard()">💬 ส่ง LINE</button></div>
   <div class="summary-strip" id="summaryStrip"></div>
   <div class="kpi-row" id="kpiRow"></div>
   <div class="chart-grid">
@@ -642,6 +643,218 @@ function shareLINE(id){
   }
 }
 
+// ============ SHARE LINE — RCA / CAPA / MEETING / DASHBOARD ============
+function shareCardLINE(cardEl, title, msg){
+  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile){
+    if(cardEl&&typeof html2canvas!=='undefined'){
+      toast('📸 กำลังแคปหน้าจอ...','var(--tl)');
+      html2canvas(cardEl,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        canvas.toBlob(blob=>{
+          if(navigator.share&&blob){
+            const file=new File([blob],title+'.png',{type:'image/png'});
+            navigator.share({title:'RTK-QC '+title,text:msg,files:[file]}).catch(()=>{
+              window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+            });
+          } else {
+            window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+          }
+        },'image/png');
+      }).catch(()=>{window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+    } else {
+      window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+    }
+  } else {
+    // Desktop: สร้าง card clone แคป + ดาวน์โหลด + LINE Share
+    toast('📸 กำลังแคป...','var(--tl)');
+    const wrap=cardEl.cloneNode(true);
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:12px;padding:16px;font-family:Segoe UI,Arial,sans-serif;'+cardEl.style.cssText;
+    document.body.appendChild(wrap);
+    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+      document.body.removeChild(wrap);
+      canvas.toBlob(blob=>{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
+        URL.revokeObjectURL(url);
+        toast('📸 บันทึกภาพแล้ว — ส่งเข้า LINE ได้เลย','var(--gn)');
+        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+      },'image/png');
+    }).catch(()=>{
+      document.body.removeChild(wrap);
+      window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
+    });
+  }
+}
+
+function shareLINE_RCA(id){
+  const r=DB.rcas.find(x=>x.id===id);if(!r)return;
+  let msg=`🔬 RTK-QC RCA Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${r.id}\n📅 ${r.date}\n`;
+  msg+=`🔗 Item: ${r.item}\n`;
+  msg+=`⚠️ ปัญหา: ${r.prob}\n`;
+  msg+=`📂 ${r.cat}\n`;
+  if(r.w1)msg+=`W1: ${r.w1}\n`;if(r.w2)msg+=`W2: ${r.w2}\n`;if(r.w3)msg+=`W3: ${r.w3}\n`;
+  if(r.w4)msg+=`W4: ${r.w4}\n`;if(r.w5)msg+=`W5: ${r.w5}\n`;
+  if(r.root)msg+=`🎯 Root Cause: ${r.root}\n`;
+  if(r.fo_what||r.fo_why)msg+=`🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}\n`;
+  msg+=`👤 Owner: ${r.owner}\n━━━━━━━━━━━━━━━`;
+  // หา Card
+  const cards=document.querySelectorAll('#cardRCA .card');
+  let cardEl=null;
+  cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
+  if(cardEl){shareCardLINE(cardEl,id,msg);}
+  else{
+    // Desktop: สร้าง card สำหรับแคป
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':r.cat==='Method'?'#2E5D8A':'#28A745')+';';
+    let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${r.id}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':'#2E5D8A'}">${r.cat}</span></div>`;
+    h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Item:</b> ${r.item}</div>`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ปัญหา:</b> ${r.prob}</div>`;
+    if(r.w1)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W1</span> ${r.w1}</div>`;
+    if(r.w2)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W2</span> ${r.w2}</div>`;
+    if(r.w3)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W3</span> ${r.w3}</div>`;
+    if(r.w4)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W4</span> ${r.w4}</div>`;
+    if(r.w5)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W5</span> ${r.w5}</div>`;
+    if(r.root)h+=`<div style="margin-top:4px;font-weight:700;color:#DC3545">🎯 ${r.root}</div>`;
+    if(r.fo_what||r.fo_why)h+=`<div style="margin-top:4px;font-size:11px;color:#777">🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}</div>`;
+    h+=`<div style="margin-top:4px"><b style="color:#1B3A5C">Owner:</b> ${r.owner} · ${r.date}</div>`;
+    h+=`</div>`;
+    wrap.innerHTML=h;
+    document.body.appendChild(wrap);
+    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+      document.body.removeChild(wrap);
+      canvas.toBlob(blob=>{
+        const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+        toast('📸 บันทึกภาพแล้ว','var(--gn)');
+        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+      },'image/png');
+    }).catch(()=>{document.body.removeChild(wrap);window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+  }
+}
+
+function shareLINE_CAPA(id){
+  const c=DB.capas.find(x=>x.id===id);if(!c)return;
+  let msg=`📝 RTK-QC CAPA Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${c.id} (${c.type})\n`;
+  msg+=`🔗 Item: ${c.item} | RCA: ${c.rca||'-'}\n`;
+  msg+=`📋 มาตรการ: ${c.action}\n`;
+  msg+=`👤 Resp: ${c.resp}\n`;
+  msg+=`📆 Target: ${c.target} | Status: ${c.status}\n`;
+  if(c.h_what)msg+=`What: ${c.h_what}\n`;if(c.h_how)msg+=`How: ${c.h_how}\n`;
+  if(c.verify)msg+=`✅ Verify: ${c.verify}\n`;
+  if(c.result)msg+=`📊 Result: ${c.result}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  const cards=document.querySelectorAll('#cardCAPA .card');
+  let cardEl=null;
+  cards.forEach(cd=>{if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;});
+  if(cardEl){shareCardLINE(cardEl,id,msg);}
+  else{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545')+';';
+    let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${c.id}</span><div><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.type==='CA'?'#2E5D8A':'#FD7E14'};margin-right:4px">${c.type}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545'}">${c.status}</span></div></div>`;
+    h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">มาตรการ:</b> ${c.action}</div>`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Link:</b> ${c.item} · ${c.rca||'-'}</div>`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Resp:</b> ${c.resp}</div>`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Target:</b> ${c.target} ${c.actual?'→ '+c.actual:''}</div>`;
+    if(c.h_what)h+=`<div style="margin-bottom:2px;font-size:11px"><b>What:</b> ${c.h_what}</div>`;
+    if(c.h_how)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How:</b> ${c.h_how}</div>`;
+    if(c.h_howmuch)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How Much:</b> ${c.h_howmuch}</div>`;
+    if(c.verify)h+=`<div style="margin-top:4px"><b style="color:#28A745">✅ Verify:</b> ${c.verify}</div>`;
+    if(c.result)h+=`<div><b style="color:#28A745">📊 Result:</b> ${c.result}</div>`;
+    if(c.score)h+=`<div>${'⭐'.repeat(c.score)}</div>`;
+    h+=`</div>`;
+    wrap.innerHTML=h;
+    document.body.appendChild(wrap);
+    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+      document.body.removeChild(wrap);
+      canvas.toBlob(blob=>{
+        const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+        toast('📸 บันทึกภาพแล้ว','var(--gn)');
+        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+      },'image/png');
+    }).catch(()=>{document.body.removeChild(wrap);window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+  }
+}
+
+function shareLINE_MTG(id){
+  const m=DB.meetings.find(x=>x.id===id);if(!m)return;
+  const its=DB.items.filter(i=>i.mid===m.id),t=its.length,co=its.filter(i=>i.status==='Complete').length,ip=its.filter(i=>i.status==='In Progress').length,od=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(co/t*100)+'%':'-';
+  let msg=`📅 RTK-QC Meeting Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${m.id}\n📅 ${m.date} · ${m.type}\n`;
+  msg+=`📆 Week: ${m.week}\n👤 Facilitator: ${m.fac}\n`;
+  if(m.attendees&&m.attendees.length)msg+=`👥 ผู้เข้าร่วม: ${m.attendees.map(a=>a.name).join(', ')}\n`;
+  msg+=`📊 Items: ${t} total · ${co} ✅ · ${ip} 🔄 · ${od} ⚠️ · ${pc}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  const cards=document.querySelectorAll('#cardMtg .card');
+  let cardEl=null;
+  cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
+  if(cardEl){shareCardLINE(cardEl,id,msg);}
+  else{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid #2E5D8A;';
+    let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${m.id}</span><span style="color:#6C757D;font-size:12px">${m.date}</span></div>`;
+    h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Week:</b> ${m.week} · ${m.type}</div>`;
+    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Facilitator:</b> ${m.fac}</div>`;
+    if(m.attendees&&m.attendees.length)h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ผู้เข้าร่วม:</b> ${m.attendees.length} คน — ${m.attendees.map(a=>a.name).join(', ')}</div>`;
+    h+=`<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">`;
+    h+=`<span style="padding:4px 10px;border-radius:8px;background:#2E5D8A;color:#fff;font-size:12px;font-weight:600">${t} Items</span>`;
+    h+=`<span style="padding:4px 10px;border-radius:8px;background:#28A745;color:#fff;font-size:12px;font-weight:600">${co} ✅</span>`;
+    h+=`<span style="padding:4px 10px;border-radius:8px;background:#FD7E14;color:#fff;font-size:12px;font-weight:600">${ip} 🔄</span>`;
+    h+=`<span style="padding:4px 10px;border-radius:8px;background:#DC3545;color:#fff;font-size:12px;font-weight:600">${od} ⚠️</span>`;
+    h+=`<span style="padding:4px 10px;border-radius:8px;background:#17A2B8;color:#fff;font-size:12px;font-weight:600">${pc}</span>`;
+    h+=`</div></div>`;
+    wrap.innerHTML=h;
+    document.body.appendChild(wrap);
+    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+      document.body.removeChild(wrap);
+      canvas.toBlob(blob=>{
+        const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+        toast('📸 บันทึกภาพแล้ว','var(--gn)');
+        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+      },'image/png');
+    }).catch(()=>{document.body.removeChild(wrap);window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+  }
+}
+
+function shareLINE_Dashboard(){
+  const t=DB.items.length,co=cnt(DB.items,'status','Complete'),ip=cnt(DB.items,'status','In Progress'),
+    od=cnt(DB.items,'status','Overdue'),pc=t?Math.round(co/t*100):0,
+    ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed');
+  let msg=`📊 RTK-QC Dashboard Summary\n━━━━━━━━━━━━━━━\n`;
+  msg+=`📅 ${new Date().toLocaleDateString('th-TH')}\n`;
+  msg+=`📋 Items: ${t} total\n`;
+  msg+=`✅ Complete: ${co} | 🔄 IP: ${ip} | ⚠️ OD: ${od}\n`;
+  msg+=`📈 สำเร็จ: ${pc}%\n`;
+  msg+=`📝 CAPA: ${ct} total | Closed: ${cc} | Open: ${ct-cc}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  const dashEl=document.getElementById('tab-dashboard');
+  if(dashEl&&typeof html2canvas!=='undefined'){
+    toast('📸 กำลังแคป Dashboard...','var(--tl)');
+    html2canvas(dashEl,{scale:2,backgroundColor:'#fff',useCORS:true,scrollY:-window.scrollY}).then(canvas=>{
+      const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+      canvas.toBlob(blob=>{
+        if(isMobile&&navigator.share&&blob){
+          const file=new File([blob],'RTK-QC_Dashboard.png',{type:'image/png'});
+          navigator.share({title:'RTK-QC Dashboard',text:msg,files:[file]}).catch(()=>{
+            window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+          });
+        } else if(!isMobile){
+          const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_Dashboard.png';a.click();URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');
+          setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+        } else {
+          window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+        }
+      },'image/png');
+    }).catch(()=>{window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
+  } else {
+    window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+  }
+}
+
 // ============ ID GEN ============
 function nxtId(p,a,f){const y=new Date().getFullYear(),ns=a.map(x=>{const m=x[f].match(new RegExp(p+'-'+y+'-(\\d+)'));return m?parseInt(m[1]):0;});return `${p}-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(3,'0')}`;}
 // ===== ATTENDEE HELPERS =====
@@ -725,10 +938,11 @@ function renderMeetings(){
     <div class="card-footer"><div class="card-actions">
       <button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️ แก้ไข</button>
       <button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_MTG('${m.id}')">💬LINE</button>
     </div></div></div>`).join('');
   // Table (desktop)
   document.getElementById('tbMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<tr>
-    <td><button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️</button><button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button></td>
+    <td><button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️</button><button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_MTG('${m.id}')">💬</button></td>
     <td><b>${m.id}</b></td><td>${m.date}</td><td>${m.type}</td><td>${m.week}</td><td>${m.year}</td><td>${m.fac}</td>
     <td>${t}</td><td>${c}</td><td>${p}</td><td>${o}</td><td>${pc}</td></tr>`).join('');
 }
@@ -884,10 +1098,11 @@ function renderRCA(){
     <div class="card-footer"><div></div><div class="card-actions">
       <button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button>
       <button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_RCA('${r.id}')">💬LINE</button>
     </div></div></div>`).join('');
   // Table
   document.getElementById('tbRCA').innerHTML=data.map(r=>`<tr>
-    <td><button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button><button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button></td>
+    <td><button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button><button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_RCA('${r.id}')">💬</button></td>
     <td><b>${r.id}</b></td><td class="link" onclick="switchTab('items')">${r.item}</td><td class="left">${r.prob}</td><td>${catB(r.cat)}</td>
     <td class="left" style="font-size:11px">${r.w1}</td><td class="left" style="font-size:11px">${r.w2}</td><td class="left" style="font-size:11px">${r.w3}</td>
     <td class="left" style="font-size:11px">${r.w4}</td><td class="left" style="font-size:11px">${r.w5}</td>
@@ -946,9 +1161,10 @@ function renderCAPA(){
     <div class="card-footer"><div></div><div class="card-actions">
       <button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button>
       <button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_CAPA('${c.id}')">💬LINE</button>
     </div></div></div>`).join('');
   document.getElementById('tbCAPA').innerHTML=data.map(c=>`<tr>
-    <td><button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button><button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button></td>
+    <td><button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button><button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_CAPA('${c.id}')">💬</button></td>
     <td><b>${c.id}</b></td><td class="link" onclick="switchTab('items')">${c.item}</td><td class="link" onclick="switchTab('rca')">${c.rca||'-'}</td>
     <td>${bg(c.type,c.type==='CA'?'ca':'pa')}</td><td class="left" style="max-width:220px">${c.action}</td><td>${c.resp}</td>
     <td>${c.target}</td><td>${c.actual||'-'}</td><td class="left">${c.verify}</td><td class="left">${c.result}</td>
