@@ -874,9 +874,12 @@ function renderAttList(){
   </div>`).join(''):'<div style="color:#999;font-size:11px;padding:4px">ยังไม่มีผู้เข้าร่วม</div>';
 }
 function addAttendee(){
-  const n=$('fm_att_name').value.trim(),p=$('fm_att_pos').value.trim(),t=$('fm_att_time').value;
-  if(!n){toast('กรอกชื่อก่อน','var(--rd)');return;}
-  _tmpAtt.push({name:n,pos:p,time:t});
+  const n=$('fm_att_name').value.trim();
+  if(!n){toast('เลือกชื่อก่อน','var(--rd)');return;}
+  const parts=n.split('-');const pos=$('fm_att_pos').value.trim()||(parts[1]||'');
+  const t=$('fm_att_time').value;
+  if(_tmpAtt.some(a=>a.name===n)){toast('มีชื่อนี้แล้ว','var(--or)');return;}
+  _tmpAtt.push({name:n,pos:pos,time:t});
   $('fm_att_name').value='';$('fm_att_pos').value='';$('fm_att_time').value='';
   renderAttList();$('fm_att_name').focus();
 }
@@ -915,7 +918,7 @@ function openMtgForm(e){
       <label style="color:var(--md)">👥 ผู้เข้าร่วมประชุม</label>
       <div id="fm_att_list" style="margin:6px 0"></div>
       <div style="display:flex;gap:4px;flex-wrap:wrap">
-        <input id="fm_att_name" placeholder="ชื่อ-สกุล" style="flex:2;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <select id="fm_att_name" style="flex:2;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px"><option value="">— เลือกชื่อ —</option><option>ธีรสิทธิ์-QMR</option><option>ธีรสิทธิ์-DCC</option><option>ธีรสิทธิ์-PE</option><option>พัฒนเดช-QA</option><option>มานพ-QC</option><option>มิตรอังคาร-PI</option><option>เกื้อ-PD</option><option>วิละพงษ์-QC</option><option>เตย-QC</option><option>วัชราภรณ์-PC</option><option>วัชราภรณ์-ST</option><option>อลิสา-PL</option><option>ธัญลักษณ์-SA</option><option>ขวัญใจ-AC</option></select>
         <input id="fm_att_pos" placeholder="ตำแหน่ง/แผนก" style="flex:1.5;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
         <input id="fm_att_time" type="time" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
         <button type="button" class="btn btn-success btn-sm" onclick="addAttendee()" style="min-width:40px">＋</button>
