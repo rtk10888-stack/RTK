@@ -556,58 +556,95 @@ function lbClose(){$('lightbox').classList.remove('show');}
 function lbZoom(d){if(d===0)_lbScale=1;else _lbScale=Math.max(0.5,Math.min(5,_lbScale+(d*0.5)));$('lbImg').style.transform='scale('+_lbScale+')';}
 function photoThumbs(i){if(!i.img_ok&&!i.img_ng&&!i.img_tag)return'';return `<div class="photo-row">${i.img_ok?`<img src="${i.img_ok}" class="ph-ok" onclick="lbShow(this.src)" title="OK">`:''}${i.img_ng?`<img src="${i.img_ng}" class="ph-ng" onclick="lbShow(this.src)" title="NG">`:''}${i.img_tag?`<img src="${i.img_tag}" class="ph-tag" onclick="lbShow(this.src)" title="TAG LOT NC">`:''}  </div>`;}
 
+// ============ LINE MENTION PICKER ============
+const LINE_MEMBERS=['ธีรสิทธิ์-QMR','ธีรสิทธิ์-DCC','ธีรสิทธิ์-PE','พัฒนเดช-QA','มานพ-QC','มิตรอังคาร-PI','เกื้อ-PD','วิละพงษ์-QC','เตย-QC','วัชราภรณ์-PC','วัชราภรณ์-ST','อลิสา-PL','ธัญลักษณ์-SA','ขวัญใจ-AC'];
+let _linePending=null;
+
+function showMentionPicker(msg,afterFn){
+  _linePending={msg,afterFn};
+  const chks=LINE_MEMBERS.map((m,i)=>`<label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:${i%2===0?'#f8f9fa':'#fff'};cursor:pointer;font-size:13px">
+    <input type="checkbox" class="mention-chk" value="${m}" style="width:18px;height:18px;accent-color:var(--md)">
+    <span style="flex:1">${m}</span></label>`).join('');
+  const html=`<div id="mentionModal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeMentionPicker()">
+    <div style="background:#fff;border-radius:14px;width:100%;max-width:360px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:700;color:var(--dk);font-size:14px">👥 เลือก @mention</span>
+        <button onclick="selectAllMentions()" style="background:var(--lt);color:var(--md);border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600">เลือกทั้งหมด</button>
+      </div>
+      <div style="overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:2px">${chks}</div>
+      <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:8px">
+        <button onclick="closeMentionPicker()" style="flex:1;padding:10px;border:1.5px solid #ddd;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;font-weight:600">ไม่ tag</button>
+        <button onclick="sendWithMentions()" style="flex:1;padding:10px;border:none;border-radius:8px;background:#06C755;color:#fff;font-size:13px;cursor:pointer;font-weight:700">💬 ส่ง LINE</button>
+      </div>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function selectAllMentions(){
+  document.querySelectorAll('.mention-chk').forEach(c=>c.checked=!c.checked);
+}
+function closeMentionPicker(){
+  const el=$('mentionModal');if(el)el.remove();
+  if(_linePending)_linePending.afterFn(_linePending.msg);
+  _linePending=null;
+}
+function sendWithMentions(){
+  const sel=[];document.querySelectorAll('.mention-chk:checked').forEach(c=>sel.push(c.value));
+  const el=$('mentionModal');if(el)el.remove();
+  if(!_linePending)return;
+  let msg=_linePending.msg;
+  if(sel.length){msg+='\n\n👉 '+sel.map(s=>'@'+s).join(' ');}
+  _linePending.afterFn(msg);
+  _linePending=null;
+}
+
+function openLINE(msg){
+  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile){
+    window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
+  } else {
+    window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
+  }
+}
+
 // ============ LINE SHARE ============
 function shareLINE(id){
   const i=DB.items.find(x=>x.id===id);if(!i)return;
   let msg=`📋 RTK-QC Item Report\n`;
   msg+=`━━━━━━━━━━━━━━━\n`;
-  msg+=`🔖 ${i.id}\n`;
-  msg+=`📅 ${i.date}\n`;
-  msg+=`🔧 Part: ${i.part}\n`;
+  msg+=`🔖 ${i.id}\n📅 ${i.date}\n🔧 Part: ${i.part}\n`;
   if(i.maker)msg+=`🏭 Maker: ${i.maker}\n`;
   msg+=`📊 TQM: ${i.tqm} | Dept: ${i.dept} | Loc: ${i.loc}\n`;
   msg+=`⚠️ Pain: ${i.pain}\n`;
   if(i.temp)msg+=`🔄 Temp: ${i.temp}\n`;
   if(i.snr)msg+=`🔍 S&R: ${i.snr}\n`;
   if(i.action)msg+=`✅ Action: ${i.action}\n`;
-  msg+=`👤 Resp: ${i.resp}\n`;
-  msg+=`📆 Due: ${i.due} | Status: ${i.status}\n`;
+  msg+=`👤 Resp: ${i.resp}\n📆 Due: ${i.due} | Status: ${i.status}\n`;
   if(i.rca_id)msg+=`🔬 RCA: ${i.rca_id}\n`;
   if(i.capa_id)msg+=`📝 CAPA: ${i.capa_id}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  // มือถือ: แคปหน้าจอ Card + ส่ง LINE / คอม: คัดลอกข้อความ
+  showMentionPicker(msg,function(finalMsg){_doShareItem(id,i,finalMsg);});
+}
+function _doShareItem(id,i,msg){
   const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
   if(isMobile){
-    // หา Card element ของ Item นี้
-    const cards=document.querySelectorAll('#cardItems .card');
-    let cardEl=null;
+    const cards=document.querySelectorAll('#cardItems .card');let cardEl=null;
     cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
     if(cardEl&&typeof html2canvas!=='undefined'){
       toast('📸 กำลังแคปหน้าจอ...','var(--tl)');
       html2canvas(cardEl,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         canvas.toBlob(blob=>{
-          const url=URL.createObjectURL(blob);
-          const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();
-          URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
-          setTimeout(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');},500);
+          const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');
+          setTimeout(()=>{openLINE(msg);},500);
         },'image/png');
-      }).catch(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');});
-    } else {
-      window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
-    }
+      }).catch(()=>{openLINE(msg);});
+    } else {openLINE(msg);}
   } else {
-    // Desktop: แคปเป็น Card แบบเดียวกับมือถือ แล้วส่ง LINE
     toast('📸 กำลังแคป...','var(--tl)');
-    // สร้าง Card เหมือนมือถือ
     const wrap=document.createElement('div');
     wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545')+';';
-    let h=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-      <span style="font-weight:700;color:#1B3A5C;font-size:15px">${i.id}</span>
-      <div style="display:flex;gap:4px">
-        <span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545'}">${i.status}</span>
-        <span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:${i.priority==='Medium'?'#333':'#fff'};background:${i.priority==='Critical'?'#DC3545':i.priority==='High'?'#FD7E14':i.priority==='Medium'?'#FFC107':'#17A2B8'}">${i.priority}</span>
-      </div></div>`;
+    let h=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${i.id}</span><div style="display:flex;gap:4px"><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545'}">${i.status}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:${i.priority==='Medium'?'#333':'#fff'};background:${i.priority==='Critical'?'#DC3545':i.priority==='High'?'#FD7E14':i.priority==='Medium'?'#FFC107':'#17A2B8'}">${i.priority}</span></div></div>`;
     h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
     h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Part</span><span style="font-weight:600">${i.part||'-'}</span></div>`;
     h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Pain</span><span>${i.pain||'-'}</span></div>`;
@@ -617,30 +654,14 @@ function shareLINE(id){
     h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Due</span><span>${i.due} ${i.finish?'✅':''}</span></div>`;
     if(i.action)h+=`<div style="display:flex;gap:4px;margin-bottom:3px"><span style="font-weight:600;color:#1B3A5C;min-width:60px;font-size:12px">Action</span><span>${i.action}</span></div>`;
     h+=`</div>`;
-    // ภาพถ่าย
-    if(i.img_ok||i.img_ng||i.img_tag){
-      h+=`<div style="display:flex;gap:4px;margin-top:8px">`;
-      if(i.img_ok)h+=`<img src="${i.img_ok}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #28A745">`;
-      if(i.img_ng)h+=`<img src="${i.img_ng}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #DC3545">`;
-      if(i.img_tag)h+=`<img src="${i.img_tag}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #FD7E14">`;
-      h+=`</div>`;
-    }
-    wrap.innerHTML=h;
-    document.body.appendChild(wrap);
+    if(i.img_ok||i.img_ng||i.img_tag){h+=`<div style="display:flex;gap:4px;margin-top:8px">`;if(i.img_ok)h+=`<img src="${i.img_ok}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #28A745">`;if(i.img_ng)h+=`<img src="${i.img_ng}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #DC3545">`;if(i.img_tag)h+=`<img src="${i.img_tag}" style="width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid #FD7E14">`;h+=`</div>`;}
+    wrap.innerHTML=h;document.body.appendChild(wrap);
     html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
       document.body.removeChild(wrap);
-      // ดาวน์โหลดภาพ + เปิด LINE Share
-      canvas.toBlob(blob=>{
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();
-        URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว — ส่งเข้า LINE ได้เลย','var(--gn)');
-        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+      canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+        toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(msg);},300);
       },'image/png');
-    }).catch(()=>{
-      document.body.removeChild(wrap);
-      window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
-    });
+    }).catch(()=>{document.body.removeChild(wrap);openLINE(msg);});
   }
 }
 
@@ -655,12 +676,12 @@ function shareCardLINE(cardEl, title, msg){
           const url=URL.createObjectURL(blob);
           const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
           URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
-          setTimeout(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');},500);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');
+          setTimeout(()=>{openLINE(msg);},500);
         },'image/png');
-      }).catch(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');});
+      }).catch(()=>{openLINE(msg);});
     } else {
-      window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
+      openLINE(msg);
     }
   } else {
     // Desktop: สร้าง card clone แคป + ดาวน์โหลด + LINE Share
@@ -674,12 +695,12 @@ function shareCardLINE(cardEl, title, msg){
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
         URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว — ส่งเข้า LINE ได้เลย','var(--gn)');
-        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
+        toast('📸 บันทึกภาพแล้ว','var(--gn)');
+        setTimeout(()=>{openLINE(msg);},300);
       },'image/png');
     }).catch(()=>{
       document.body.removeChild(wrap);
-      window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
+      openLINE(msg);
     });
   }
 }
@@ -687,48 +708,40 @@ function shareCardLINE(cardEl, title, msg){
 function shareLINE_RCA(id){
   const r=DB.rcas.find(x=>x.id===id);if(!r)return;
   let msg=`🔬 RTK-QC RCA Report\n━━━━━━━━━━━━━━━\n`;
-  msg+=`🔖 ${r.id}\n📅 ${r.date}\n`;
-  msg+=`🔗 Item: ${r.item}\n`;
-  msg+=`⚠️ ปัญหา: ${r.prob}\n`;
-  msg+=`📂 ${r.cat}\n`;
+  msg+=`🔖 ${r.id}\n📅 ${r.date}\n🔗 Item: ${r.item}\n⚠️ ปัญหา: ${r.prob}\n📂 ${r.cat}\n`;
   if(r.w1)msg+=`W1: ${r.w1}\n`;if(r.w2)msg+=`W2: ${r.w2}\n`;if(r.w3)msg+=`W3: ${r.w3}\n`;
   if(r.w4)msg+=`W4: ${r.w4}\n`;if(r.w5)msg+=`W5: ${r.w5}\n`;
   if(r.root)msg+=`🎯 Root Cause: ${r.root}\n`;
   if(r.fo_what||r.fo_why)msg+=`🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}\n`;
   msg+=`👤 Owner: ${r.owner}\n━━━━━━━━━━━━━━━`;
-  // หา Card
-  const cards=document.querySelectorAll('#cardRCA .card');
-  let cardEl=null;
-  cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
-  if(cardEl){shareCardLINE(cardEl,id,msg);}
-  else{
-    // Desktop: สร้าง card สำหรับแคป
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':r.cat==='Method'?'#2E5D8A':'#28A745')+';';
-    let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${r.id}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':'#2E5D8A'}">${r.cat}</span></div>`;
-    h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Item:</b> ${r.item}</div>`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ปัญหา:</b> ${r.prob}</div>`;
-    if(r.w1)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W1</span> ${r.w1}</div>`;
-    if(r.w2)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W2</span> ${r.w2}</div>`;
-    if(r.w3)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W3</span> ${r.w3}</div>`;
-    if(r.w4)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W4</span> ${r.w4}</div>`;
-    if(r.w5)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W5</span> ${r.w5}</div>`;
-    if(r.root)h+=`<div style="margin-top:4px;font-weight:700;color:#DC3545">🎯 ${r.root}</div>`;
-    if(r.fo_what||r.fo_why)h+=`<div style="margin-top:4px;font-size:11px;color:#777">🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}</div>`;
-    h+=`<div style="margin-top:4px"><b style="color:#1B3A5C">Owner:</b> ${r.owner} · ${r.date}</div>`;
-    h+=`</div>`;
-    wrap.innerHTML=h;
-    document.body.appendChild(wrap);
-    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
-      document.body.removeChild(wrap);
-      canvas.toBlob(blob=>{
-        const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว','var(--gn)');
-        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
-      },'image/png');
-    }).catch(()=>{document.body.removeChild(wrap);window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
-  }
+  showMentionPicker(msg,function(finalMsg){
+    const cards=document.querySelectorAll('#cardRCA .card');let cardEl=null;
+    cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':r.cat==='Method'?'#2E5D8A':'#28A745')+';';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${r.id}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':'#2E5D8A'}">${r.cat}</span></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Item:</b> ${r.item}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ปัญหา:</b> ${r.prob}</div>`;
+      if(r.w1)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W1</span> ${r.w1}</div>`;
+      if(r.w2)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W2</span> ${r.w2}</div>`;
+      if(r.w3)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W3</span> ${r.w3}</div>`;
+      if(r.w4)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W4</span> ${r.w4}</div>`;
+      if(r.w5)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W5</span> ${r.w5}</div>`;
+      if(r.root)h+=`<div style="margin-top:4px;font-weight:700;color:#DC3545">🎯 ${r.root}</div>`;
+      if(r.fo_what||r.fo_why)h+=`<div style="margin-top:4px;font-size:11px;color:#777">🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}</div>`;
+      h+=`<div style="margin-top:4px"><b style="color:#1B3A5C">Owner:</b> ${r.owner} · ${r.date}</div></div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
+        },'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  });
 }
 
 function shareLINE_CAPA(id){
@@ -743,37 +756,35 @@ function shareLINE_CAPA(id){
   if(c.verify)msg+=`✅ Verify: ${c.verify}\n`;
   if(c.result)msg+=`📊 Result: ${c.result}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  const cards=document.querySelectorAll('#cardCAPA .card');
-  let cardEl=null;
-  cards.forEach(cd=>{if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;});
-  if(cardEl){shareCardLINE(cardEl,id,msg);}
-  else{
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545')+';';
-    let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${c.id}</span><div><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.type==='CA'?'#2E5D8A':'#FD7E14'};margin-right:4px">${c.type}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545'}">${c.status}</span></div></div>`;
-    h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">มาตรการ:</b> ${c.action}</div>`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Link:</b> ${c.item} · ${c.rca||'-'}</div>`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Resp:</b> ${c.resp}</div>`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Target:</b> ${c.target} ${c.actual?'→ '+c.actual:''}</div>`;
-    if(c.h_what)h+=`<div style="margin-bottom:2px;font-size:11px"><b>What:</b> ${c.h_what}</div>`;
-    if(c.h_how)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How:</b> ${c.h_how}</div>`;
-    if(c.h_howmuch)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How Much:</b> ${c.h_howmuch}</div>`;
-    if(c.verify)h+=`<div style="margin-top:4px"><b style="color:#28A745">✅ Verify:</b> ${c.verify}</div>`;
-    if(c.result)h+=`<div><b style="color:#28A745">📊 Result:</b> ${c.result}</div>`;
-    if(c.score)h+=`<div>${'⭐'.repeat(c.score)}</div>`;
-    h+=`</div>`;
-    wrap.innerHTML=h;
-    document.body.appendChild(wrap);
-    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
-      document.body.removeChild(wrap);
-      canvas.toBlob(blob=>{
-        const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว','var(--gn)');
-        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
-      },'image/png');
-    }).catch(()=>{document.body.removeChild(wrap);window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
-  }
+  showMentionPicker(msg,function(finalMsg){
+    const cards=document.querySelectorAll('#cardCAPA .card');let cardEl=null;
+    cards.forEach(cd=>{if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545')+';';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${c.id}</span><div><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.type==='CA'?'#2E5D8A':'#FD7E14'};margin-right:4px">${c.type}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545'}">${c.status}</span></div></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">มาตรการ:</b> ${c.action}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Link:</b> ${c.item} · ${c.rca||'-'}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Resp:</b> ${c.resp}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Target:</b> ${c.target} ${c.actual?'→ '+c.actual:''}</div>`;
+      if(c.h_what)h+=`<div style="margin-bottom:2px;font-size:11px"><b>What:</b> ${c.h_what}</div>`;
+      if(c.h_how)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How:</b> ${c.h_how}</div>`;
+      if(c.h_howmuch)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How Much:</b> ${c.h_howmuch}</div>`;
+      if(c.verify)h+=`<div style="margin-top:4px"><b style="color:#28A745">✅ Verify:</b> ${c.verify}</div>`;
+      if(c.result)h+=`<div><b style="color:#28A745">📊 Result:</b> ${c.result}</div>`;
+      if(c.score)h+=`<div>${'⭐'.repeat(c.score)}</div>`;
+      h+=`</div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
+        },'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  });
 }
 
 function shareLINE_MTG(id){
@@ -785,36 +796,34 @@ function shareLINE_MTG(id){
   if(m.attendees&&m.attendees.length)msg+=`👥 ผู้เข้าร่วม: ${m.attendees.map(a=>a.name).join(', ')}\n`;
   msg+=`📊 Items: ${t} total · ${co} ✅ · ${ip} 🔄 · ${od} ⚠️ · ${pc}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  const cards=document.querySelectorAll('#cardMtg .card');
-  let cardEl=null;
-  cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
-  if(cardEl){shareCardLINE(cardEl,id,msg);}
-  else{
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid #2E5D8A;';
-    let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${m.id}</span><span style="color:#6C757D;font-size:12px">${m.date}</span></div>`;
-    h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Week:</b> ${m.week} · ${m.type}</div>`;
-    h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Facilitator:</b> ${m.fac}</div>`;
-    if(m.attendees&&m.attendees.length)h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ผู้เข้าร่วม:</b> ${m.attendees.length} คน — ${m.attendees.map(a=>a.name).join(', ')}</div>`;
-    h+=`<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">`;
-    h+=`<span style="padding:4px 10px;border-radius:8px;background:#2E5D8A;color:#fff;font-size:12px;font-weight:600">${t} Items</span>`;
-    h+=`<span style="padding:4px 10px;border-radius:8px;background:#28A745;color:#fff;font-size:12px;font-weight:600">${co} ✅</span>`;
-    h+=`<span style="padding:4px 10px;border-radius:8px;background:#FD7E14;color:#fff;font-size:12px;font-weight:600">${ip} 🔄</span>`;
-    h+=`<span style="padding:4px 10px;border-radius:8px;background:#DC3545;color:#fff;font-size:12px;font-weight:600">${od} ⚠️</span>`;
-    h+=`<span style="padding:4px 10px;border-radius:8px;background:#17A2B8;color:#fff;font-size:12px;font-weight:600">${pc}</span>`;
-    h+=`</div></div>`;
-    wrap.innerHTML=h;
-    document.body.appendChild(wrap);
-    html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
-      document.body.removeChild(wrap);
-      canvas.toBlob(blob=>{
-        const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว','var(--gn)');
-        setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
-      },'image/png');
-    }).catch(()=>{document.body.removeChild(wrap);window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');});
-  }
+  showMentionPicker(msg,function(finalMsg){
+    const cards=document.querySelectorAll('#cardMtg .card');let cardEl=null;
+    cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid #2E5D8A;';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${m.id}</span><span style="color:#6C757D;font-size:12px">${m.date}</span></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Week:</b> ${m.week} · ${m.type}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Facilitator:</b> ${m.fac}</div>`;
+      if(m.attendees&&m.attendees.length)h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ผู้เข้าร่วม:</b> ${m.attendees.length} คน — ${m.attendees.map(a=>a.name).join(', ')}</div>`;
+      h+=`<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#2E5D8A;color:#fff;font-size:12px;font-weight:600">${t} Items</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#28A745;color:#fff;font-size:12px;font-weight:600">${co} ✅</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#FD7E14;color:#fff;font-size:12px;font-weight:600">${ip} 🔄</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#DC3545;color:#fff;font-size:12px;font-weight:600">${od} ⚠️</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#17A2B8;color:#fff;font-size:12px;font-weight:600">${pc}</span>`;
+      h+=`</div></div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
+        },'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  });
 }
 
 function shareLINE_Dashboard(){
@@ -823,34 +832,22 @@ function shareLINE_Dashboard(){
     ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed');
   let msg=`📊 RTK-QC Dashboard Summary\n━━━━━━━━━━━━━━━\n`;
   msg+=`📅 ${new Date().toLocaleDateString('th-TH')}\n`;
-  msg+=`📋 Items: ${t} total\n`;
-  msg+=`✅ Complete: ${co} | 🔄 IP: ${ip} | ⚠️ OD: ${od}\n`;
-  msg+=`📈 สำเร็จ: ${pc}%\n`;
-  msg+=`📝 CAPA: ${ct} total | Closed: ${cc} | Open: ${ct-cc}\n`;
+  msg+=`📋 Items: ${t} total\n✅ Complete: ${co} | 🔄 IP: ${ip} | ⚠️ OD: ${od}\n`;
+  msg+=`📈 สำเร็จ: ${pc}%\n📝 CAPA: ${ct} total | Closed: ${cc} | Open: ${ct-cc}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
-  const dashEl=document.getElementById('tab-dashboard');
-  if(dashEl&&typeof html2canvas!=='undefined'){
-    toast('📸 กำลังแคป Dashboard...','var(--tl)');
-    html2canvas(dashEl,{scale:2,backgroundColor:'#fff',useCORS:true,scrollY:-window.scrollY}).then(canvas=>{
-      const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
-      canvas.toBlob(blob=>{
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');a.href=url;a.download='RTK-QC_Dashboard.png';a.click();
-        URL.revokeObjectURL(url);
-        toast('📸 บันทึกภาพแล้ว — กำลังเปิด LINE...','var(--gn)');
-        if(isMobile){
-          setTimeout(()=>{window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');},500);
-        } else {
-          setTimeout(()=>{window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');},300);
-        }
-      },'image/png');
-    }).catch(()=>{
-      if(isMobile)window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
-      else window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent('https://rtk10888-stack.github.io/RTK/')+'&text='+encodeURIComponent(msg),'_blank','width=600,height=500');
-    });
-  } else {
-    window.open('line://msg/text/'+encodeURIComponent(msg),'_blank');
-  }
+  showMentionPicker(msg,function(finalMsg){
+    const dashEl=document.getElementById('tab-dashboard');
+    if(dashEl&&typeof html2canvas!=='undefined'){
+      toast('📸 กำลังแคป Dashboard...','var(--tl)');
+      html2canvas(dashEl,{scale:2,backgroundColor:'#fff',useCORS:true,scrollY:-window.scrollY}).then(canvas=>{
+        canvas.toBlob(blob=>{
+          const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_Dashboard.png';a.click();URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');
+          setTimeout(()=>{openLINE(finalMsg);},500);
+        },'image/png');
+      }).catch(()=>{openLINE(finalMsg);});
+    } else {openLINE(finalMsg);}
+  });
 }
 
 // ============ ID GEN ============
