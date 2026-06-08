@@ -385,7 +385,7 @@
       "priority": "High",
       "rca_id": "RCA-2026-004",
       "capa_id": "CAPA-2026-004",
-      "snr_id": "",
+      "snr_id": "SNR-2026-006",
       "img_ok": "",
       "img_ng": "",
       "img_tag": "",
@@ -1675,6 +1675,20 @@
       "result": "",
       "status": "Closed",
       "date": "2026-02-16"
+    },
+    {
+      "id": "SNR-2026-006",
+      "item": "ITM-2026-006",
+      "type": "Sorting",
+      "detail": "คัดแยก ด้วย Plug gauge GO 100% ผู้รับผิดชอบ กินารี",
+      "qty": "",
+      "ng": "",
+      "resp": "มานพ-QC",
+      "target": "",
+      "actual": "",
+      "result": "",
+      "status": "Open",
+      "date": "2026-01-09"
     }
   ]
 }
