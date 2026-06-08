@@ -579,8 +579,24 @@ function photoThumbs(i){if(!i.img_ok&&!i.img_ng&&!i.img_tag)return'';return `<di
 
 
 function openLINE(msg){
-  // ใช้ LINE Share ทั้งมือถือและคอม — เลือกกลุ่มหรือบุคคลได้
   window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+}
+const _isMob=/Android|iPhone|iPad/i.test(navigator.userAgent);
+function _shareBlob(blob,filename,msg){
+  if(_isMob&&navigator.canShare){
+    const file=new File([blob],filename,{type:blob.type});
+    if(navigator.canShare({files:[file]})){
+      navigator.share({files:[file]}).catch(()=>{});
+      toast('📸 เปิดหน้าแชร์รูปภาพ','var(--gn)');
+      return;
+    }
+  }
+  // Desktop fallback: ดาวน์โหลด + LINE text
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+  toast('📸 บันทึกภาพแล้ว','var(--gn)');
+  setTimeout(()=>{openLINE(msg);},300);
 }
 
 // ============ LINE SHARE ============
@@ -642,9 +658,7 @@ function _doShareItem(id,i,msg){
     if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
     const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
     c2.getContext('2d').drawImage(canvas,0,0,w,ht);
-    c2.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-      toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(msg);},300);
-    },'image/png');
+    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',msg);},'image/png');
   }).catch(()=>{document.body.removeChild(wrap);openLINE(msg);});
 }
 
@@ -665,13 +679,7 @@ function shareCardLINE(cardEl, title, msg){
     if(w>maxW){h=Math.round(h*(maxW/w));w=maxW;}
     const c2=document.createElement('canvas');c2.width=w;c2.height=h;
     c2.getContext('2d').drawImage(canvas,0,0,w,h);
-    c2.toBlob(blob=>{
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+title+'.png';a.click();
-      URL.revokeObjectURL(url);
-      toast('📸 บันทึกภาพแล้ว','var(--gn)');
-      setTimeout(()=>{openLINE(msg);},300);
-    },'image/jpeg',0.7);
+    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+title+'.png',msg);},'image/jpeg',0.7);
   }).catch(()=>{
     document.body.removeChild(wrap);
     openLINE(msg);
@@ -709,9 +717,7 @@ function shareLINE_RCA(id){
       wrap.innerHTML=h;document.body.appendChild(wrap);
       html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         document.body.removeChild(wrap);
-        canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
-        },'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -752,9 +758,7 @@ function shareLINE_CAPA(id){
       wrap.innerHTML=h;document.body.appendChild(wrap);
       html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         document.body.removeChild(wrap);
-        canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
-        },'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -791,9 +795,7 @@ function shareLINE_MTG(id){
       wrap.innerHTML=h;document.body.appendChild(wrap);
       html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         document.body.removeChild(wrap);
-        canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
-        },'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -832,9 +834,7 @@ function shareLINE_SNR(id){
         if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
         const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
         c2.getContext('2d').drawImage(canvas,0,0,w,ht);
-        c2.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
-        },'image/png');
+        c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -854,11 +854,7 @@ function shareLINE_Dashboard(){
     if(dashEl&&typeof html2canvas!=='undefined'){
       toast('📸 กำลังแคป Dashboard...','var(--tl)');
       html2canvas(dashEl,{scale:2,backgroundColor:'#fff',useCORS:true,scrollY:-window.scrollY}).then(canvas=>{
-        canvas.toBlob(blob=>{
-          const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_Dashboard.png';a.click();URL.revokeObjectURL(url);
-          toast('📸 บันทึกภาพแล้ว','var(--gn)');
-          setTimeout(()=>{openLINE(finalMsg);},500);
-        },'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_Dashboard.png',finalMsg);},'image/png');
       }).catch(()=>{openLINE(finalMsg);});
     } else {openLINE(finalMsg);}
   }
