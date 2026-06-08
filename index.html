@@ -10,6 +10,7 @@
 <title>RTK-QC</title>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUUNETVMgRGFzaGJvYXJkIiwic2hvcnRfbmFtZSI6IlFDRE1TIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0YwRjJGNSIsInRoZW1lX2NvbG9yIjoiIzFCM0E1QyJ9">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{--dk:#1B3A5C;--md:#2E5D8A;--lt:#D6E4F0;--bg:#F0F2F5;--wh:#FFF;--gn:#28A745;--rd:#DC3545;--or:#FD7E14;--yl:#FFC107;--tl:#17A2B8;--gr:#6C757D;--safe-b:env(safe-area-inset-bottom,0px);}
@@ -1259,20 +1260,25 @@ function renderDashboard(){
   document.getElementById('kpiRow').innerHTML=kpis.map(k=>`<div class="kpi"><div class="label">${k.l}</div><div class="value" style="color:${k.c}">${k.v}</div></div>`).join('');
   // Charts
   destroyCharts();
+  Chart.register(ChartDataLabels);
+  const dlDnt={datalabels:{color:'#fff',font:{weight:'bold',size:12},formatter:(v,ctx)=>{if(!v)return'';const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return t?Math.round(v/t*100)+'%':'';},display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
+  const dlBar={datalabels:{anchor:'end',align:'end',color:'#333',font:{weight:'bold',size:11},formatter:v=>v||'',display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
+  const dlBarH={datalabels:{anchor:'end',align:'right',color:'#333',font:{weight:'bold',size:11},formatter:v=>v||'',display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
+  const dlLine={datalabels:{color:'#333',font:{weight:'bold',size:10},anchor:'end',align:'top',formatter:v=>v||'',display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
   const O={responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}}}};
-  charts.push(new Chart($('cStatus'),{type:'doughnut',data:{labels:['Complete','In Progress','Overdue','Pending'],datasets:[{data:[co,ip,od,cnt(DB.items,'status','Pending')],backgroundColor:['#28A745','#FD7E14','#DC3545','#6C757D'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
-  charts.push(new Chart($('cTQM'),{type:'bar',data:{labels:['S','Q','D','C','M'],datasets:[{data:['S','Q','D','C','M'].map(x=>cnt(DB.items,'tqm',x)),backgroundColor:['#DC3545','#2E5D8A','#17A2B8','#FFC107','#28A745'],borderRadius:4}]},options:{...O,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
-  charts.push(new Chart($('cPri'),{type:'bar',data:{labels:['Critical','High','Medium','Low'],datasets:[{data:['Critical','High','Medium','Low'].map(x=>cnt(DB.items,'priority',x)),backgroundColor:['#DC3545','#FD7E14','#FFC107','#17A2B8'],borderRadius:4}]},options:{...O,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}}));
-  charts.push(new Chart($('cRCA'),{type:'doughnut',data:{labels:['Man','Machine','Method','Material','Env'],datasets:[{data:['Man','Machine','Method','Material','Environment'].map(x=>cnt(DB.rcas,'cat',x)),backgroundColor:['#DC3545','#FD7E14','#2E5D8A','#28A745','#17A2B8'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
-  charts.push(new Chart($('cCAPA'),{type:'doughnut',data:{labels:['Closed','In Progress','Open'],datasets:[{data:['Closed','In Progress','Open'].map(x=>cnt(DB.capas,'status',x)),backgroundColor:['#28A745','#FFC107','#DC3545'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
+  charts.push(new Chart($('cStatus'),{type:'doughnut',data:{labels:['Complete','In Progress','Overdue','Pending'],datasets:[{data:[co,ip,od,cnt(DB.items,'status','Pending')],backgroundColor:['#28A745','#FD7E14','#DC3545','#6C757D'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
+  charts.push(new Chart($('cTQM'),{type:'bar',data:{labels:['S','Q','D','C','M'],datasets:[{data:['S','Q','D','C','M'].map(x=>cnt(DB.items,'tqm',x)),backgroundColor:['#DC3545','#2E5D8A','#17A2B8','#FFC107','#28A745'],borderRadius:4}]},options:{...O,plugins:{legend:{display:false},...dlBar},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cPri'),{type:'bar',data:{labels:['Critical','High','Medium','Low'],datasets:[{data:['Critical','High','Medium','Low'].map(x=>cnt(DB.items,'priority',x)),backgroundColor:['#DC3545','#FD7E14','#FFC107','#17A2B8'],borderRadius:4}]},options:{...O,indexAxis:'y',plugins:{legend:{display:false},...dlBarH},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cRCA'),{type:'doughnut',data:{labels:['Man','Machine','Method','Material','Env'],datasets:[{data:['Man','Machine','Method','Material','Environment'].map(x=>cnt(DB.rcas,'cat',x)),backgroundColor:['#DC3545','#FD7E14','#2E5D8A','#28A745','#17A2B8'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
+  charts.push(new Chart($('cCAPA'),{type:'doughnut',data:{labels:['Closed','In Progress','Open'],datasets:[{data:['Closed','In Progress','Open'].map(x=>cnt(DB.capas,'status',x)),backgroundColor:['#28A745','#FFC107','#DC3545'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
   const ds=['QA','QC','PD','SALE','STORE','MT','PE'];
-  charts.push(new Chart($('cDept'),{type:'bar',data:{labels:ds,datasets:[{data:ds.map(x=>cnt(DB.items,'dept',x)),backgroundColor:'#17A2B8',borderRadius:4}]},options:{...O,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
-  charts.push(new Chart($('cType'),{type:'doughnut',data:{labels:['CA','PA'],datasets:[{data:[cnt(DB.capas,'type','CA'),cnt(DB.capas,'type','PA')],backgroundColor:['#2E5D8A','#FD7E14'],borderWidth:2}]},options:{...O,cutout:'40%'}}));
+  charts.push(new Chart($('cDept'),{type:'bar',data:{labels:ds,datasets:[{data:ds.map(x=>cnt(DB.items,'dept',x)),backgroundColor:'#17A2B8',borderRadius:4}]},options:{...O,plugins:{legend:{display:false},...dlBar},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cType'),{type:'doughnut',data:{labels:['CA','PA'],datasets:[{data:[cnt(DB.capas,'type','CA'),cnt(DB.capas,'type','PA')],backgroundColor:['#2E5D8A','#FD7E14'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
   const mw=DB.meetings.filter(m=>DB.items.some(i=>i.mid===m.id));
   charts.push(new Chart($('cTrend'),{type:'line',data:{labels:mw.map(m=>m.week),datasets:[
     {label:'Total',data:mw.map(m=>DB.items.filter(i=>i.mid===m.id).length),borderColor:'#2E5D8A',backgroundColor:'rgba(46,93,138,.1)',fill:true,tension:.3,pointRadius:4},
     {label:'Done',data:mw.map(m=>DB.items.filter(i=>i.mid===m.id&&i.status==='Complete').length),borderColor:'#28A745',backgroundColor:'rgba(40,167,69,.1)',fill:true,tension:.3,pointRadius:4}
-  ]},options:{...O,scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  ]},options:{...O,plugins:{...O.plugins,...dlLine},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
 }
 
 // ============ EXPORT/IMPORT ============
