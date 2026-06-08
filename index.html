@@ -594,27 +594,33 @@ function openLINE(msg){
 }
 const _isMob=/Android|iPhone|iPad/i.test(navigator.userAgent);
 function _shareBlob(blob,filename,msg){
-  const file=new File([blob],filename,{type:blob.type});
-  // 📱 มือถือ: ส่งรูปแคปหน้าจอเข้า LINE ได้เลย แล้วเลือกแชทส่วนตัว / กลุ่ม / เฉพาะคนที่ต้องการส่ง
-  if(_isMob&&navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
-    const data=(navigator.canShare&&navigator.canShare({files:[file],text:msg}))?{files:[file],text:msg}:{files:[file]};
-    navigator.share(data).then(()=>{
-      toast('✅ เลือก LINE แล้วเลือกแชท/กลุ่มที่จะส่ง','var(--gn)');
-    }).catch(err=>{
-      if(err&&err.name==='AbortError')return; // ผู้ใช้กดยกเลิกเอง
-      _downloadLINE(blob,filename,msg); // ถ้าแชร์รูปไม่ได้ ค่อย fallback
-    });
+  const file=new File([blob],filename,{type:'image/png'});
+  // 📱 มือถือ: ส่งรูปการ์ดเข้า LINE ผ่านแผงแชร์ แล้วเลือกแชทส่วนตัว / กลุ่ม / เฉพาะคนที่ต้องการ
+  if(_isMob&&navigator.share){
+    Promise.resolve()
+      .then(()=>navigator.share({files:[file],text:msg}))
+      .catch(e=>{ if(e&&e.name==='AbortError')throw e; return navigator.share({files:[file]}); })
+      .then(()=>toast('✅ เลือก LINE แล้วเลือกแชท/กลุ่มที่จะส่ง','var(--gn)'))
+      .catch(e=>{ if(e&&e.name==='AbortError')return; _copyImg(blob,filename); });
     return;
   }
-  // 💻 คอมพิวเตอร์ หรือเบราว์เซอร์ที่ไม่รองรับแชร์รูป: บันทึกรูป + เปิด LINE ให้แนบเอง
-  _downloadLINE(blob,filename,msg);
+  // 💻 คอมพิวเตอร์: คัดลอกรูปเข้าคลิปบอร์ด แล้วไปกด Ctrl+V วางในแชต LINE (เลือกแชท/กลุ่มได้)
+  _copyImg(blob,filename);
 }
-function _downloadLINE(blob,filename,msg){
+function _copyImg(blob,filename){
+  // คัดลอกรูปเข้าคลิปบอร์ด → วางในแชต LINE ได้ทันที (Ctrl+V)
+  if(navigator.clipboard&&window.ClipboardItem){
+    navigator.clipboard.write([new ClipboardItem({'image/png':blob})])
+      .then(()=>{toast('✅ คัดลอกรูปแล้ว! เปิดแชต LINE แล้วกด Ctrl+V วางรูปได้เลย (เลือกคน/กลุ่มที่จะส่ง)','var(--gn)');_dl(blob,filename);})
+      .catch(()=>{toast('📸 บันทึกรูปแล้ว — ลาก/แนบรูปนี้เข้าแชต LINE ได้เลย','var(--or)');_dl(blob,filename);});
+  }else{
+    toast('📸 บันทึกรูปแล้ว — ลาก/แนบรูปนี้เข้าแชต LINE ได้เลย','var(--or)');_dl(blob,filename);
+  }
+}
+function _dl(blob,filename){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
   URL.revokeObjectURL(url);
-  toast('📸 บันทึกภาพแล้ว — แนบเข้า LINE ได้เลย','var(--gn)');
-  setTimeout(()=>openLINE(msg),400);
 }
 
 // ============ LINE SHARE ============
@@ -677,7 +683,7 @@ function shareCardLINE(cardEl, title, msg){
     if(w>maxW){h=Math.round(h*(maxW/w));w=maxW;}
     const c2=document.createElement('canvas');c2.width=w;c2.height=h;
     c2.getContext('2d').drawImage(canvas,0,0,w,h);
-    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+title+'.png',msg);},'image/jpeg',0.7);
+    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+title+'.png',msg);},'image/png');
   }).catch(()=>{
     document.body.removeChild(wrap);
     openLINE(msg);
