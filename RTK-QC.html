@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1B3A5C">
+<title>RTK-QC</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUUNETVMgRGFzaGJvYXJkIiwic2hvcnRfbmFtZSI6IlFDRE1TIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0YwRjJGNSIsInRoZW1lX2NvbG9yIjoiIzFCM0E1QyJ9">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--dk:#1B3A5C;--md:#2E5D8A;--lt:#D6E4F0;--bg:#F0F2F5;--wh:#FFF;--gn:#28A745;--rd:#DC3545;--or:#FD7E14;--yl:#FFC107;--tl:#17A2B8;--gr:#6C757D;--safe-b:env(safe-area-inset-bottom,0px);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:#333;font-size:13px;padding-bottom:calc(64px + var(--safe-b));overscroll-behavior:contain;}
+
+/* ===== HEADER ===== */
+.header{background:linear-gradient(135deg,var(--dk),var(--md));color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.header h1{font-size:16px;white-space:nowrap;}
+.header .right{display:flex;gap:6px;align-items:center;}
+.header .date{font-size:10px;opacity:.7;display:block;}
+
+/* ===== BUTTONS ===== */
+.btn{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;touch-action:manipulation;min-height:36px;}
+.btn:active{transform:scale(.96);}
+.btn-primary{background:var(--md);color:#fff;}
+.btn-success{background:var(--gn);color:#fff;}
+.btn-danger{background:var(--rd);color:#fff;}
+.btn-warning{background:var(--yl);color:#333;}
+.btn-info{background:var(--tl);color:#fff;}
+.btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,.6);color:#fff;padding:6px 10px;font-size:11px;}
+.btn-sm{padding:4px 8px;font-size:11px;min-height:28px;}
+.btn-fab{position:fixed;bottom:calc(72px + var(--safe-b));right:16px;width:52px;height:52px;border-radius:50%;background:var(--gn);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:90;border:none;cursor:pointer;touch-action:manipulation;}
+.btn-fab:active{transform:scale(.9);}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--wh);display:flex;justify-content:space-around;align-items:stretch;border-top:1px solid #ddd;z-index:100;padding-bottom:var(--safe-b);box-shadow:0 -2px 10px rgba(0,0,0,.06);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;cursor:pointer;color:var(--gr);font-size:10px;font-weight:500;transition:color .15s;touch-action:manipulation;text-decoration:none;min-height:52px;}
+.nav-item .icon{font-size:20px;margin-bottom:2px;}
+.nav-item.active{color:var(--md);font-weight:700;}
+.nav-item.active .icon{transform:scale(1.1);}
+.nav-item:active{background:var(--lt);}
+
+/* ===== TAB CONTENT ===== */
+.tab-content{display:none;padding:12px;min-height:calc(100vh - 130px);}
+.tab-content.active{display:block;}
+
+/* ===== KPI ===== */
+.kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.kpi{background:var(--wh);border-radius:10px;padding:12px 8px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid var(--dk);}
+.kpi .value{font-size:24px;font-weight:700;margin:2px 0;}
+.kpi .label{font-size:10px;color:var(--gr);text-transform:uppercase;letter-spacing:.3px;}
+
+/* ===== CHARTS ===== */
+.chart-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px;}
+.chart-card{background:var(--wh);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.chart-card h3{font-size:12px;color:var(--dk);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--lt);}
+
+/* ===== TOOLBAR / FILTERS ===== */
+.toolbar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center;}
+.toolbar select,.toolbar input{padding:8px;border:1px solid #ccc;border-radius:8px;font-size:13px;min-height:36px;background:var(--wh);flex:1;min-width:0;}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--md);outline:none;box-shadow:0 0 0 2px rgba(46,93,138,.15);}
+.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+
+/* ===== CARDS (Mobile table replacement) ===== */
+.card-list{display:flex;flex-direction:column;gap:8px;}
+.card{background:var(--wh);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid var(--md);transition:all .15s;}
+.card:active{background:var(--lt);}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.card-id{font-weight:700;color:var(--dk);font-size:13px;}
+.card-badges{display:flex;gap:4px;flex-wrap:wrap;}
+.card-body{font-size:12px;color:#555;line-height:1.5;}
+.card-body .row{display:flex;gap:4px;margin-bottom:3px;}
+.card-body .lbl{font-weight:600;color:var(--dk);min-width:70px;font-size:11px;}
+.card-body .val{flex:1;word-break:break-word;}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid #eee;}
+.card-actions{display:flex;gap:6px;}
+.card-link{display:flex;gap:4px;flex-wrap:wrap;}
+.act-btn{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;min-height:32px;touch-action:manipulation;}
+.act-btn:active{transform:scale(.95);}
+.act-edit{background:#E3F2FD;color:var(--md);}
+.act-del{background:#FFEBEE;color:var(--rd);}
+.act-rca{background:#FFF3E0;color:var(--or);}
+.act-capa{background:#E8F5E9;color:var(--gn);}
+
+/* Desktop table (hidden on mobile) */
+.table-wrap{display:none;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--dk);color:#fff;padding:8px 6px;text-align:center;position:sticky;top:0;white-space:nowrap;z-index:2;}
+tbody td{padding:6px;border-bottom:1px solid #eee;text-align:center;vertical-align:middle;}
+tbody tr:nth-child(even){background:#F8F9FA;}
+tbody tr:hover{background:var(--lt);}
+td.left{text-align:left;}
+
+/* ===== BADGES ===== */
+.badge{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;display:inline-block;}
+.b-complete{background:var(--gn);}.b-progress{background:var(--or);}.b-overdue,.b-open{background:var(--rd);}
+.b-pending{background:var(--gr);}.b-closed{background:var(--gn);}.b-onhold{background:var(--gr);}
+.b-critical{background:var(--rd);}.b-high{background:var(--or);}.b-medium{background:var(--yl);color:#333;}.b-low{background:var(--tl);}
+.b-ca{background:var(--md);}.b-pa{background:var(--or);}
+.b-man{background:#DC3545;}.b-machine{background:#FD7E14;}.b-method{background:#2E5D8A;}.b-material{background:#28A745;}.b-environment{background:#17A2B8;}
+.link{color:var(--md);cursor:pointer;text-decoration:underline;font-weight:600;font-size:11px;}
+
+/* ===== PHOTO SLOTS ===== */
+.photo-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+.photo-slot{border:2px dashed #ccc;border-radius:10px;padding:6px;text-align:center;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:#fafafa;transition:border-color .2s;}
+.photo-slot:hover{border-color:var(--md);}
+.photo-slot .slot-label{font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px;padding:2px 8px;border-radius:4px;color:#fff;}
+.slot-ok .slot-label{background:var(--gn);}
+.slot-ng .slot-label{background:var(--rd);}
+.slot-tag .slot-label{background:var(--or);}
+.photo-slot img{max-width:100%;max-height:80px;border-radius:6px;object-fit:cover;margin:4px 0;}
+.photo-slot .slot-actions{display:flex;gap:4px;margin-top:4px;}
+.photo-slot .slot-btn{padding:4px 8px;border:none;border-radius:6px;cursor:pointer;font-size:10px;font-weight:600;min-height:26px;touch-action:manipulation;}
+.slot-upload{background:var(--lt);color:var(--dk);}
+.slot-url{background:#FFF3E0;color:var(--or);}
+.slot-remove{background:#FFEBEE;color:var(--rd);}
+.photo-row{display:flex;gap:4px;margin-top:6px;}
+.photo-row img{width:48px;height:48px;border-radius:6px;object-fit:cover;border:2px solid #ddd;cursor:pointer;}
+.photo-row .ph-ok{border-color:var(--gn);}
+.photo-row .ph-ng{border-color:var(--rd);}
+.photo-row .ph-tag{border-color:var(--or);}
+.photo-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;}
+.photo-lightbox.show{display:flex;}
+.photo-lightbox img{max-width:92%;max-height:88vh;border-radius:8px;transition:transform .2s;cursor:zoom-in;}
+.photo-lightbox .lb-zoom{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.photo-lightbox .lb-zoom button{background:rgba(255,255,255,.9);border:none;border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;font-weight:700;}
+.photo-lightbox .lb-close{position:absolute;top:12px;right:16px;color:#fff;font-size:32px;cursor:pointer;z-index:1;}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.modal-overlay.show{display:block;}
+.modal{background:var(--wh);width:100%;min-height:100vh;max-width:100%;}
+.modal-header{background:var(--dk);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1;}
+.modal-header h3{font-size:15px;}
+.modal-close{background:none;border:none;color:#fff;font-size:28px;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;}
+.modal-body{padding:16px;}
+.form-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:11px;font-weight:600;color:var(--dk);text-transform:uppercase;}
+.form-group input,.form-group select,.form-group textarea{padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;min-height:42px;background:var(--wh);}
+.form-group textarea{resize:vertical;min-height:60px;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--md);outline:none;box-shadow:0 0 0 3px rgba(46,93,138,.15);}
+.auto-id{background:#f0f0f0;font-weight:700;color:var(--md);}
+.modal-footer{padding:12px 16px;border-top:1px solid #eee;display:flex;gap:8px;position:sticky;bottom:0;background:var(--wh);}
+.modal-footer .btn{flex:1;min-height:44px;font-size:14px;}
+
+/* ===== SECTION TITLE ===== */
+.sec-title{font-size:13px;font-weight:700;color:var(--dk);margin:10px 0 6px;padding-left:8px;border-left:3px solid var(--md);}
+
+/* ===== LIST INFO / EMPTY STATE ===== */
+.list-info{font-size:11px;color:var(--gr);margin:0 0 6px 2px;font-weight:600;}
+.empty-state{text-align:center;color:#9aa3ab;padding:40px 16px;font-size:13px;line-height:1.7;grid-column:1/-1;}
+.empty-state .ico{font-size:38px;display:block;margin-bottom:8px;opacity:.55;}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;color:#fff;font-weight:600;z-index:300;font-size:13px;text-align:center;max-width:90%;animation:slideDown .3s,fadeOut .3s 2s forwards;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+@keyframes slideDown{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:translateX(-50%) translateY(-10px);}}
+
+/* ===== SUMMARY STRIP ===== */
+.summary-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0;margin-bottom:8px;-webkit-overflow-scrolling:touch;}
+.summary-strip::-webkit-scrollbar{display:none;}
+.summary-chip{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;display:flex;align-items:center;gap:4px;}
+.summary-chip .num{font-size:15px;font-weight:800;}
+
+/* ===== WHY CHAIN (RCA mobile) ===== */
+.why-chain{display:flex;flex-direction:column;gap:2px;margin:6px 0;}
+.why-step{display:flex;align-items:flex-start;gap:6px;font-size:11px;}
+.why-num{background:var(--lt);color:var(--dk);font-weight:700;border-radius:4px;padding:1px 5px;font-size:10px;flex-shrink:0;}
+.why-arrow{color:var(--or);flex-shrink:0;}
+.root-cause{background:#FFEBEE;border-radius:6px;padding:6px 8px;font-size:11px;font-weight:600;color:var(--rd);margin-top:4px;}
+
+/* ===== DESKTOP ===== */
+@media(min-width:768px){
+  .header h1{font-size:20px;}
+  .kpi-row{grid-template-columns:repeat(4,1fr);}
+  .chart-grid{grid-template-columns:1fr 1fr;}
+  .card-list{display:none;}
+  .table-wrap{display:block;background:var(--wh);border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow-x:auto;margin-bottom:16px;}
+  .scroll-table{max-height:500px;overflow-y:auto;}
+  .filter-row{grid-template-columns:repeat(4,1fr);}
+  .bottom-nav{display:none;}
+  body{padding-bottom:0;}
+  .tabs-desktop{display:flex;background:var(--wh);border-bottom:2px solid var(--lt);position:sticky;top:46px;z-index:99;}
+  .tab-d{padding:12px 24px;cursor:pointer;font-weight:600;color:var(--gr);border-bottom:3px solid transparent;transition:all .15s;}
+  .tab-d:hover{color:var(--dk);background:#f8f9fa;}
+  .tab-d.active{color:var(--dk);border-bottom-color:var(--md);background:var(--lt);}
+  .btn-fab{display:none;}
+  .toolbar .btn-success{display:inline-flex;}
+  .modal{max-width:720px;min-height:auto;margin:40px auto;border-radius:12px;max-height:90vh;overflow-y:auto;}
+  .modal-header{border-radius:12px 12px 0 0;}
+  .form-grid{grid-template-columns:1fr 1fr;}
+  .tab-content{padding:16px 20px;}
+}
+@media(max-width:767px){
+  .tabs-desktop{display:none;}
+  .toolbar .btn-success{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>📊 RTK-QC</h1>
+    <span class="date" id="dtNow"></span>
+  </div>
+  <div class="right">
+    <button class="btn btn-outline btn-sm" onclick="cloudPull()" title="ดึงข้อมูล Cloud">☁️↓</button>
+    <button class="btn btn-outline btn-sm" onclick="cloudPush()" title="ส่งข้อมูลขึ้น Cloud">☁️↑</button>
+    <button class="btn btn-outline btn-sm" onclick="cloudSetup()" title="ตั้งค่า Cloud" id="cloudBtn">⚙️</button>
+    <button class="btn btn-outline btn-sm" onclick="printPage()" title="พิมพ์/PDF">🖨️</button>
+    <button class="btn btn-outline btn-sm" onclick="exportJSON()">📥</button>
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📤</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+</div>
+
+<!-- DESKTOP TABS -->
+<div class="tabs-desktop">
+  <div class="tab-d active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</div>
+  <div class="tab-d" data-tab="items" onclick="switchTab('items')">📌 Items</div>
+  <div class="tab-d" data-tab="snr" onclick="switchTab('snr')">🔄 S&R</div>
+  <div class="tab-d" data-tab="rca" onclick="switchTab('rca')">🔍 RCA</div>
+  <div class="tab-d" data-tab="capa" onclick="switchTab('capa')">✅ CAPA</div>
+  <div class="tab-d" data-tab="meeting" onclick="switchTab('meeting')">📋 Meeting</div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div class="tab-content active" id="tab-dashboard">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn btn-sm" style="background:#E8FFE8;color:#06C755;font-weight:700;border:1px solid #06C755" onclick="shareLINE_Dashboard()">💬 ส่ง LINE</button></div>
+  <div class="summary-strip" id="summaryStrip"></div>
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>📌 Items Status</h3><canvas id="cStatus"></canvas></div>
+    <div class="chart-card"><h3>🏷️ TQM (S/Q/D/C/M)</h3><canvas id="cTQM"></canvas></div>
+    <div class="chart-card"><h3>⚡ Priority</h3><canvas id="cPri"></canvas></div>
+    <div class="chart-card"><h3>🔍 RCA 4M+E</h3><canvas id="cRCA"></canvas></div>
+    <div class="chart-card"><h3>✅ CAPA Status</h3><canvas id="cCAPA"></canvas></div>
+    <div class="chart-card"><h3>🏢 Department</h3><canvas id="cDept"></canvas></div>
+    <div class="chart-card"><h3>📊 CA vs PA</h3><canvas id="cType"></canvas></div>
+    <div class="chart-card"><h3>📈 Trend</h3><canvas id="cTrend"></canvas></div>
+  </div>
+</div>
+
+<!-- ==================== ITEMS ==================== -->
+<div class="tab-content" id="tab-items">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openItemForm()">➕ เพิ่มรายการ</button>
+    <input id="fQ" placeholder="🔍 ค้นหา Part / ปัญหา..." oninput="renderItems()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fSt" onchange="renderItems()"><option value="">ทุกสถานะ</option><option>Pending</option><option>In Progress</option><option>Complete</option><option>Overdue</option><option>On Hold</option></select>
+    <select id="fTq" onchange="renderItems()"><option value="">ทุก TQM</option><option>S</option><option>Q</option><option>D</option><option>C</option><option>M</option></select>
+    <select id="fDp" onchange="renderItems()"><option value="">ทุกแผนก</option><option>QA</option><option>QC</option><option>PD</option><option>SALE</option><option>PI</option><option>STORE</option><option>MT</option><option>PE</option><option>AC</option><option>TOP</option><option>QMR</option><option>R&D</option><option>DCC</option><option>PL</option></select>
+    <select id="fPr" onchange="renderItems()"><option value="">ทุก Priority</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+  </div>
+  <div class="list-info" id="infoItems"></div>
+  <div class="card-list" id="cardItems"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>ID</th><th>Meeting</th><th>Date</th><th>Part</th><th>TQM</th><th>Dept</th><th>Loc</th><th>Pain Point</th><th>Maker</th><th>Temp Action</th><th>Action Plan</th><th>Resp</th><th>Due</th><th>Status</th><th>Priority</th><th>S&R</th><th>RCA</th><th>CAPA</th></tr></thead>
+    <tbody id="tbItems"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== S&R (Sorting & Rework) ==================== -->
+<div class="tab-content" id="tab-snr">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openSNRForm()">➕ เพิ่ม S&R</button>
+    <input id="fSnrQ" placeholder="🔍 ค้นหา..." oninput="renderSNR()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fSnrSt" onchange="renderSNR()"><option value="">ทุกสถานะ</option><option>Open</option><option>In Progress</option><option>Closed</option></select>
+    <select id="fSnrTy" onchange="renderSNR()"><option value="">ทุกประเภท</option><option>Sorting</option><option>Rework</option><option>Sorting+Rework</option></select>
+  </div>
+  <div class="list-info" id="infoSNR"></div>
+  <div class="card-list" id="cardSNR"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>S&R_ID</th><th>Item</th><th>ประเภท</th><th>รายละเอียด</th><th>จำนวนตรวจ</th><th>NG</th><th>Resp</th><th>Target</th><th>Actual</th><th>ผล</th><th>Status</th></tr></thead>
+    <tbody id="tbSNR"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== RCA ==================== -->
+<div class="tab-content" id="tab-rca">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openRCAForm()">➕ เพิ่ม RCA</button>
+    <input id="fRcaQ" placeholder="🔍 ค้นหา..." oninput="renderRCA()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fRcaCat" onchange="renderRCA()"><option value="">ทุก 4M+E</option><option>Man</option><option>Machine</option><option>Method</option><option>Material</option><option>Environment</option></select>
+  </div>
+  <div class="list-info" id="infoRCA"></div>
+  <div class="card-list" id="cardRCA"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>RCA_ID</th><th>Item</th><th>ปัญหา</th><th>4M+E</th><th>Why1</th><th>Why2</th><th>Why3</th><th>Why4</th><th>Why5</th><th>Root Cause</th><th>Owner</th><th>Date</th></tr></thead>
+    <tbody id="tbRCA"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== CAPA ==================== -->
+<div class="tab-content" id="tab-capa">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openCAPAForm()">➕ เพิ่ม CAPA</button>
+    <input id="fCapaQ" placeholder="🔍 ค้นหา..." oninput="renderCAPA()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fCapaSt" onchange="renderCAPA()"><option value="">ทุกสถานะ</option><option>Open</option><option>In Progress</option><option>Closed</option></select>
+    <select id="fCapaTy" onchange="renderCAPA()"><option value="">ทุกประเภท</option><option>CA</option><option>PA</option></select>
+  </div>
+  <div class="list-info" id="infoCAPA"></div>
+  <div class="card-list" id="cardCAPA"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>CAPA</th><th>Item</th><th>RCA</th><th>Type</th><th>มาตรการ</th><th>Resp</th><th>Target</th><th>Actual</th><th>Verify</th><th>Result</th><th>Score</th><th>Status</th><th>Days</th><th>Recur</th></tr></thead>
+    <tbody id="tbCAPA"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== MEETING ==================== -->
+<div class="tab-content" id="tab-meeting">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openMtgForm()">➕ เพิ่มประชุม</button>
+  </div>
+  <div class="list-info" id="infoMtg"></div>
+  <div class="card-list" id="cardMtg"></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>Meeting_ID</th><th>Date</th><th>Type</th><th>Week</th><th>Year</th><th>Facilitator</th><th>Total</th><th>Comp</th><th>IP</th><th>OD</th><th>%</th></tr></thead>
+    <tbody id="tbMtg"></tbody>
+  </table></div>
+</div>
+
+<!-- PART DATALIST -->
+<datalist id="partList"><option value="01571-01016__SEAT"><option value="01572-21219_SEAT"><option value="01572-21225_SEAT"><option value="01572-21240_SEAT"><option value="10080657S_PIN (SHAFT)"><option value="11M015447-00_Shaft B Pivot"><option value="11T023647-00"><option value="11T02647-00"><option value="12310-ZE3-7910_JOINT BREATHER TUBE-"><option value="13061-0673_BOSS"><option value="14672-035-3000_BUSH"><option value="14672-KWBA-6000_BUSH"><option value="151-00852_HC512FT7J-HSW-"><option value="172B03-83220_BOSS"><option value="172B03-83230_BOSS"><option value="175-862-4240_SEAT"><option value="17561-W0040-C_SUPPORT NO.1 (L105)"><option value="1FP-F62FE-001_BOSS"><option value="1J886-6447-1-C"><option value="21T-72-28110_SEAT"><option value="22B-0142181-01"><option value="22B-03-41751-02_BAR"><option value="22B-46-24161"><option value="22B-54-43121-01_BAR"><option value="22B-54-43121-02_BAR"><option value="22P-53-23A10_SEAT"><option value="22P6011130"><option value="236-46-23920_SEAT"><option value="2420T4477"><option value="2A5-01-K1630-01(TTS)_BAR"><option value="2A5-06-K3241-06_งานเหมือนกัน 2A5-06-K3231-06"><option value="2A5-53-28651_BRACKET"><option value="2A5-54-K1451-02_SEAT"><option value="30051480_K1TA (75051562)"><option value="303-0953-01_TAPPING BLOCK"><option value="30351544 (75051544)_STAY COMP K16M (กลึง)"><option value="31051258_ADATER LX250"><option value="31051291_INSERT BOLT 0205"><option value="31051478_STAY ASSY MIRROR RH(EP-FEZn8)"><option value="32841001AP_32841B000P-03"><option value="32841B000P-02_PIN"><option value="38117-KYZ-T000_COLLAR"><option value="3C081-2780_BOLT"><option value="3C081-2972_PIN"><option value="3J065-96920_PIVOT"><option value="40045530_WEIGHT"><option value="40045555"><option value="40050364_STAY JCM"><option value="40050709_BRACKET MIRROR 0511"><option value="40050818"><option value="40050856"><option value="40051066"><option value="40051187_COLLAR 6809"><option value="40051248-_INSERT NUT M8x1.25"><option value="40051251_STAY JCM"><option value="40051469_SHAFT (WELDING) 036A"><option value="40051545-AMPAS_CUSHION, ASSIST GRIP"><option value="40051545-NINGBO_CUSHION, ASSIST GRIP"><option value="40051545-P6800701_CUSHION, ASSIST GRIP"><option value="40051545A_CUSHION, ASSIST GRIP"><option value="40051578A_CUSHINO. ASSIST GRIP"><option value="40051607_COLLAR 9.5x14"><option value="40051608_COLLAR 9.5x21"><option value="40051621-_PIN BACK MIRROR B0BA"><option value="40051748_CUSHINO. ASSIST GRIP"><option value="40051763 (850.1.221.1A.)_INSERT M6"><option value="40051793 850.1.B24.1A"><option value="40051795_Stay Comp Mirror"><option value="400517C3"><option value="40051802-_COLLAR"><option value="40051817"><option value="40051824_BOLT, MIRROR PIVOT"><option value="40051826_PLATED, NUT"><option value="40051829_WASHER-KF"><option value="40051830_PLATE, RETAINER"><option value="40051831_COLLAR 5mm"><option value="40051832_BOLT, ADPT 10mm"><option value="40051833_SOCKER_BOLT, 10x25"><option value="40051834-_PLATE, WASHER"><option value="40051848_SHAFT (L.25)"><option value="40051851_LEAF WASHER B3L1"><option value="40051852-_PLATE,1 WASHER B3L1"><option value="40051856_RETAINER B3L1"><option value="40051874_BRKT C"><option value="40051892"><option value="40051894_WEIGHT"><option value="40051898_PCB BRACKET"><option value="40051899-_INSERT"><option value="40051900_SPACER"><option value="40110662_BOLT, ADPT A10 MM"><option value="40110764"><option value="40110771_NUT M4x0.7"><option value="41110692_INSERT NUT M4"><option value="43102-KPHA-9000-H1_PIN BRAKE SHOE AN CHOR"><option value="45103-400-3000_PIN BRAKE"><option value="46-3201-02_COVER"><option value="490108160-2-C_WELD BOLT M8 X 1.25 8.8"><option value="4VX980101"><option value="4VX983101_SUB ASS'Y SCREW CAP"><option value="50131-K1MA-T005-H1"><option value="50173-K3F-T500-H1_PIN SPRING HOOK"><option value="50175-K1M-T000-H1_PIPE COVER"><option value="50175-K3F-T500-H1_BAR STAND STOPPER"><option value="50184-MKN-D500-H1_NUT 8 MM"><option value="50212-KZZ-9000-21"><option value="50500-KZV-T000-22"><option value="50500-KZV-T000-22."><option value="50530-K04A-9300-24_PIECE PIVOT (FG)"><option value="50530-K81-N000-21_PIPE STAN INNER"><option value="50610-KYZ-9000-27_PIN 8x28"><option value="52006-26690-2_SHAFT"><option value="52006-44040-2_SHAFT, ROLLLER"><option value="52006-75310-2_SHAFT, ROLLLER"><option value="52006-75320-2_SHAFT, ROLLLER"><option value="52007-46530-1_SHAFT, ROLLLER"><option value="52007-47261-2_SHAFT MAST SUPPORT"><option value="52008-54970-0_SHAFT, ROLLLER"><option value="52012-02330-1_SHAFT, ROLLLER"><option value="52012-10830-0_SHAFT, ROLLLER"><option value="52151C248"><option value="5294011_PIN LIFT MOTOR"><option value="566-54-11790_BOSS"><option value="5H853-3182-2_SQUARE BAR"><option value="5T072-3113-1-A2"><option value="5T078-0658-47_PIPE"><option value="5T124-3181-06_PIN"><option value="5T124-3181-09_PIN"><option value="5T124-3181-10_PIN"><option value="5T286-3181-09_PIN"><option value="5T286-3181-10_PIN"><option value="5T286-3257-1-A2"><option value="65000000_PIN BACK"><option value="65000021_40110739"><option value="655-0156-00_ROD"><option value="74619-0K050 B"><option value="8098-A44S"><option value="81312-KW7-9000"><option value="81312-KW7-9000."><option value="850.1.200.1A."><option value="850.1.221.1A._40051763"><option value="850.1.B24.1A_40051793"><option value="88113-K26-B000-H1_Stay comp mirror K1HG"><option value="897498-1540-3-C_SPACER"><option value="898061-81700_BOSS"><option value="898165703Y_CLIP"><option value="898386-0860"><option value="898386-0870"><option value="8983860860-01_STRIKER LH"><option value="8983860870-01_STRIKER RH"><option value="8984809521-2-C_BOSS"><option value="9004-92155A_BOSS"><option value="90108-MGZ-J000-H1_NUT PROJECTION 6MM."><option value="90301-K2JA-T100-H1"><option value="9049006300-3-C_NUT M6x30 (4.8)"><option value="90502-KPW-9000_COLLAR 6.2"><option value="92043-0926_PIN"><option value="92152-4100_COLLAR"><option value="92210-1527_NUT"><option value="94062-06000_911052460"><option value="94063-10000_M10x1.25 Hexagon Weld Nut"><option value="94223-60800_WELD NUT M8 X 1.25"><option value="99553D010P-2_HOLDER"><option value="99553D010P-3_BAR"><option value="AA004960A-N_NUT"><option value="AA004960A_SCREW CAP ASS'Y"><option value="AA011990A_CROMMET ASS'Y"><option value="AA013370F วัตถุดิบ_BUSH"><option value="AA013370F วัตถุดิบ_WASHER"><option value="AA013370F_CASING CAP ASS'Y"><option value="AA0T157F0_SUB ASS'Y SCREW CAP"><option value="AA10397AZ0_SUB ASS'Y SCREW CAP"><option value="AA107720B_ROUND JOINT"><option value="AA203250AE_ADJUSTER"><option value="AA203250E-EX_ADJUSTER"><option value="AA20325AE"><option value="AA205170B_SCREW CAP ASS'Y"><option value="AA205170C-1_SCREW CAP ASS'Y"><option value="AB6011CF0_CASING CAP"><option value="AB6011CFA_CASING CAP"><option value="AC0T02200_SUB ASS'Y CASING CAP"><option value="AC0T02400-1_SUB ASS'Y CASING CAP"><option value="AC0T03100-1_SUB ASS'Y CASING CAP"><option value="AC0T03100-F วัตถุดิบ_FORGH"><option value="AC0T03900_SUB ASS'Y ROUND JOINT RH"><option value="AC0T0390A_SUB ASS'Y ROUND JOINT RH"><option value="AC0T04000_SUB ASS'Y CASING CAP"><option value="AC0T0400A_SUB ASS'Y ROUND JOINT LH"><option value="AC0T05000-1_SUB ASS'Y CASING CAP"><option value="AC0T09800_SUB ASS'Y CASING CAP"><option value="AC0T11900_SUB ASS'Y CASING CAP"><option value="AC0T12400_CASING CAP"><option value="AC0T13000-1_CASING CAP"><option value="AC0T13000_CASING CAP"><option value="AC0T13400_CASING CAP"><option value="AC0T13600_CASING CAP"><option value="AC10021B0_CASING CAP"><option value="AC10022B0_CASING CAP"><option value="AC20494FA_CASING CAP"><option value="AC21286FC_SUB ASS'Y SCREW CAP"><option value="AC2T003F0_CASING CAP"><option value="AC2T006F0_CASING CAP"><option value="AC2T018F0_SUB ASS'Y CASING CAP"><option value="AC2T019F0_SUB ASS'Y CASING CAP"><option value="AC2T026F0_CASING CAP"><option value="AC2T049F0_CASING CAP"><option value="AC3T002F0_CASING CAP"><option value="AC40199FB_CASING CAP"><option value="AC40524FA_CASING CAP"><option value="AC40589F0_CASING CAP"><option value="AC41435F0_SUB ASS'Y SCREW CAP"><option value="AC60087F0_ROUND JOINT"><option value="AC60096F0_ROUND JOINT"><option value="AC6T019F0-1-EX_SUB ASS'Y CASING CAP"><option value="AC6T047F0_CASING CAP"><option value="AC7T002F0_CASING CAP"><option value="AC80117BA_CASING CAP"><option value="AC80118A0_CASING CAP"><option value="AC80137FB-F วัตถุดิบ_FORGH"><option value="AC80137FB_CASING CAP"><option value="AE20023F0_EYE END"><option value="AE2T001F0_CASING CAP"><option value="AF30013F0_CASING CAP"><option value="AF30017F0"><option value="AF3T001F0 EX_CASING CAP"><option value="AG151372-B"><option value="AG152148-A"><option value="AH50093FC_HOLDER"><option value="AJ10148F0_SCREW END"><option value="AJ10264F0_SCREW END"><option value="AJ10308F0_SCREW END"><option value="AJ10309F0_SCREW END"><option value="AJ1T001F0-F วัตถุดิบ_FORGH"><option value="AJ1T001F0_SCREW END"><option value="AJ20273F0_SCREW END"><option value="AJ20409FA_SCREW END"><option value="AJ20419FA"><option value="AJ21013F0_SCREW END"><option value="AJ2T002F0-F วัตถุดิบ_FORGH"><option value="AJ2T002F0_SCREW END"><option value="AJ2T003F0-F วัตถุดิบ_FORGH"><option value="AJ2T003F0_SCREW END"><option value="AJ2T006F0_SCREW END"><option value="AJ2T007F0_SCREW END"><option value="AJ31026FA_ROD END"><option value="AJ31035F0_SCREW END"><option value="AJ31036F0_SCREW END"><option value="AJ3T001F0_SCREW END"><option value="AJ3T009F0_SCREW END"><option value="AL01133A0_SCREW CAP ASS'Y"><option value="AL0114000_SUB ASS'Y SCREW"><option value="AL0122300_SUB ASS'Y SCREW CAP"><option value="AL0124500_SUB ASS'Y SCREW CAP"><option value="AL013060A_SUB ASS'Y SCREW CAP"><option value="AL0131400_SCREW CAP"><option value="AL0136800_SCREW CAP ASS'Y"><option value="AL0138000_SCREW CAP ASS'Y"><option value="AL0145700_SUB ASS'Y SCREW CAP"><option value="AL0154000_SUB ASS'Y SCREW CAP"><option value="AL015400A_SCREW CAP ASS'Y"><option value="AL015420A_SCREW CAP ASS'Y"><option value="AL015420B_SCREW CAP ASS'Y"><option value="AL019750C_SUB ASS'Y SCREW CAP"><option value="AL0229000_SCREW CAP"><option value="AL0229000_SUB ASS'Y SCREW CAP"><option value="AL0232900-F วัตถุดิบ_FORGH"><option value="AL0232900_SUB ASS'Y SCREW CAP"><option value="AL0233200-F วัตถุดิบ_FORGH"><option value="AL0233200_SUB ASS'Y SCREW CAP"><option value="AL0251800-F วัตถุดิบ_FORGH"><option value="AL0251800_SUB ASS'Y SCREW CAP"><option value="AL0T00600-1_SUB ASS'Y SCREW CAP"><option value="AL0T00700-1_SUB ASS'Y SCREW CAP"><option value="AL0T00900_SUB ASS'Y SCREW CAP"><option value="AL0T01000_SUB ASS'Y SCREW CAP"><option value="AL0T01300_SUB ASS'Y SCREW CAP"><option value="AL0T01600_SUB ASS'Y SCREW CAP"><option value="AL0T01700_SUB ASS'Y SCREW CAP"><option value="AL0T0180A-1_SUB ASS'Y SCREW CAP"><option value="AL0T0180A_SUB ASS'Y SCREW CAP"><option value="AL0T02000-1_SUB ASS'Y SCREW CAP"><option value="AL0T02400_SUB ASS'Y SCREW CAP"><option value="AL0T02800-1_SUB ASS'Y SCREW CAP"><option value="AL0T02900_SUB ASS'Y SCREW CAP"><option value="AL0T03200-F วัตถุดิบ_FORGH"><option value="AL0T03200_SUB ASS'Y SCREW CAP"><option value="AL0T03400_SUB ASS'Y SCREW CAP"><option value="AL0T03600_SUB ASS'Y SCREW CAP"><option value="AL0T0360A_SUB ASS'Y SCREW CAP"><option value="AL0T04000-1_SUB ASS'Y SCREW CAP"><option value="AL0T04000-2_SUB ASS'Y SCREW CAP"><option value="AL0T04500_SUB ASS'Y SCREW CAP"><option value="AL0T04600-1_SUB ASS'Y SCREW CAP"><option value="AL0T05200_SUB ASS'Y SCREW CAP"><option value="AL0T0520A_SUB ASS'Y SCREW CAP"><option value="AL0T05300_SUB ASS'Y SCREW CAP"><option value="AL0T0530A_SUB ASS'Y SCREW CAP"><option value="AL0T0560A_SUB ASS'Y SCREW CAP"><option value="AL0T05700_SUB ASS'Y SCREW CAP"><option value="AL0T06000_SUB ASS'Y SCREW CAP"><option value="AL0T06100_SUB ASS'Y SCREW CAP"><option value="AL0T06200_SUB ASS'Y SCREW CAP"><option value="AL0T07100_SUB ASS'Y SCREW CAP"><option value="AL0T0710A_SUB ASS'Y SCREW CAP"><option value="AL0T07200_SUB ASS'Y SCREW CAP"><option value="AL0T07300_SUB ASS'Y SCREW CAP"><option value="AL0T0730A_SUB ASS'Y SCREW CAP"><option value="AL0T08600_SUB ASS'Y SCREW CAP"><option value="AL0T08700_SUB ASS'Y SCREW CAP"><option value="AL0T08800_SUB ASS'Y SCREW CAP"><option value="AL0T08900_SUB ASS'Y SCREW CAP"><option value="AL0T09300_SUB ASS'Y SCREW CAP"><option value="AL0T10300_SUB ASS'Y SCREW CAP"><option value="AL0T10800_SUB ASS'Y SCREW CAP"><option value="AL0T11000_SUB ASS'Y SCREW CAP"><option value="AL0T1120A_SUB ASS'Y SCREW CAP"><option value="AL1001150A_SCREW CAP ASS'Y"><option value="AL100530A_SCREW CAP ASS'Y"><option value="AL1009400_SCREW CAP ASS'Y"><option value="AL101150A_SUB ASS'Y SCREW"><option value="AL101250B_SCREW CAP ASS'Y"><option value="AL1027000_SCREW CAP ASS'Y"><option value="AL1T001F0_SCREW CAP"><option value="AL1T008B0_SUB ASS'Y SCREW CAP"><option value="AL200190C_SCREW CAP ASS'Y"><option value="AL204160A_SUB ASS'Y SCREW"><option value="AL2045300_SCREW CAP ASS'Y"><option value="AL2058700_SCREW CAP ASS'Y"><option value="AL2108700_SCREW CAP"><option value="AL2108700_SCREW CAP ASS'Y"><option value="AL2110500_SCREW CAP ASS'Y"><option value="AL31027F0_SCREW CAP"><option value="AL500980B_SCREW CAP"><option value="AL5104200-F วัตถุดิบ_FORGH"><option value="AL51062F0_SCREW CAP"><option value="AL7010600_SCREW CAP ASS'Y"><option value="AL703250B-F วัตถุดิบ_FORGH"><option value="AL703250B_SCREW CAP ASS'Y"><option value="AL7043400_SCREW CAP ASS'Y"><option value="AL7T00200_SUB ASS'Y SCREW CAP"><option value="AM11044F0"><option value="AM1T008F0"><option value="AM1T020F0"><option value="AM1T033F0_NUT"><option value="AM1T044F0-N_NUT"><option value="AM1T045F0-N_NUT"><option value="AM1T053S0-N_NUT"><option value="AM30057P0-N วัตถุดิบ_NUT_SL"><option value="AM30354B0-N_NUT"><option value="AM3T009F0-N_NUT"><option value="AM3T024F0-N_NUT"><option value="AM3T025B0-N_NUT"><option value="AM3T025F0-N_NUT"><option value="AM51032B0-A_NUT ADJUST"><option value="AM51059P0-N วัตถุดิบ_NUT ADJUST"><option value="AM5T003B0-A_NUT ADJUST"><option value="AM5T024F0-A_NUT ADJUST"><option value="AN10046FA_NIPPLE END"><option value="AN10163FA_NIPPLE END"><option value="AN10273F0_NIPPLE END"><option value="AN10280FA_NIPPLE END"><option value="AN10288FD_NIPPLE END"><option value="AN10334F0_NIPPLE END"><option value="AN10477FA_NIPPLE END"><option value="AN11125F0_NIPPLE END"><option value="AN11130F0_NIPPLE END"><option value="AN11139F0_NIPPLE END"><option value="AN11144F0-1_NIPPLE END"><option value="AN11150F0_NIPPLE END"><option value="AN1E003FA_NIPPLE END"><option value="AN1T010F0_NIPPLE END"><option value="AN2T001F0_NIPPLE END"><option value="AN5T001F0_NIPPLE END"><option value="AN80260F0_NIPPLE END"><option value="AQ0T03900_CLAMP"><option value="AQ0T04000_CLAMP"><option value="AQ0T04100_CLAMP"><option value="AQ0T04200_CLAMP"><option value="AQ40306FA_CLAMP"><option value="AQ40453F0_CLAMP"><option value="AQ41060FA_CLAMP"><option value="AQ41076F0_CLAMP"><option value="AQ41212F0_CLAMP"><option value="AQ4T03200_CLAMP"><option value="AQ4T032F0_CLAMP"><option value="AQ4T035F0_CLAMP"><option value="AS011840B_SCREW CAP"><option value="AS0124500_SUB ASS'Y SCREW CAP"><option value="AS012450A_SUB ASS'Y SCREW CAP"><option value="AS0951400_SCREW CAP"><option value="AS0T00400_SCREW CAP"><option value="AS0T00500_SUB ASS'Y SCREW"><option value="AS0T0050A_SUB ASS'Y SCREW"><option value="AS0T00700-A_NUT ADJUST"><option value="AS0T01500-1_SUB ASS'Y SCREW"><option value="AS0T01500-A_NUT ADJUST"><option value="AS0T01700_SUB ASS'Y SCREW"><option value="AS0T02700_SUB ASS'Y SCREW"><option value="AS0T02800_SUB ASS'Y SCREW"><option value="AS0T03200_SUB ASS'Y SCREW CAP"><option value="AS0T03300_SUB ASS'Y SCREW CAP"><option value="AS0T03500_SUB ASS'Y SCREW CAP"><option value="AS0T03800_SUB ASS'Y SCREW CAP"><option value="AS0T03900-A_NUT ADJUST"><option value="AS0T03900_SUB ASS'Y SCREW CAP"><option value="AS0T04000_SUB ASS'Y SCREW"><option value="AS0T04100_SUB ASS'Y SCREW"><option value="AS0T04300_SUB ASS'Y SCREW"><option value="AS0T04400_SUB ASS'Y SCREW"><option value="AS0T04500_SUB ASS'Y SCREW"><option value="AS0T04600_SUB ASS'Y SCREW"><option value="AS0T04900_SUB ASS'Y SCREW"><option value="AS0T05000_SUB ASS'Y SCREW"><option value="AS0T05400_SUB ASS'Y SCREW"><option value="AS0T05600_SUB ASS'Y SCREW"><option value="AS0T05700_SUB ASS'Y SCREW"><option value="AS0T05800_SUB ASS'Y SCREW"><option value="AS0T05900_SUB ASS'Y SCREW"><option value="AS0T06000_SUB ASS'Y SCREW"><option value="AS0T06100_SUB ASS'Y SCREW"><option value="AS0T0610A_SUB ASS'Y SCREW"><option value="AS10404B0_SCREW CAP"><option value="AT10170B0-1_T-END"><option value="AT10170B0_T-END"><option value="AT1T008B0_T-END"><option value="AT2T001F0-F วัตถุดิบ_FORGH"><option value="AT2T001F0_T-END"><option value="AW11204F0_WASHER"><option value="AW1T013F00_WASHER"><option value="AW1T033F00_WASHER"><option value="AW1T033F01_WASHER"><option value="AX5T010F0"><option value="AX5T017FA"><option value="AX5T029F0"><option value="AX5T034F0"><option value="AX9T009P0"><option value="AX9T010P0"><option value="AX9T010PD"><option value="AX9T029P0_OUTER PIPE"><option value="AY41071F0_PIN"><option value="AY41076F0_PIN"><option value="AY41079F0_PIN"><option value="AY4T001F0_PIN"><option value="AY51037F0-F วัตถุดิบ_FORGH"><option value="AY51037F0_PIN SHOT"><option value="AY5E003F0-F วัตถุดิบ_FORGH"><option value="AY5E003F0_PIN SHOT"><option value="AY5E006F0-F วัตถุดิบ_FORGH"><option value="AY5E006F0_PIN SHOT"><option value="AY5T005F0_PIN"><option value="AY5T008F0_PIN SHOT"><option value="B24002-E_BUSH OD 20"><option value="B24003-E_BUSH"><option value="BP15021C0"><option value="BUSH 20.6_BUSH"><option value="C24001-E"><option value="CK2T004R00"><option value="COLLAR_WO FLANGE"><option value="CR0T016AC"><option value="CR2T004R00"><option value="CT19011A0"><option value="Clamp Lock Mold_T-SLOT M20"><option value="DC5001NF0_NIPPLE END"><option value="DC5004CF0_CASING CAP"><option value="DC5007CF0_CASING CAP"><option value="DC5007LF0"><option value="ENG000869_PIN BACK"><option value="EX- 52006-44960-2_SHAFT"><option value="GA043840A-F วัตถุดิบ_FORGH"><option value="GA043840A_SUB ASS'Y CASING CAP"><option value="GA0476200"><option value="GA0E0670A_CASING CAP"><option value="GA0T04300"><option value="GA0T04600"><option value="GC20135F0"><option value="GC21035F0_CASING CAP"><option value="GC21089F0-F วัตถุดิบ_FORGH"><option value="GC21089F0_CASING CAP"><option value="GC21092F01-F วัตถุดิบ_FORGH"><option value="GC21092F0_CASING CAP"><option value="GC21124F0_CASING CAP"><option value="GC27064F0_CASING CAP"><option value="GC27087F0_CASING CAP"><option value="GC27113FA0_CASING CAP"><option value="GC40577FA-F วัตถุดิบ_FORGH"><option value="GC40577FA_CASING CAP"><option value="GC4T014F0-1"><option value="GC4T015F0-1"><option value="GC4T016F0"><option value="GE12367HB"><option value="GG20189F0_WEIGHT"><option value="GG41011FB_WEIGHT"><option value="GG41061F0_WEIGHT"><option value="GG41075F02"><option value="GG41097F0_WEIGHT"><option value="GG45015F0_WEIGHT"><option value="GG4T008F0_WEIGHT"><option value="GG4T014F0_WEIGHT"><option value="GG4T016F0"><option value="GH57021FA_SOCKET"><option value="GJ11280F0_SOCKET"><option value="GJ11301F0_SOCKET"><option value="GX37578F0"><option value="GX37579F0_ROD"><option value="GX37588F0_ROD"><option value="GX37595F01_ROD"><option value="GX37608F01_ROD"><option value="GX37654F01_ROD"><option value="GX37692F0_ROD"><option value="GX37703F01_ROD"><option value="GX3E015F01_ROD"><option value="GX3E016F0_ROD"><option value="GX3T002F00_ROD"><option value="GX3T004F0_ROD"><option value="GX3T005F0_ROD"><option value="GX3T007F0_ROD"><option value="GX3T010F0_ROD"><option value="GX3T012F0_ROD"><option value="GX3T022F01_ROD"><option value="GX3T023F01_ROD"><option value="GX3T025F0_ROD"><option value="GX3T025FA_ROD"><option value="GX3T046F0_ROD"><option value="HA2012CFA_SCREW CAP"><option value="HA2036AZ0_SCREW CAP"><option value="HA2037AFA_SCREW CAP"><option value="HA2041LF0_SCREW CAP"><option value="HA2043AZA-1_SUB ASS'Y ROUND JOINT"><option value="HA2057AZ0_SUB ASS'Y SCREW"><option value="HA2073AFA_SUB ASS'Y SCREW"><option value="HC2006AZ0_SUB ASS'Y SCREW CAP"><option value="HC2012CFA_CASING CAP"><option value="HC2035LF0-F วัตถุดิบ_FORGH"><option value="HC2035LF0_CASING CAP"><option value="HC2035LFA_CASING CAP"><option value="HC2040AF0_SUB ASS'Y SCREW"><option value="HC2043AZA_SCREW CAP"><option value="HC2046AA0_SUB ASS'Y SCREW CAP"><option value="HEX. 10 X -_STEEL"><option value="HEX. 12 X -_STEEL"><option value="HEX. 14 X -_STEEL"><option value="HEX. 8 X -_STAINLESS"><option value="HEX. 8 X 2,000-_STEEL"><option value="HEX. 8 X 3,000-_STEEL"><option value="HK2005CB0_CASING CAP"><option value="K0AJ_STAY"><option value="K1TA_75051562"><option value="K2A31-1333-10-03_ARM (DIFF.LOCK)"><option value="K2A31-1333-C0-03_ARM (DIFF.LOCK)"><option value="K93_STAY"><option value="K97F_35051556"><option value="K98_STAY"><option value="KA200D025G01 (BA040D101-01)_ROTOR (INSERT BOLT)"><option value="KA4003XF0_SCREW CAP"><option value="KA4015LF0_SUB ASS'Y SCREW"><option value="KA4018XF0_SUB ASS'Y SCREW"><option value="KA4448XF0_SCREW CAP"><option value="KC4002LF0_SUB ASS'Y SCREW"><option value="KC4023AF0_SUB ASS'Y SCREW"><option value="KC4425LF0_SCREW CAP"><option value="KK4006AZ0_SUB ASS'Y ROUND JOINT"><option value="KK4009AF0_SUB ASS'Y ROUND JOINT"><option value="KT4013XF0_ROUND JOINT"><option value="KT4014CF0_CASING CAP"><option value="KT4433AZ0_SUB ASS'Y ROUND JOINT"><option value="KT4442AZ0_SUB ASS'Y ROUND JOINT"><option value="KWNA_75051324"><option value="KWTP_35051557"><option value="KYTA_75051309"><option value="LQ52C01056P1"><option value="LQ52C01057P1_BAR"><option value="LQ80E01024P1_SPACER"><option value="M.6x1.0-_NUT"><option value="M.7x1.0-_NUT"><option value="M.8x1.0-_NUT"><option value="M.8x1.25-_NUT"><option value="M10x1.25-_NUT"><option value="M12X1.25_NUT"><option value="M50E31-01-04_PIN D10.3 MM"><option value="M50E31-01-05"><option value="MA8009LF0_SUB ASS'Y SCREW CAP"><option value="MA8014AZ0_SUB ASS'Y SCREW CAP"><option value="MA8026LF0_SUB ASS'Y SCREW CAP"><option value="MA8057AA0_SUB ASS'Y ROUND JOINT"><option value="MB118185_NUT-Weld Ark(GUIDE)M8"><option value="MB304681_SQ NUT-Weld"><option value="MB8010NF0_NIPPLE END"><option value="MB8037AFA-N_NUT"><option value="MB8037AFA-N_NUT M16X1.5"><option value="MB8037AFA_SCREW CAP ASS'Y"><option value="MF118185_NUT-Weld Ark(GUIDE)M8"><option value="MF927520_NUT-Weld Prj M10 [N5]"><option value="MF927550_NUT-Weld Prj M10 [N8]"><option value="MF927620_NUT-Weld Prj M12 [N5]"><option value="MKRA_PIN BACK"><option value="MKSA_35051559"><option value="ML8018LF0_SCREW CAP"><option value="MLBA_75051564"><option value="MP8017CF0_SCREW CAP ASS'Y"><option value="MR571998_MTO -BF"><option value="MU190008_BOLT WELD 8xL20"><option value="NA0006LF0_SCREW CAP"><option value="NA0038AF0_SUB ASS'Y SCREW CAP"><option value="NA0038AFA_SUB ASS'Y SCREW CAP"><option value="NA0040AF0_SUB ASS'Y SCREW CAP"><option value="NA0043AF0_SUB ASS'Y SCREW CAP"><option value="NA0052AZ0_SUB ASS'Y SCREW CAP"><option value="NA0069AZ0_SUB ASS'Y SCREW CAP"><option value="NA0229LF0_SUB ASS'Y SCREW CAP"><option value="NB0055CF0_NIPPLE END"><option value="NB0057NF0_NIPPLE END"><option value="NB0058NFT_NIPPLE END"><option value="NB0069NF0_NIPPLE END"><option value="NB0069NFA_NIPPLE END"><option value="NB0343TF0_T-END"><option value="NL0005AF0_SUB ASS'Y SCREW CAP"><option value="NN52C01007P1"><option value="NP0004491_STUD BOLT"><option value="NP0004673_PIN BACK MIRROR 40051621"><option value="NT0015SF0-F วัตถุดิบ_FORGH"><option value="NT0015SF0_PIN"><option value="NT10072B0"><option value="NT10073B0"><option value="NT26013A1"><option value="NT26013C0_1904001-B5"><option value="PC00029E0"><option value="PC00060E0"><option value="PC00083ZA_SUB ASS'Y CASING CAP"><option value="PC00092E0_SUB ASS'Y SCREW"><option value="PC00094E0_SUB ASS'Y CASING CAP"><option value="PC00095E0_SUB ASS'Y CASING CAP"><option value="PC00112Z0-1_SUB ASS'Y CASING CAP"><option value="PC00126Z0-1_SUB ASS'Y CASING CAP"><option value="PC00126Z0_SUB ASS'Y CASING CAP"><option value="PC00150Z0-1_SUB ASS'Y CASING CAP"><option value="PC00150Z0_SUB ASS'Y CASING CAP"><option value="PC00151Z0-1_SUB ASS'Y CASING CAP"><option value="PC00151Z0-F วัตถุดิบ_FORGH"><option value="PC00151Z0_SUB ASS'Y CASING CAP"><option value="PC00159Z0_SUB ASS'Y CASING CAP"><option value="PC00160Z0-1_SUB ASS'Y CASING CAP"><option value="PC00160Z0_SUB ASS'Y CASING CAP"><option value="PC00164Z0-1_SUB ASS'Y CASING CAP"><option value="PC00164Z0_SUB ASS'Y CASING CAP"><option value="PC00171F0_CASING CAP"><option value="PC00171Z0"><option value="PC00176Z0-1_SUB ASS'Y CASING CAP"><option value="PC00176Z0_SUB ASS'Y CASING CAP"><option value="PC00193Z0_CASING CAP"><option value="PC00200ZA_SUB ASS'Y CASING CAP"><option value="PC00209Z0_SUB ASS'Y CASING CAP"><option value="PC0E008Z0-EX_SUB ASS'Y CASING CAP"><option value="PC0E008Z0_SUB ASS'Y CASING CAP"><option value="PC20016E0-F วัตถุดิบ_FORGH"><option value="PC20016E0_CASING CAP"><option value="PC20017F0_CASING CAP"><option value="PC20017FA_CASING CAP"><option value="PC20027E0-F วัตถุดิบ_FORGH"><option value="PC20027E0_CASING CAP"><option value="PC20034FA_CASING CAP"><option value="PC20035FA_CASING CAP"><option value="PC20039E0-F วัตถุดิบ_FORGH"><option value="PC20039E0_CASING CAP"><option value="PC20078F0_CASING CAP"><option value="PC20106F0_CASING CAP"><option value="PC30004F0-F วัตถุดิบ_FORGH"><option value="PC30004F0_CASING CAP"><option value="PC30005F0_CASING CAP"><option value="PC30006E0-F วัตถุดิบ_FORGH"><option value="PC30006F0_CASING CAP"><option value="PC40003E0_CASING CAP"><option value="PC40003F0-F วัตถุดิบ_FORGH"><option value="PC40019F0_CASING CAP"><option value="PC50022F0_CASING CAP"><option value="PDD-16-01"><option value="PDD-16-07"><option value="PDD-16-08"><option value="PIN BACK MKRA"><option value="PJ10001E0-F วัตถุดิบ_FORGH"><option value="PJ10001E0_SCREW END"><option value="PJ20005E0_SCREW END"><option value="PJ30012F0_SCREW END"><option value="PJ30013F0_SCREW END"><option value="PK20005R0-K-C วัตถุดิบ_COVER"><option value="PL00008E0"><option value="PL00013E0_SUB ASS'Y SCREW CAP"><option value="PL00014E0_SUB ASS'Y SCREW CAP"><option value="PL00015E0_SUB ASS'Y SCREW CAP"><option value="PL00016E0-1_SUB ASS'Y SCREW CAP"><option value="PL00016E0-F วัตถุดิบ_FORGH"><option value="PL00016E0_SUB ASS'Y SCREW CAP"><option value="PL00019F0_SUB ASS' Y SCREW CAP"><option value="PL00019FA_SUB ASS' Y SCREW CAP"><option value="PL00019FA_SUB ASS'Y SCREW CAP"><option value="PL00023E0_SUB ASS'Y SCREW CAP"><option value="PL00026E0_SUB ASS'Y SCREW CAP"><option value="PL00027E0-F วัตถุดิบ_FORGH"><option value="PL00027E0_SUB ASS'Y SCREW CAP"><option value="PL00031Z0_SUB ASS'Y SCREW CAP"><option value="PL00031ZC-EX_SUB ASS'Y SCREW CAP"><option value="PL00031ZC_SUB ASS'Y SCREW CAP"><option value="PL00032ZA_SUB ASS'Y SCREW CAP"><option value="PL00034E0-F วัตถุดิบ_FORGH"><option value="PL00034E0_SUB ASS'Y SCREW CAP"><option value="PL00035FA_SUB ASS'Y SCREW CAP"><option value="PL00036E0_SUB ASS'Y SCREW CAP"><option value="PL00037E0_SUB ASS'Y SCREW CAP"><option value="PL00037F0_SUB ASS'Y SCREW CAP"><option value="PL00037FA_SUB ASS'Y SCREW CAP"><option value="PL00037FB_SUB ASS'Y SCREW CAP"><option value="PL00038E0-1_SUB ASS'Y SCREW CAP"><option value="PL00038E0_SUB ASS'Y SCREW CAP"><option value="PL00039E0_SUB ASS'Y SCREW CAP"><option value="PL00040E0_SUB ASS'Y SCREW CAP"><option value="PL00043E0-1_SUB ASS'Y SCREW CAP"><option value="PL00044E0-1_SUB ASS'Y SCREW CAP"><option value="PL00044E0-F วัตถุดิบ_FORGH"><option value="PL00047E0_SUB ASS'Y SCREW CAP"><option value="PL00050EA_SUB ASS'Y SCREW CAP"><option value="PL00051EA_SUB ASS'Y SCREW CAP"><option value="PL00054E0_SUB ASS'Y SCREW CAP"><option value="PL00055E0_SUB ASS'Y SCREW CAP"><option value="PL00056E0-1_SUB ASS'Y SCREW CAP"><option value="PL00056E0-F วัตถุดิบ_FORGH"><option value="PL00056E0_SUB ASS'Y SCREW CAP"><option value="PL00057FB_SUB ASS'Y SCREW CAP"><option value="PL00063E0-F วัตถุดิบ_FORGH"><option value="PL00063F0_SUB ASS'Y SCREW CAP"><option value="PL00064F0_SCREW CAP"><option value="PL00066F0_SUB ASS' Y SCREW CAP"><option value="PL00068F0_SUB ASS'Y SCREW CAP"><option value="PL00071Z0-1_SUB ASS'Y SCREW CAP"><option value="PL00071Z0_SUB ASS'Y SCREW CAP"><option value="PL00078Z0_SUB ASS'Y SCREW CAP"><option value="PL00086F0_SUB ASS'Y SCREW CAP"><option value="PL00092E0-F วัตถุดิบ_FORGH"><option value="PL00092F0_SUB ASS'Y SCREW CAP"><option value="PL00094E0-F วัตถุดิบ_FORGH"><option value="PL00094Z0_SUB ASS'Y SCREW CAP"><option value="PL00094ZA_SUB ASS'Y SCREW CAP"><option value="PL00094ZB-1_SUB ASS'Y SCREW CAP"><option value="PL00094ZB_SUB ASS'Y SCREW CAP"><option value="PL00099Z0_SUB ASS'Y SCREW CAP"><option value="PL00099ZA_SUB ASS'Y SCREW CAP"><option value="PL00101BA_SUB ASS'Y SCREW CAP"><option value="PL00101Z0_SUB ASS'Y SCREW CAP"><option value="PL00102ZB-1_SUB ASS'Y SCREW CAP"><option value="PL00102ZB-F วัตถุดิบ_FORGH"><option value="PL00102ZB_SUB ASS'Y SCREW CAP"><option value="PL00104Z0_SUB ASS'Y SCREW CAP"><option value="PL00105Z0_SUB ASS'Y SCREW CAP"><option value="PL00112F0_SUB ASS'Y SCREW CAP"><option value="PL00113F0_SUB ASS'Y SCREW CAP"><option value="PL00114Z0-1_SUB ASS'Y SCREW CAP"><option value="PL00114Z0_SUB ASS'Y SCREW CAP"><option value="PL00122F0_SUB ASS'Y SCREW CAP"><option value="PL00125F0_SUB ASS'Y SCREW"><option value="PL00127Z0_SUB ASS'Y SCREW CAP"><option value="PL00128F0_SUB ASS'Y SCREW CAP"><option value="PL00128Z0_SUB ASS'Y SCREW CAP"><option value="PL00130Z0-1_SUB ASS'Y SCREW CAP"><option value="PL00130Z0-2_SUB ASS'Y SCREW CAP"><option value="PL0E002ZA_SUB ASS'Y SCREW CAP"><option value="PL0E003Z0_SUB ASS'Y SCREW CAP"><option value="PL0E004F0-F วัตถุดิบ_FORGH"><option value="PL0E004F0_SUB ASS'Y SCREW CAP"><option value="PL20043F0_SCREW"><option value="PL50004E0_SCREW CAP"><option value="PM30007P0-A วัตถุดิบ_NUT ADJUST"><option value="PM30008P0-A วัตถุดิบ_NUT ADJUST"><option value="PM3E008P0_NUT"><option value="PM3E009P0-N_NUT ADJUST"><option value="PM50001FA"><option value="PM5E001B0-A_NUT ADJUST"><option value="PM5E001FA-A_NUT ADJUST"><option value="PM5E008E0-A วัตถุดิบ_NUT ADJUST"><option value="PM5E009E0-A วัตถุดิบ_NUT ADJUST"><option value="PN10004E0_NIPPLE END"><option value="PQ00079ZA"><option value="PQ00080ZA"><option value="PQ00082ZA"><option value="PQ00083ZA"><option value="PQ00084ZA"><option value="PS00003Z0_SUB ASS'Y SCREW"><option value="PS00003ZA_SUB ASS'Y SCREW"><option value="PS00003ZB-F วัตถุดิบ_FORGH"><option value="PS00005F0_SUB ASS' Y SCREW CAP"><option value="PS00008Z0-F วัตถุดิบ_FORGH"><option value="PS00008ZB-1_SUB ASS'Y SCREW"><option value="PS00008ZB_SUB ASS'Y SCREW"><option value="PS00009E0_SUB ASS'Y SCREW"><option value="PS00010E0_SUB ASS'Y SCREW END"><option value="PS00011E0_SUB ASS'Y SCREW END"><option value="PS00012ZB-F วัตถุดิบ_FORGH"><option value="PS00016F0_SCREW CAP"><option value="PS00017E0_SUB ASS'Y SCREW CAP"><option value="PS00018Z0_SUB ASS'Y SCREW CAP"><option value="PS00019E0_SUB ASS'Y SCREW CAP"><option value="PS00021E0_SUB ASS'Y SCREW"><option value="PS00021FB_SUB ASS'Y SCREW"><option value="PS00021FC_SUB ASS'Y SCREW"><option value="PS00022E0_SUB ASS'Y SCREW"><option value="PS00023E0_SUB ASS'Y SCREW CAP"><option value="PS00025E0-1_SUB ASS'Y SCREW"><option value="PS00025E0-F วัตถุดิบ_FORGH"><option value="PS00025E0_SUB ASS'Y SCREW"><option value="PS00028F0_SUB ASS'Y SCREW CAP"><option value="PS00029F0_SUB ASS'Y SCREW CAP"><option value="PS00031F0_SCREW CAP"><option value="PS00033F0_SUB ASS'Y SCREW CAP"><option value="PS00034F0_SCREW CAP"><option value="PS00035F0_SCREW CAP"><option value="PS00036F0_SUB ASS'Y SCREW CAP"><option value="PS00037FA_SUB ASS'Y SCREW"><option value="PS00043E0-F วัตถุดิบ_FORGH"><option value="PS00043Z0-1_SUB ASS'Y SCREW"><option value="PS00054Z0_SUB ASS'Y SCREW"><option value="PS00055F0_SUB ASS'Y SCREW CAP"><option value="PS00056Z0-1_SUB ASS'Y SCREW"><option value="PS00056Z0_SUB ASS'Y SCREW"><option value="PS00057Z0_SUB ASS'Y SCREW"><option value="PS00059Z0-1_SUB ASS'Y SCREW"><option value="PS00060F0_SUB ASS'Y SCREW CAP"><option value="PS00068Z0_SUB ASS'Y SCREW"><option value="PS00070E0 (PC00164Z0)"><option value="PS00070F0_SUB ASS'Y SCREW"><option value="PS00071F0_SUB ASS'Y SCREW"><option value="PS00072FA-F วัตถุดิบ_FORGH"><option value="PS00072FA_SUB ASS'Y SCREW"><option value="PS00074F0_SUB ASS'Y SCREW"><option value="PS00075FA_SUB ASS'Y SCREW"><option value="PS00076F0_SUB ASS'Y SCREW CAP"><option value="PS00077Z0"><option value="PS00079F0_SUB ASS'Y SCREW CAP"><option value="PS00079FA_SUB ASS'Y SCREW CAP"><option value="PS00080Z0"><option value="PS00080Z0-1_SUB ASS'Y SCREW"><option value="PS00087Z0"><option value="PS00088Z0_SUB ASS'Y SCREW"><option value="PS00089F0_SUB ASS'Y SCREW"><option value="PS0E004Z0_SUB ASS'Y SCREW"><option value="PS0E004ZA-EX_ROUND JOINT"><option value="PS0E004ZA_ROUND JOINT"><option value="PS0E005Z0-A วัตถุดิบ_NUT ADJUST"><option value="PS0E005Z0-C วัตถุดิบ_COVER"><option value="PS0E005Z0-N วัตถุดิบ_NUT"><option value="PS0E005Z0_SUB ASS'Y SCREW"><option value="PS0E005ZA_ROUND JOINT"><option value="PS20025F0_SCREW CAP"><option value="PS60030F00-1_BRAZING"><option value="PS60030F00_ROUND JOINT"><option value="PS60031F00-1_BRAZING"><option value="PS60031F00_ROUND JOINT"><option value="PT10018BA_T-END"><option value="PT10023B0_T-END"><option value="PW14041A0"><option value="PW2E001F0_STOPPER"><option value="PX00007Z0_SUB ASS'Y CASING CAP"><option value="PX10002P0_OUTER PIPE L=529"><option value="PX10003P0_OUTER PIPE L=511"><option value="PX10009P0_OUTER PIPE L=469"><option value="PX30004F0_ROD"><option value="PX50053F0"><option value="PY40003E0_PIN"><option value="PY50001E0_PIN"><option value="R 7 X -_STEEL"><option value="R. 10 X -_STEEL"><option value="R. 11 X -_STEEL"><option value="R. 11.5 X -_STEEL"><option value="R. 12 X -_STEEL"><option value="R. 13 X -_STEEL"><option value="R. 14 X -_STEEL"><option value="R. 14.8 X -_STEEL"><option value="R. 16 X -_STEEL"><option value="R. 18 X -_STEEL"><option value="R. 4 X -_STEEL"><option value="R. 5-_BRASS"><option value="R. 6 X ID. 2.4_PIPE"><option value="R. 6-_BRASS"><option value="R. 7 X -_STAINLESS"><option value="R. 7 X ID. -_PIPE"><option value="R. 7-_BRASS"><option value="R. 8 X ID. 2.8_PIPE"><option value="R. 8 X ID. 3.8_PIPE"><option value="R. 9 X -_STEEL"><option value="R.20xL.6,000 SS400_STEEL"><option value="R.22xL.6,000 SS400_STEEL"><option value="RH-LH_75051424"><option value="S0BA_STAY"><option value="SA3006LFA_SCREW CAP"><option value="SA3015LF0_SCREW CAP ASS'Y"><option value="SA3023XF0_SUB ASS'Y ROUND JOINT"><option value="SA3029XF0_ROUND JOINT"><option value="SA3037AZ0-F วัตถุดิบ_FORGH"><option value="SA3037AZ0_SUB ASS'Y ROUND JOINT"><option value="SA3037AZA_SUB ASS'Y ROUND JOINT"><option value="SA53326308_SPACER"><option value="SA53326310_SPACER"><option value="SB3072AZ0_SUB ASS'Y ROUND JOINT"><option value="SC3007JF0_SCREW END"><option value="SC3007JFA_SCREW END"><option value="SC3008LFA_SCREW END"><option value="SC3011AZ0_SUB ASS'Y ROUND JOINT"><option value="SC3012AZ0_SUB ASS'Y ROUND JOINT"><option value="SC3012LF0_SCREW CAP"><option value="SC3013AZ0_SUB ASS'Y ROUND JOINT"><option value="SC3023AZ0_SUB ASS'Y ROUND JOINT"><option value="SC3062LF0_SUB ASS'Y SCREW CAP"><option value="SIR-FRM-FAC-003"><option value="SIR-FRM-FAC-003_Locating Ring 120x100x16"><option value="SIR-FRM-FAC-003_Locating Ring 160x120x16"><option value="SIS-02-100089_Retention Clip"><option value="SIS-02-4874580_PIN LOCK KNOB"><option value="SIS-02-W710488-S307_CLIP เหล็กดำ"><option value="SIS-02-W714972CR_CLIP (White)"><option value="SIS-02-W720456-S900_PLASTIC CLIP"><option value="SIS-03-W713729-S N1WB-E31406-A-PIA_INSERT"><option value="SIS-03-W713729-S R680202_INSERT"><option value="SIS-03-W713729-S-_INSERT"><option value="SIS-05-4875182_WASHER LOCK KNOB"><option value="SK3007XF0_ROUND JOINT"><option value="SK3011AZ0_SUB ASS'Y ROUND JOINT"><option value="SK3011AZA_SUB ASS'Y ROUND JOINT"><option value="SK3036MB0_NUT ADJUST"><option value="SPLC0100007_A_CS STUD-BARTEC"><option value="SPLC0200008_A_CS STUD-ROLLTEC"><option value="SPLC0300001_A_FT CONNECTOR HOUSING"><option value="SPLC0300002_A_FT CONNECTOR HOUSING"><option value="SPLC0300004_A_FT CONNECTOR HOUSING"><option value="SPLC0300007_A_FT CONNECTOR HOUSING"><option value="ST3007XF0_ROUND JOINT"><option value="ST3008LF0_SCREW CAP ASS'Y"><option value="ST3008LFA_SCREW CAP"><option value="ST3027KR0-C วัตถุดิบ_COVER"><option value="ST3028XF0_ROUND JOINT"><option value="ST3060MP0-A วัตถุดิบ_NUT ADJUST"><option value="ST3061MP0-A วัตถุดิบ_NUT ADJUST"><option value="ST3070MFA_NUT ADJUST"><option value="ST3081AZ0E_SUB ASS'Y ROUND JOINT"><option value="ST3081AZ0_ROUND JOINT"><option value="ST3081AZA_SUB ASS'Y ROUND JOINT"><option value="ST3082AZ0_SUB ASS'Y ROUND JOINT"><option value="ST3082AZA_SUB ASS'Y ROUND JOINT"><option value="ST3085AZA_SUB ASS'Y ROUND JOINT"><option value="ST3090XFA_ROUND JOINT"><option value="STAY 053 LH_35051538"><option value="STAY 053 RH_35051539"><option value="STAY 1141_75050338"><option value="STAY 1142_75050550"><option value="STAY 1142_STAY"><option value="STAY 1143_75051352"><option value="STAY 1169 LH_75051379"><option value="STAY 1169 RH_75051380"><option value="STAY 331_75050138"><option value="STAY 35400_75050140"><option value="STAY 415_75051545"><option value="STAY 4D0 LH_75051540"><option value="STAY 4D0 RH_75051049"><option value="STAY 518A_75051443"><option value="STAY 675-2"><option value="STAY 75015042_75015042"><option value="STAY 75015048_75015048"><option value="STAY 75050723_75050723"><option value="STAY 75051324_75051324"><option value="STAY 8 mm."><option value="STAY 8174_75050153"><option value="STAY 9698_75051547"><option value="STAY 9969_35051314 (75051314)"><option value="STAY ASSY MIRROR RH_75051263 (75051478)"><option value="STAY BN175 LH (กลึง)_35051005"><option value="STAY BN175 RH (กลึง)_35051006"><option value="STAY K04A RHLH_75051534"><option value="STAY K58M_35051558"><option value="STAY K94_75051561"><option value="STAY KOAJ K98_75051560"><option value="STAY X12_75051542"><option value="STAY X29 LH_75051532"><option value="STAY X29 RH_75051533"><option value="STAY XA171_75050045"><option value="STAY XA681_7501144"><option value="STAY YM_75050723"><option value="STAY415_75050545"><option value="SUS444T_OD 31.8x0.8"><option value="SX3001LB0_SCREW CAP"><option value="SX3003LB0_SCREW CAP"><option value="TA0074LF0_SCREW CAP"><option value="TA0083LF0_SCREW CAP"><option value="TA0094AZ0-1_SUB ASS'Y SCREW CAP"><option value="TA0094AZ0_SUB ASS'Y SCREW CAP"><option value="TB0043XF0_SET PIECE"><option value="TC0016900"><option value="TC001750A"><option value="TC0031300"><option value="TC0049000"><option value="TC00512F0"><option value="TC0054400"><option value="TC0055100"><option value="TC10092F0_CASING CAP"><option value="TC10099F0_CASING CAP"><option value="TC20539F0_CASING CAP"><option value="TC30010F0_CASING CAP"><option value="TC40177F0"><option value="TC40178F0"><option value="TC422-2984-2-A2"><option value="TE20025D0"><option value="TG028102-5390-C_YOKE"><option value="TJ10032F0_SCREW END"><option value="TL000900A"><option value="TL0017200"><option value="TL00191FA_SUB ASS'Y SCREW CAP"><option value="TL0023200_SUB ASS'Y SCREW CAP"><option value="TL00236F0_SUB ASS'Y SCREW CAP"><option value="TL0024000_SUB ASS'Y SCREW CAP"><option value="TL0025700_SUB ASS'Y SCREW CAP"><option value="TN10077B0_SUB ASS'Y SCREW CAP"><option value="TQ40164F0_CLAMP"><option value="TS0012200"><option value="TS0017600_SUB ASS'Y SCREW CAP"><option value="TSAT-M50E31-01-05_WASHER"><option value="TT411B1200_Washer Plane M12"><option value="TT54012-S001-6_CABLE-THROTTLE"><option value="TT54012-S001-7_CABLE-THROTTLE"><option value="TT92025-S005-0_Shim Washer (Arm wheel)"><option value="TT92025-S006-0_Shim washer ID17 OD32"><option value="TW7N021A0"><option value="TX30107F00_ROD"><option value="TX70002FA"><option value="UA0015LF0_SCREW CAP ASS'Y"><option value="UB0011NF0_NIPPLE END"><option value="UB0042NF0-EG_NIPPLE END"><option value="UB0042NF0_NIPPLE END"><option value="UB0053NF0-EG_NIPPLE END"><option value="UB0053NF0_NIPPLE END"><option value="UB0056NF0-EG_NIPPLE END"><option value="UB0056NF0_NIPPLE END"><option value="UB0113EF0"><option value="UB0169AF0_SUB ASS'Y SCREW CAP"><option value="UB0170AF0_(DRILL)"><option value="UB0200CF0_CASING CAP"><option value="UB0218NFA_NIPPLE END"><option value="UB0237CF0-EG_CASING CAP"><option value="UB0237CF0_CASING CAP"><option value="UB0251JF0_SCREW END"><option value="UC0001LFA_SCREW CAP"><option value="UC0071MFA_NUT"><option value="W520753-S300"><option value="W520771-S300"><option value="W520772_NUT WELD"><option value="W520781-S300_NUT WELD"><option value="W702912"><option value="W70821-S_NUT M6x1.0"><option value="W708214-S300"><option value="W713729-8_BRASS NUT SLOT 19"><option value="W9526-5229-10-02_PIN"><option value="W955J-55023-4_GUARD, SIDE LH/RH"><option value="W955J55015-5"><option value="W955J55015-6_GUARD FRONT"><option value="W955L-53011-16-A"><option value="W955M55012"><option value="W955V55011-07_GUARD FRONT NO.7"><option value="W955W-55031-03_GUARD FRONT"><option value="W955Y-55013-11_GUARD FRONT NO.11"><option value="W955Y55023-14_GUARD SIDE LH NO.14"><option value="W955Y55033-14_RUARD SIDE RH NO.14"><option value="WAHSER MB8037AFA"><option value="WASHER"><option value="WASHER แหวนกลม"><option value="X12_75051042"><option value="XA143_75050647"><option value="YB1007CF0_CASING CAP"><option value="YB1009JF0-F วัตถุดิบ_FORGH"><option value="YB1009JF0E_SCREW END"><option value="YB1009JF0_SCREW END"><option value="YB1014JF0_SCREW END"><option value="YB1040CF0_SCREW END"><option value="YB1041CF0_SCREW END"><option value="YN07F01274P1_PLATE"><option value="YN52C01007P1"><option value="YT03M01425P1"><option value="YT03M01426P1"><option value="YT1019MB0_NUT LOCK"><option value="ZC0098CF0_CASING CAP"><option value="ZC0098CF0_SCREW END"><option value="ZL0007LFB_SUB ASS'Y SCREW CAP"><option value="ZR900B-A44S"><option value="ค่ากลึง STAY LX 250 LH/RH_75051257"><option value="ค่ากลึง STAY XA681 RH_75051144"></datalist>
+
+<!-- BOTTOM NAV (Mobile) -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('dashboard')" data-tab="dashboard"><span class="icon">📊</span>Dashboard</div>
+  <div class="nav-item" onclick="switchTab('items')" data-tab="items"><span class="icon">📌</span>Items</div>
+  <div class="nav-item" onclick="switchTab('snr')" data-tab="snr"><span class="icon">🔄</span>S&R</div>
+  <div class="nav-item" onclick="switchTab('rca')" data-tab="rca"><span class="icon">🔍</span>RCA</div>
+  <div class="nav-item" onclick="switchTab('capa')" data-tab="capa"><span class="icon">✅</span>CAPA</div>
+  <div class="nav-item" onclick="switchTab('meeting')" data-tab="meeting"><span class="icon">📋</span>Meeting</div>
+</div>
+
+<!-- FAB (Mobile Add) -->
+<button class="btn-fab" id="fabAdd" onclick="fabAction()">➕</button>
+
+<!-- PHOTO LIGHTBOX -->
+<div class="photo-lightbox" id="lightbox" onclick="if(event.target===this)lbClose()">
+  <span class="lb-close" onclick="lbClose()">&times;</span>
+  <img id="lbImg" src="">
+  <div class="lb-zoom">
+    <button onclick="event.stopPropagation();lbZoom(1)">＋</button>
+    <button onclick="event.stopPropagation();lbZoom(-1)">－</button>
+    <button onclick="event.stopPropagation();lbZoom(0)">⟲</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalTitle"></h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="modalSave">💾 บันทึก</button>
+      <button class="btn" style="background:#eee" onclick="closeModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+const SK='QCDMS_DATA_V3';
+const defaultData={meetings:[
+{id:"MTG-2026-01",date:"2026-01-09",type:"Weekly QCDMS",week:"W01",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-02",date:"2026-01-16",type:"Weekly QCDMS",week:"W02",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-03",date:"2026-01-23",type:"Weekly QCDMS",week:"W03",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-04",date:"2026-01-30",type:"Weekly QCDMS",week:"W04",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-05",date:"2026-02-06",type:"Weekly QCDMS",week:"W05",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-06",date:"2026-02-13",type:"Weekly QCDMS",week:"W06",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-07",date:"2026-05-29",type:"Weekly QCDMS",week:"W07",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-08",date:"2026-03-13",type:"Weekly QCDMS",week:"W08",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-09",date:"2026-03-23",type:"Weekly QCDMS",week:"W09",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-10",date:"2026-03-27",type:"Weekly QCDMS",week:"W10",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-11",date:"2026-04-04",type:"Weekly QCDMS",week:"W11",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-12",date:"2026-04-10",type:"Weekly QCDMS",week:"W12",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-13",date:"2026-04-24",type:"Weekly QCDMS",week:"W13",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-14",date:"2026-05-08",type:"Weekly QCDMS",week:"W14",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-15",date:"2026-05-15",type:"Weekly QCDMS",week:"W15",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-16",date:"2026-05-21",type:"Weekly QCDMS",week:"W16",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""},
+{id:"MTG-2026-17",date:"2026-05-29",type:"Weekly QCDMS",week:"W17",year:2026,fac:"ธีรสิทธิ์-QMR",notes:""}],
+items:[
+{id:"ITM-2026-001",mid:"MTG-2026-01",date:"2026-01-09",no:1,part:"YT03M01425P1_LIVER-LH",tqm:"Q",dept:"QA",loc:"A.T.T",pain:"กลึง : ชิ้นงานยาว",rca_sum:"OPS กำหนด 107",action:"ตัดความยาว 103±0.2",temp:"Stock A.T.T. Replacement",total:200,ok:0,ng:200,remark:"Before:107 After:103",resp:"พัฒนเดช-QA",start:"2026-01-09",due:"2026-01-16",finish:"2026-01-16",status:"Complete",priority:"Medium",rca_id:"RCA-2026-001",capa_id:"CAPA-2026-001"},
+{id:"ITM-2026-002",mid:"MTG-2026-01",date:"2026-01-09",no:2,part:"YT03M01426P1_LIVER-RH",tqm:"Q",dept:"QA",loc:"A.T.T.",pain:"กลึง : ชิ้นงานยาว",rca_sum:"OPS กำหนด 107",action:"ตัดความยาว 103±0.2",temp:"Stock A.T.T. Replacement",total:120,ok:0,ng:120,remark:"Before:107 After:103",resp:"พัฒนเดช-QA",start:"2026-01-09",due:"2026-01-16",finish:"2026-01-16",status:"Complete",priority:"Medium",rca_id:"RCA-2026-002",capa_id:"CAPA-2026-002"},
+{id:"ITM-2026-003",mid:"MTG-2026-01",date:"2026-01-09",no:3,part:"SIS-02-W720456-S900_CLIP",tqm:"Q",dept:"QA",loc:"SPV",pain:"ประกอบ : ประกอบไม่ล๊อค",rca_sum:"Over Spec ดันติด",action:"ทำพิมพ์ผลิตใหม่",temp:"Stock Customer Claim",total:150000,ok:0,ng:150000,remark:"",resp:"พัฒนเดช-QA",start:"2026-01-09",due:"2026-01-09",finish:"2026-01-09",status:"Complete",priority:"High",rca_id:"RCA-2026-003",capa_id:"CAPA-2026-003"},
+{id:"ITM-2026-004",mid:"MTG-2026-01",date:"2026-01-09",no:4,part:"40051899_INSERT",tqm:"D",dept:"SALE",loc:"RTK",pain:"Kick off : New Model",rca_sum:"",action:"ผลิตตัวอย่าง / ผลิตจริง",temp:"",total:0,ok:0,ng:0,remark:"จัดส่ง 15/1/26",resp:"ธัญลักษณ์-SA",start:"2026-01-09",due:"2026-01-15",finish:"2026-01-15",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-005",mid:"MTG-2026-01",date:"2026-01-09",no:5,part:"40051900_SPACER_V21",tqm:"D",dept:"SALE",loc:"RTK",pain:"Kick off : New Model",rca_sum:"",action:"ผลิตตัวอย่าง / ผลิตจริง",temp:"",total:0,ok:0,ng:0,remark:"จัดส่ง 15/1/26",resp:"ธัญลักษณ์-SA",start:"2026-01-09",due:"2026-01-15",finish:"2026-01-15",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-006",mid:"MTG-2026-02",date:"2026-02-09",no:1,part:"AM1T033F0_NUT",tqm:"C",dept:"QC",loc:"CAPCO",pain:"Follow-up : Thread NG",rca_sum:"Lot: PO6801347",action:"QC ตรวจด้วยสายตา 100%",temp:"",total:0,ok:0,ng:0,remark:"OK 37,282 NG 2,718",resp:"มานพ-QC",start:"2026-02-09",due:"2026-02-15",finish:"2026-02-15",status:"Complete",priority:"High",rca_id:"RCA-2026-004",capa_id:"CAPA-2026-004"},
+{id:"ITM-2026-007",mid:"MTG-2026-02",date:"2026-02-09",no:2,part:"41110692_INSERT",tqm:"D",dept:"SALE",loc:"RTK",pain:"Prototype : ทดลองผลิต",rca_sum:"",action:"RTK-K จัดส่ง PI/QA",temp:"",total:0,ok:0,ng:0,remark:"",resp:"ธัญลักษณ์-SA",start:"2026-02-09",due:"2026-02-10",finish:"2026-02-15",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-008",mid:"MTG-2026-03",date:"2026-03-19",no:1,part:"Safety first",tqm:"S",dept:"QC",loc:"RTK",pain:"Safety : โซ่ขาด อุบัติเหตุ",rca_sum:"การบำรุงรักษา",action:"เปลี่ยนโซ่ใหม่",temp:"",total:0,ok:0,ng:0,remark:"ไม่มีใครได้รับอันตราย",resp:"ประทีป-MT",start:"2026-03-19",due:"2026-03-20",finish:"2026-03-20",status:"Complete",priority:"Critical",rca_id:"RCA-2026-005",capa_id:"CAPA-2026-005"},
+{id:"ITM-2026-009",mid:"MTG-2026-03",date:"2026-03-20",no:2,part:"3105129_INSERT BOLD",tqm:"Q",dept:"QC",loc:"RTK",pain:"กลึง : ลบเหลี่ยมมาก",rca_sum:"รอวิเคราะห์",action:"QC ตรวจด้วยสายตา 100%",temp:"",total:0,ok:0,ng:0,remark:"QA : สรุป ให้จัดส่ง",resp:"พัฒนเดช-QA",start:"2026-03-20",due:"2026-03-20",finish:"2026-03-20",status:"Complete",priority:"Medium",rca_id:"RCA-2026-006",capa_id:""},
+{id:"ITM-2026-010",mid:"MTG-2026-03",date:"2026-03-20",no:3,part:"40051327_PIVOT",tqm:"Q",dept:"QA",loc:"C.B. PARTS",pain:"กลึง : ผิวกลมเล็ก NG 49 ชิ้น",rca_sum:"รอวิเคราะห์",action:"PI รอรับเข้า 637 ชิ้น",temp:"",total:0,ok:0,ng:0,remark:"Claim cost 2,751.58",resp:"พัฒนเดช-QA",start:"2026-03-20",due:"2026-03-23",finish:"2026-03-23",status:"Complete",priority:"High",rca_id:"RCA-2026-007",capa_id:"CAPA-2026-006"},
+{id:"ITM-2026-011",mid:"MTG-2026-03",date:"2026-03-20",no:4,part:"50175-K3FG-T500-H1_BAR",tqm:"Q",dept:"PD",loc:"RTK",pain:"เจาะ : รูโตเกินค่ามาตรฐาน",rca_sum:"เจาะรู 6.9+0.05/-0.1",action:"PE แก้ไข DWG, OPS, Check sheet",temp:"",total:0,ok:0,ng:0,remark:"JIS B0209",resp:"ธีรสิทธิ์-PE",start:"2026-03-20",due:"2026-03-20",finish:"2026-03-20",status:"Complete",priority:"High",rca_id:"RCA-2026-008",capa_id:"CAPA-2026-007"},
+{id:"ITM-2026-012",mid:"MTG-2026-03",date:"2026-03-21",no:5,part:"สื่อสารภายในองค์กร",tqm:"C",dept:"STORE",loc:"RTK",pain:"JD : ACC ตัดสต๊อคผิด",rca_sum:"ไม่ตัดยอด 20,000",action:"ตรวจสอบ Check stock",temp:"",total:0,ok:0,ng:0,remark:"Follow-up #1",resp:"ขวัญใจ-AC",start:"2026-03-21",due:"2026-03-21",finish:"2026-03-21",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-013",mid:"MTG-2026-04",date:"2026-04-24",no:1,part:"75051547_STAY_9898",tqm:"Q",dept:"PD",loc:"RTK",pain:"Review : ใช้ DATA ผลิตไม่ถูกต้อง",rca_sum:"ข้อมูลไม่ชัดเจน",action:"ใช้ DWG ผลิต / ทวนสอบ",temp:"",total:0,ok:0,ng:0,remark:"",resp:"ธีรสิทธิ์-PE",start:"2026-04-24",due:"2026-04-24",finish:"2026-04-24",status:"Complete",priority:"High",rca_id:"RCA-2026-009",capa_id:"CAPA-2026-008"},
+{id:"ITM-2026-014",mid:"MTG-2026-04",date:"2026-04-26",no:2,part:"75051556_STAY_K97",tqm:"M",dept:"PD",loc:"RTK",pain:"ECR : เปลี่ยนความโตผิว",rca_sum:"Before Ø5.8 After Ø5.925",action:"Production Trial 30 Pcs.",temp:"",total:0,ok:0,ng:0,remark:"VS4 ผลิต ควบคุมค่า Ø5.925",resp:"พัฒนเดช-QA",start:"2026-04-26",due:"2026-04-30",finish:"2026-04-28",status:"Complete",priority:"Medium",rca_id:"RCA-2026-010",capa_id:""},
+{id:"ITM-2026-015",mid:"MTG-2026-04",date:"2026-04-26",no:3,part:"14642-KWBA-600A",tqm:"Q",dept:"QC",loc:"RTK",pain:"Skip : ไม่ต๊าปเกลียว",rca_sum:"รอวิเคราะห์",action:"QC Recheck 100% by Visual",temp:"",total:0,ok:0,ng:0,remark:"Stock RTK 6,000 Pcs.",resp:"พัฒนเดช-QA",start:"2026-04-26",due:"2026-04-27",finish:"2026-04-28",status:"Complete",priority:"High",rca_id:"RCA-2026-011",capa_id:"CAPA-2026-009"},
+{id:"ITM-2026-016",mid:"MTG-2026-04",date:"2026-04-26",no:4,part:"40051852_WASHER",tqm:"Q",dept:"QC",loc:"RTK",pain:"วัตถุดิบ : เสียรูป (RTK-N)",rca_sum:"รอวิเคราะห์",action:"QC ตรวจด้วยสายตา 100%",temp:"",total:0,ok:0,ng:0,remark:"AMPAS 17,000 Pcs.",resp:"พัฒนเดช-QA",start:"2026-04-26",due:"2026-04-27",finish:"2026-04-28",status:"Complete",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-017",mid:"MTG-2026-04",date:"2026-04-27",no:5,part:"40051894_WEIGHT",tqm:"C",dept:"PD",loc:"RTK",pain:"Kick off : New Model MLZA",rca_sum:"",action:"สั่งผลิตตัวอย่าง / จัดทำ DWG",temp:"",total:0,ok:0,ng:0,remark:"จัดส่ง AMPAS",resp:"ธัญลักษณ์-SA",start:"2026-04-27",due:"2026-04-30",finish:"",status:"In Progress",priority:"Medium",rca_id:"",capa_id:""},
+{id:"ITM-2026-018",mid:"MTG-2026-05",date:"2026-05-27",no:1,part:"N1WB-E31406-APIA-07_INSERT",tqm:"Q",dept:"PD",loc:"RTK",pain:"Kick off : New Model MLZA",rca_sum:"",action:"สั่งผลิตตัวอย่าง / จัดทำ DWG",temp:"",total:0,ok:0,ng:0,remark:"",resp:"ธัญลักษณ์-SA",start:"2026-05-27",due:"2026-05-30",finish:"",status:"In Progress",priority:"Low",rca_id:"",capa_id:""},
+{id:"ITM-2026-019",mid:"MTG-2026-05",date:"2026-05-27",no:2,part:"SYS",tqm:"Q",dept:"QA",loc:"SYS",pain:"Appearance : ชิ้นงานขึ้นสนิม",rca_sum:"",action:"",temp:"",total:0,ok:0,ng:0,remark:"",resp:"พัฒนเดช-QA",start:"2026-05-27",due:"2026-05-30",finish:"",status:"In Progress",priority:"Low",rca_id:"",capa_id:""},
+{id:"ITM-2026-020",mid:"MTG-2026-05",date:"2026-05-27",no:3,part:"N1WB-E31406-APIA-07_INSERT",tqm:"Q",dept:"QA",loc:"SPV",pain:"ชิ้นงาน ไม่เข้า Jig & Mold",rca_sum:"Dimension Jig ติดค่า Max",action:"ลดขนาด Jig & Mold",temp:"",total:0,ok:0,ng:0,remark:"",resp:"พัฒนเดช-QA",start:"2026-05-27",due:"2026-05-30",finish:"",status:"In Progress",priority:"High",rca_id:"",capa_id:""}],
+rcas:[
+{id:"RCA-2026-001",item:"ITM-2026-001",prob:"กลึงชิ้นงานยาว LIVER-LH ผิดสเปก",cat:"Method",w1:"ชิ้นงานยาวเกินสเปก",w2:"OPS กำหนดความยาว 107 ผิด",w3:"DWG ระบุ 107 ไม่ถูกต้อง",w4:"ไม่มีการทบทวน DWG ก่อนผลิต",w5:"ขาด QC Gate ก่อนเริ่ม Process",root:"DWG ผิด OPS ไม่ตรวจสอบ",owner:"พัฒนเดช-QA",date:"2026-01-09",verBy:"พัฒนเดช-QA",verDate:"2026-01-09"},
+{id:"RCA-2026-002",item:"ITM-2026-002",prob:"กลึงชิ้นงานยาว LIVER-RH ผิดสเปก",cat:"Method",w1:"ชิ้นงานยาวเกินสเปก",w2:"OPS กำหนดความยาว 107 ผิด",w3:"DWG ระบุ 107 ไม่ถูกต้อง",w4:"ไม่มีการทบทวน DWG",w5:"ขาด QC Gate",root:"DWG ผิด OPS ไม่ตรวจสอบ",owner:"พัฒนเดช-QA",date:"2026-01-09",verBy:"พัฒนเดช-QA",verDate:"2026-01-09"},
+{id:"RCA-2026-003",item:"ITM-2026-003",prob:"ประกอบไม่ล๊อค CLIP",cat:"Machine",w1:"Clip ประกอบไม่ล๊อค",w2:"Over Spec ดันติด",w3:"ขนาดชิ้นงาน Oversize",w4:"QC ไม่ตรวจ Incoming",w5:"ขาด Inspection Record",root:"ชิ้นงาน Over Spec ขาด Incoming QC",owner:"พัฒนเดช-QA",date:"2026-01-09",verBy:"พัฒนเดช-QA",verDate:"2026-01-09"},
+{id:"RCA-2026-004",item:"ITM-2026-006",prob:"Thread NG NUT AM1T033F0",cat:"Machine",w1:"Plug Gauge GO ไม่เข้า",w2:"Thread NG จาก Process",w3:"Tool สึกหรอ",w4:"PM ไม่ครบถ้วน",w5:"ไม่มี Tool Change Criteria",root:"Tool สึก ไม่มี PM Schedule",owner:"มานพ-QC",date:"2026-01-16",verBy:"มานพ-QC",verDate:"2026-01-16"},
+{id:"RCA-2026-005",item:"ITM-2026-008",prob:"โซ่ขาด เครื่องจักรเสียหาย",cat:"Machine",w1:"โซ่ขาดระหว่างการผลิต",w2:"โซ่สึกหรอเกินอายุ",w3:"ไม่มี PM Schedule โซ่",w4:"PM แผนไม่ครอบคลุม",w5:"ไม่มี Inspection ก่อนใช้งาน",root:"โซ่ขาดเพราะ PM ไม่ครบถ้วน",owner:"ประทีป-MT",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-006",item:"ITM-2026-009",prob:"ลบเหลี่ยมมาก INSERT BOLD",cat:"Man",w1:"ลบเหลี่ยมมากเกิน",w2:"พนักงานลบมากกว่า Spec",w3:"ไม่มี Visual Standard",w4:"Training ไม่เพียงพอ",w5:"ไม่มี Work Instruction ภาพ",root:"ขาด WI ภาพ / Visual Aid",owner:"พัฒนเดช-QA",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-007",item:"ITM-2026-010",prob:"ผิวกลมเล็ก PIVOT NG",cat:"Machine",w1:"ผิวกลมเล็กกว่า Spec",w2:"Tool สึก",w3:"PM ไม่สม่ำเสมอ",w4:"ไม่มี SPC",w5:"ขาด Control Chart",root:"Tool สึก ไม่มี SPC Control",owner:"พัฒนเดช-QA",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-008",item:"ITM-2026-011",prob:"รูโตเกิน Spec BAR",cat:"Machine",w1:"รูโตเกิน เจาะ 6.9+0.05",w2:"Jig/Fixture หลวม",w3:"Jig สึก ไม่ได้เปลี่ยน",w4:"ไม่มี Jig Inspection",w5:"PM Jig ไม่มี",root:"Jig สึก ไม่มี PM และ Inspection",owner:"ธีรสิทธิ์-PE",date:"2026-01-23",verBy:"พัฒนเดช-QA",verDate:"2026-01-23"},
+{id:"RCA-2026-009",item:"ITM-2026-013",prob:"ใช้ DATA ผลิต ไม่ใช้ DWG",cat:"Method",w1:"ผลิตด้วย DATA ผิด",w2:"ไม่ใช้ DWG ที่ถูกต้อง",w3:"System ควบคุมเอกสารไม่ดี",w4:"Document Control ไม่ครบถ้วน",w5:"ขาด ECN Process",root:"Document Control ล้มเหลว",owner:"ธีรสิทธิ์-PE",date:"2026-01-30",verBy:"พัฒนเดช-QA",verDate:"2026-01-30"},
+{id:"RCA-2026-010",item:"ITM-2026-014",prob:"ผิวโต ECR เปลี่ยน Spec",cat:"Method",w1:"ผิว Ø5.8 → 5.925",w2:"ECR ไม่ได้แจ้ง Production",w3:"แจ้ง ECR ไม่ครบ",w4:"ขาด ECR Checklist",w5:"ไม่มีขั้นตอน ECR จาก Customer",root:"กระบวนการ ECR ไม่สมบูรณ์",owner:"พัฒนเดช-QA",date:"2026-01-30",verBy:"พัฒนเดช-QA",verDate:"2026-01-30"},
+{id:"RCA-2026-011",item:"ITM-2026-015",prob:"Skip ต๊าปเกลียว KWBA",cat:"Man",w1:"ไม่ต๊าปเกลียว ผ่าน QC",w2:"พนักงาน Skip Process",w3:"ไม่มี Foolproofing",w4:"Poka-yoke ไม่มี",w5:"Process Design ไม่มี Error Detection",root:"ขาด Poka-yoke ในกระบวนการ",owner:"พัฒนเดช-QA",date:"2026-01-30",verBy:"พัฒนเดช-QA",verDate:""}],
+capas:[
+{id:"CAPA-2026-001",item:"ITM-2026-001",rca:"RCA-2026-001",type:"CA",action:"แก้ไข OPS ใหม่ ตัดความยาว 103±0.2 / อัพเดท DWG Rev",resp:"พัฒนเดช-QA",target:"2026-01-16",actual:"2026-01-16",verify:"ตรวจชิ้นงาน Lot ถัดไป",result:"OK ทุกชิ้น ไม่มี NG",score:5,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-002",item:"ITM-2026-002",rca:"RCA-2026-002",type:"CA",action:"แก้ไข OPS ใหม่ LIVER-RH / อัพเดท DWG",resp:"พัฒนเดช-QA",target:"2026-01-16",actual:"2026-01-16",verify:"ตรวจชิ้นงาน Lot ถัดไป",result:"OK",score:5,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-003",item:"ITM-2026-003",rca:"RCA-2026-003",type:"CA",action:"กำหนด Incoming Inspection / เพิ่ม Sampling Plan",resp:"พัฒนเดช-QA",target:"2026-01-09",actual:"2026-01-09",verify:"Inspection Record",result:"OK 100%",score:4,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-003b",item:"ITM-2026-003",rca:"RCA-2026-003",type:"PA",action:"ทำ Supplier Audit / กำหนด Spec Sheet ชัดเจน",resp:"พัฒนเดช-QA",target:"2026-02-28",actual:"",verify:"Audit Report",result:"รอดำเนินการ",score:"",status:"In Progress",recur:"",closeBy:""},
+{id:"CAPA-2026-004",item:"ITM-2026-006",rca:"RCA-2026-004",type:"CA",action:"คัดแยก 100% Lot NG / Claim Supplier",resp:"มานพ-QC",target:"2026-01-15",actual:"2026-01-15",verify:"ตรวจ Gauge",result:"OK คัดแยกเสร็จ",score:5,status:"Closed",recur:"N",closeBy:"มานพ-QC"},
+{id:"CAPA-2026-004b",item:"ITM-2026-006",rca:"RCA-2026-004",type:"PA",action:"กำหนด PM Schedule เปลี่ยน Tool / SPC Control",resp:"มานพ-QC",target:"2026-02-15",actual:"",verify:"PM Record + SPC Chart",result:"รอดำเนินการ",score:"",status:"In Progress",recur:"",closeBy:""},
+{id:"CAPA-2026-005",item:"ITM-2026-008",rca:"RCA-2026-005",type:"CA",action:"เปลี่ยนโซ่ใหม่ทันที",resp:"ประทีป-MT",target:"2026-01-20",actual:"2026-01-20",verify:"ทดสอบเดินเครื่อง",result:"OK ใช้งานได้ปกติ",score:5,status:"Closed",recur:"N",closeBy:"ประทีป-MT"},
+{id:"CAPA-2026-005b",item:"ITM-2026-008",rca:"RCA-2026-005",type:"PA",action:"จัดทำ PM Plan โซ่ / Inspection Checklist",resp:"ประทีป-MT",target:"2026-02-28",actual:"",verify:"PM Record",result:"รอจัดทำ",score:"",status:"Open",recur:"",closeBy:""},
+{id:"CAPA-2026-006",item:"ITM-2026-010",rca:"RCA-2026-007",type:"CA",action:"ส่งชิ้นงาน NG Claim / PI รับ NG 637 ชิ้น",resp:"พัฒนเดช-QA",target:"2026-01-23",actual:"2026-01-23",verify:"Claim Record",result:"OK Claim สำเร็จ",score:5,status:"Closed",recur:"N",closeBy:"พัฒนเดช-QA"},
+{id:"CAPA-2026-007",item:"ITM-2026-011",rca:"RCA-2026-008",type:"CA",action:"แก้ DWG ให้ถูกต้อง / เปลี่ยน Jig ใหม่",resp:"ธีรสิทธิ์-PE",target:"2026-01-20",actual:"2026-01-20",verify:"ตรวจ First Article",result:"OK",score:5,status:"Closed",recur:"N",closeBy:"ธีรสิทธิ์-PE"},
+{id:"CAPA-2026-007b",item:"ITM-2026-011",rca:"RCA-2026-008",type:"PA",action:"กำหนด Jig PM Schedule / ทำ Jig Inspection Checklist",resp:"ธีรสิทธิ์-PE",target:"2026-03-31",actual:"",verify:"PM Record",result:"รอดำเนินการ",score:"",status:"Open",recur:"",closeBy:""},
+{id:"CAPA-2026-008",item:"ITM-2026-013",rca:"RCA-2026-009",type:"CA",action:"ประกาศ DWG Version ใหม่ ยกเลิกฉบับเก่า",resp:"ธีรสิทธิ์-PE",target:"2026-01-24",actual:"2026-01-24",verify:"Document Control",result:"OK อัพเดทแล้ว",score:5,status:"Closed",recur:"N",closeBy:"ธีรสิทธิ์-PE"},
+{id:"CAPA-2026-008b",item:"ITM-2026-013",rca:"RCA-2026-009",type:"PA",action:"ปรับปรุง Document Control Procedure / Training",resp:"ธีรสิทธิ์-PE",target:"2026-03-31",actual:"",verify:"Training Record + Procedure",result:"รอดำเนินการ",score:"",status:"Open",recur:"",closeBy:""},
+{id:"CAPA-2026-009",item:"ITM-2026-015",rca:"RCA-2026-011",type:"CA",action:"QC Recheck 100% Visual inspection Stock RTK",resp:"พัฒนเดช-QA",target:"2026-01-27",actual:"",verify:"Inspection Record",result:"กำลังตรวจ",score:"",status:"In Progress",recur:"",closeBy:""},
+{id:"CAPA-2026-009b",item:"ITM-2026-015",rca:"RCA-2026-011",type:"PA",action:"ออกแบบ Jig ป้องกัน Skip / ประเมิน Poka-yoke",resp:"ธีรสิทธิ์-PE",target:"2026-03-15",actual:"",verify:"Poka-yoke Design",result:"รอออกแบบ",score:"",status:"Open",recur:"",closeBy:""}],snrs:[]};
+
+let DB;
+
+function loadDB(){const s=localStorage.getItem(SK);DB=s?JSON.parse(s):JSON.parse(JSON.stringify(defaultData));if(!DB.snrs)DB.snrs=[];}
+function saveDB(){localStorage.setItem(SK,JSON.stringify(DB));refreshAll();cloudAutoSync();}
+
+// ===== CLOUD SYNC (GitHub API) =====
+const GH_REPO='rtk10888-stack/RTK';
+const GH_FILE='data.json';
+const GH_TK_KEY='QCDMS_GH_TOKEN';
+const _TK_E=[96,111,119,88,115,82,72,113,113,55,95,51,93,117,87,55,64,107,116,127,101,69,125,80,96,54,54,114,62,84,95,83,84,79,52,93,76,66,68,80];
+function _dTk(){try{return _TK_E.map(c=>String.fromCharCode(c^7)).join('');}catch(e){return'';}}
+let _syncTimer=null;
+let _ghSha='';
+
+// ล้าง Token เก่าที่ถูก revoke — ใช้ Token ใหม่ที่ฝังไว้
+(function(){const old=localStorage.getItem(GH_TK_KEY);if(old&&old!==_dTk())localStorage.removeItem(GH_TK_KEY);})();
+function getGhToken(){return localStorage.getItem(GH_TK_KEY)||_dTk();}
+function setGhToken(t){localStorage.setItem(GH_TK_KEY,t);}
+function ghHeaders(){return{'Authorization':'token '+getGhToken(),'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};}
+
+function cloudAutoSync(){clearTimeout(_syncTimer);_syncTimer=setTimeout(()=>{if(getGhToken())cloudPush(true);},5000);}
+
+function cloudPush(silent){
+  const tk=getGhToken();
+  if(!tk){cloudSetup();return;}
+  if(!silent)toast('☁️ กำลังส่งข้อมูล...','var(--tl)');
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(DB,null,2))));
+  const body={message:'sync '+new Date().toLocaleString('th-TH'),content:content};
+  if(_ghSha)body.sha=_ghSha;
+  fetch('https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_FILE,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)})
+  .then(r=>{if(!r.ok)return r.json().then(j=>{throw new Error(j.message||'HTTP '+r.status);});return r.json();})
+  .then(j=>{_ghSha=j.content.sha;if(!silent)toast('☁️ ส่งสำเร็จ!','var(--gn)');})
+  .catch(e=>{
+    if(e.message&&e.message.includes('sha')){_ghSha='';cloudPull(true);setTimeout(()=>cloudPush(silent),2000);}
+    else{if(!silent)toast('❌ '+e.message,'var(--rd)');}
+  });
+}
+
+function cloudPull(silent){
+  const tk=getGhToken();
+  if(!tk){if(!silent)cloudSetup();return;}
+  if(!silent)toast('☁️ กำลังดึงข้อมูล...','var(--tl)');
+  fetch('https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_FILE,{headers:ghHeaders()})
+  .then(r=>{if(r.status===404){if(!silent)toast('ยังไม่มีข้อมูลบน Cloud — กด ☁️↑ ก่อน','var(--or)');return null;}if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(j=>{
+    if(!j)return;
+    _ghSha=j.sha;
+    const raw=decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))));
+    const data=JSON.parse(raw);
+    if(data&&data.items){
+      if(!data.snrs)data.snrs=[];
+      const newJson=JSON.stringify(data);
+      const oldJson=JSON.stringify(DB);
+      if(newJson!==oldJson){DB=data;localStorage.setItem(SK,JSON.stringify(DB));refreshAll();
+        if(!silent)toast('☁️ ดึงสำเร็จ! ('+DB.items.length+' items)','var(--gn)');
+        else toast('☁️ อัพเดทแล้ว','var(--gn)');}
+      else{if(!silent)toast('☁️ ข้อมูลเป็นปัจจุบัน','var(--tl)');}
+    }
+  })
+  .catch(e=>{if(!silent)toast('❌ '+e.message,'var(--rd)');});
+}
+
+function cloudSetup(){
+  const tk=getGhToken();
+  const inp=prompt('ใส่ GitHub Token (ghp_...):\n\nทุกเครื่องใช้ token เดียวกัน',tk);
+  if(inp===null)return;
+  if(inp.trim()){setGhToken(inp.trim());toast('✅ ตั้งค่า Token แล้ว — กด ☁️↑ เพื่อส่งข้อมูล','var(--gn)');showCloudId();}
+  else{localStorage.removeItem(GH_TK_KEY);toast('ล้าง Token แล้ว','var(--or)');showCloudId();}
+}
+
+function showCloudId(){
+  const el=$('cloudBtn');
+  if(el)el.title=getGhToken()?'✅ Cloud เชื่อมต่อแล้ว':'⚙️ ตั้งค่า Cloud';
+}
+
+// ============ HELPERS ============
+function cnt(a,k,v){return a.filter(x=>x[k]===v).length;}
+function bg(t,c){return `<span class="badge b-${c}">${t}</span>`;}
+function stB(s){const m={Complete:'complete','In Progress':'progress',Overdue:'overdue',Closed:'closed',Open:'open',Pending:'pending','On Hold':'onhold'};return bg(s||'-',m[s]||'pending');}
+function prB(p){const m={Critical:'critical',High:'high',Medium:'medium',Low:'low'};return p?bg(p,m[p]||'low'):'-';}
+function catB(c){return c?bg(c,c.toLowerCase()):'-';}
+function dL(t,a){if(!t)return'-';if(a)return'<span style="color:var(--gn)">✓</span>';const d=Math.ceil((new Date(t)-new Date())/(864e5));return `<span style="color:${d<0?'var(--rd)':'var(--gn)'};font-weight:700">${d}d</span>`;}
+function toast(m,b){const d=document.createElement('div');d.className='toast';d.style.background=b||'var(--gn)';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2500);}
+function opts(a,s){return a.map(v=>`<option ${v===s?'selected':''}>${v}</option>`).join('');}
+function esc(o){return JSON.stringify(o).replace(/'/g,"&#39;").replace(/"/g,"&quot;");}
+function emptyState(ico,msg){return `<div class="empty-state"><span class="ico">${ico}</span>${msg}</div>`;}
+
+// ============ PHOTO HELPERS ============
+function oneSlot(cls,label,id,val){
+  return `<div class="photo-slot ${cls}"><span class="slot-label">${label}</span>
+    ${val?`<img src="${val}" onclick="lbShow(this.src)">`:'<span style="font-size:28px;opacity:.3;margin:4px 0">📷</span>'}
+    <input type="file" id="${id}_f" accept="image/*" capture="environment" style="display:none" onchange="prevSlot(this,'${id}')">
+    <input type="file" id="${id}_g" accept="image/*" style="display:none" onchange="prevSlot(this,'${id}')">
+    <input type="hidden" id="${id}" value="${val||''}">
+    <div class="slot-actions">
+      <button type="button" class="slot-btn slot-upload" onclick="$('${id}_f').click()">📷</button>
+      <button type="button" class="slot-btn slot-upload" onclick="$('${id}_g').click()" style="background:#FFF3E0;color:var(--or)">📁</button>
+      <button type="button" class="slot-btn slot-upload" onclick="pasteSlot('${id}')" style="background:#E8F5E9;color:var(--gn)">📋</button>
+      ${val?`<button type="button" class="slot-btn slot-remove" onclick="clearSlot('${id}')">✕</button>`:''}
+    </div></div>`;
+}
+function photoSlots(ok,ng,tag){
+  return `<div class="form-group full"><label>📸 แนบภาพ (ถ่ายรูป หรือ Copy+Paste)</label><div class="photo-slots">
+    ${oneSlot('slot-ok','✅ OK','ps_ok',ok)}
+    ${oneSlot('slot-ng','❌ NG','ps_ng',ng)}
+    ${oneSlot('slot-tag','🏷️ TAG LOT NC','ps_tag',tag)}
+  </div></div>`;
+}
+function compressImg(file,maxW,quality,cb){
+  const img=new Image();const r=new FileReader();
+  r.onload=e=>{img.src=e.target.result;};
+  img.onload=()=>{
+    let w=img.width,h=img.height;
+    if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    cb(c.toDataURL('image/jpeg',quality));
+  };
+  r.readAsDataURL(file);
+}
+function setSlotImg(id,dataUrl){
+  $(id).value=dataUrl;
+  const sl=$(id).closest('.photo-slot');const img=sl.querySelector('img');
+  if(img)img.src=dataUrl;
+  else{const ph=sl.querySelector('span[style]');if(ph)ph.outerHTML=`<img src="${dataUrl}" onclick="lbShow(this.src)">`;else sl.insertAdjacentHTML('afterbegin',`<img src="${dataUrl}" onclick="lbShow(this.src)">`);}
+}
+function prevSlot(inp,id){const f=inp.files[0];if(!f)return;compressImg(f,800,0.7,d=>setSlotImg(id,d));}
+function pasteSlot(id){
+  navigator.clipboard.read().then(items=>{
+    for(const item of items){
+      const t=item.types.find(t=>t.startsWith('image/'));
+      if(t){item.getType(t).then(blob=>{compressImg(new File([blob],'paste.jpg'),800,0.7,d=>setSlotImg(id,d));});return;}
+    }
+    toast('❌ ไม่มีภาพใน Clipboard — Copy ภาพก่อนแล้วกด วาง','var(--rd)');
+  }).catch(()=>toast('❌ ไม่สามารถอ่าน Clipboard ได้ — ลองใช้ Chrome','var(--rd)'));
+}
+function clearSlot(id){$(id).value='';const sl=$(id).closest('.photo-slot');const img=sl.querySelector('img');if(img){img.outerHTML='<span style="font-size:28px;opacity:.3;margin:4px 0">📷</span>';}}
+let _lbScale=1;
+function lbShow(src){$('lbImg').src=src;_lbScale=1;$('lbImg').style.transform='scale(1)';$('lightbox').classList.add('show');}
+function lbClose(){$('lightbox').classList.remove('show');}
+function lbZoom(d){if(d===0)_lbScale=1;else _lbScale=Math.max(0.5,Math.min(5,_lbScale+(d*0.5)));$('lbImg').style.transform='scale('+_lbScale+')';}
+function photoThumbs(i){if(!i.img_ok&&!i.img_ng&&!i.img_tag)return'';return `<div class="photo-row">${i.img_ok?`<img src="${i.img_ok}" class="ph-ok" onclick="lbShow(this.src)" title="OK">`:''}${i.img_ng?`<img src="${i.img_ng}" class="ph-ng" onclick="lbShow(this.src)" title="NG">`:''}${i.img_tag?`<img src="${i.img_tag}" class="ph-tag" onclick="lbShow(this.src)" title="TAG LOT NC">`:''}  </div>`;}
+
+
+function openLINE(msg){
+  window.open('https://line.me/R/share?text='+encodeURIComponent(msg),'_blank');
+}
+const _isMob=/Android|iPhone|iPad/i.test(navigator.userAgent);
+function _shareBlob(blob,filename,msg){
+  const file=new File([blob],filename,{type:blob.type});
+  // 📱 มือถือ: ส่งรูปแคปหน้าจอเข้า LINE ได้เลย แล้วเลือกแชทส่วนตัว / กลุ่ม / เฉพาะคนที่ต้องการส่ง
+  if(_isMob&&navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+    const data=(navigator.canShare&&navigator.canShare({files:[file],text:msg}))?{files:[file],text:msg}:{files:[file]};
+    navigator.share(data).then(()=>{
+      toast('✅ เลือก LINE แล้วเลือกแชท/กลุ่มที่จะส่ง','var(--gn)');
+    }).catch(err=>{
+      if(err&&err.name==='AbortError')return; // ผู้ใช้กดยกเลิกเอง
+      _downloadLINE(blob,filename,msg); // ถ้าแชร์รูปไม่ได้ ค่อย fallback
+    });
+    return;
+  }
+  // 💻 คอมพิวเตอร์ หรือเบราว์เซอร์ที่ไม่รองรับแชร์รูป: บันทึกรูป + เปิด LINE ให้แนบเอง
+  _downloadLINE(blob,filename,msg);
+}
+function _downloadLINE(blob,filename,msg){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+  toast('📸 บันทึกภาพแล้ว — แนบเข้า LINE ได้เลย','var(--gn)');
+  setTimeout(()=>openLINE(msg),400);
+}
+
+// ============ LINE SHARE ============
+function shareLINE(id){
+  const i=DB.items.find(x=>x.id===id);if(!i)return;
+  let msg=`📋 RTK-QC Item Report\n`;
+  msg+=`━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${i.id}\n📅 ${i.date}\n🔧 Part: ${i.part}\n`;
+  if(i.maker)msg+=`🏭 Maker: ${i.maker}\n`;
+  msg+=`📊 TQM: ${i.tqm} | Dept: ${i.dept} | Loc: ${i.loc}\n`;
+  msg+=`⚠️ Pain: ${i.pain}\n`;
+  if(i.temp)msg+=`🔄 Temp: ${i.temp}\n`;
+  if(i.action)msg+=`✅ Action: ${i.action}\n`;
+  msg+=`👤 Resp: ${i.resp}\n📆 Due: ${i.due} | Status: ${i.status}\n`;
+  if(i.snr_id)msg+=`🔄 S&R: ${i.snr_id}\n`;
+  if(i.rca_id)msg+=`🔬 RCA: ${i.rca_id}\n`;
+  if(i.capa_id)msg+=`📝 CAPA: ${i.capa_id}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  _doShareItem(id,i,msg);
+}
+function _doShareItem(id,i,msg){
+  toast('📸 กำลังแคปหน้าจอ...','var(--tl)');
+  // หาการ์ดจริงบนหน้าจอ
+  let cardEl=null;
+  document.querySelectorAll('#cardItems .card').forEach(cd=>{
+    if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;
+  });
+  if(!cardEl){openLINE(msg);return;}
+  // Clone การ์ดจริง ตั้งขนาดแคบ
+  const wrap=cardEl.cloneNode(true);
+  wrap.style.cssText='position:fixed;left:-9999px;top:0;width:400px;background:#fff;border-radius:12px;padding:0;font-family:inherit;'+
+    'border-left:5px solid '+(i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545')+';box-shadow:0 2px 12px rgba(0,0,0,.08);';
+  // ปรับรูปภายใน
+  wrap.querySelectorAll('img').forEach(img=>{img.style.maxWidth='100%';img.style.height='auto';});
+  document.body.appendChild(wrap);
+  html2canvas(wrap,{scale:3,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+    document.body.removeChild(wrap);
+    const maxW=1200;let w=canvas.width,ht=canvas.height;
+    if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
+    const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
+    c2.getContext('2d').drawImage(canvas,0,0,w,ht);
+    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',msg);},'image/png');
+  }).catch(()=>{document.body.removeChild(wrap);openLINE(msg);});
+}
+
+// ============ SHARE LINE — RCA / CAPA / MEETING / DASHBOARD ============
+function shareCardLINE(cardEl, title, msg){
+  if(!cardEl||typeof html2canvas==='undefined'){openLINE(msg);return;}
+  toast('📸 กำลังแคป...','var(--tl)');
+  const wrap=cardEl.cloneNode(true);
+  wrap.style.cssText='position:fixed;left:-9999px;top:0;width:380px;background:#fff;border-radius:12px;padding:16px;font-family:Segoe UI,Arial,sans-serif;';
+  // ปรับขนาดรูปภายใน
+  wrap.querySelectorAll('img').forEach(img=>{img.style.maxWidth='100%';img.style.height='auto';});
+  wrap.querySelectorAll('button,.line-btn,[onclick]').forEach(el=>el.remove());
+  document.body.appendChild(wrap);
+  html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+    document.body.removeChild(wrap);
+    // บีบอัดเป็น JPEG 70%
+    const maxW=800;let w=canvas.width,h=canvas.height;
+    if(w>maxW){h=Math.round(h*(maxW/w));w=maxW;}
+    const c2=document.createElement('canvas');c2.width=w;c2.height=h;
+    c2.getContext('2d').drawImage(canvas,0,0,w,h);
+    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+title+'.png',msg);},'image/jpeg',0.7);
+  }).catch(()=>{
+    document.body.removeChild(wrap);
+    openLINE(msg);
+  });
+}
+
+function shareLINE_RCA(id){
+  const r=DB.rcas.find(x=>x.id===id);if(!r)return;
+  let msg=`🔬 RTK-QC RCA Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${r.id}\n📅 ${r.date}\n🔗 Item: ${r.item}\n⚠️ ปัญหา: ${r.prob}\n📂 ${r.cat}\n`;
+  if(r.w1)msg+=`W1: ${r.w1}\n`;if(r.w2)msg+=`W2: ${r.w2}\n`;if(r.w3)msg+=`W3: ${r.w3}\n`;
+  if(r.w4)msg+=`W4: ${r.w4}\n`;if(r.w5)msg+=`W5: ${r.w5}\n`;
+  if(r.root)msg+=`🎯 Root Cause: ${r.root}\n`;
+  if(r.fo_what||r.fo_why)msg+=`🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}\n`;
+  msg+=`👤 Owner: ${r.owner}\n━━━━━━━━━━━━━━━`;
+  {let finalMsg=msg;
+    const cards=document.querySelectorAll('#cardRCA .card');let cardEl=null;
+    cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':r.cat==='Method'?'#2E5D8A':'#28A745')+';';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${r.id}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${r.cat==='Man'?'#DC3545':r.cat==='Machine'?'#FD7E14':'#2E5D8A'}">${r.cat}</span></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Item:</b> ${r.item}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ปัญหา:</b> ${r.prob}</div>`;
+      if(r.w1)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W1</span> ${r.w1}</div>`;
+      if(r.w2)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W2</span> ${r.w2}</div>`;
+      if(r.w3)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W3</span> ${r.w3}</div>`;
+      if(r.w4)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W4</span> ${r.w4}</div>`;
+      if(r.w5)h+=`<div style="margin-bottom:2px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700">W5</span> ${r.w5}</div>`;
+      if(r.root)h+=`<div style="margin-top:4px;font-weight:700;color:#DC3545">🎯 ${r.root}</div>`;
+      if(r.fo_what||r.fo_why)h+=`<div style="margin-top:4px;font-size:11px;color:#777">🔍 Flow Out: ${r.fo_what||'-'} | ${r.fo_where||'-'} | ${r.fo_who||'-'}</div>`;
+      h+=`<div style="margin-top:4px"><b style="color:#1B3A5C">Owner:</b> ${r.owner} · ${r.date}</div></div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  }
+}
+
+function shareLINE_CAPA(id){
+  const c=DB.capas.find(x=>x.id===id);if(!c)return;
+  let msg=`📝 RTK-QC CAPA Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${c.id} (${c.type})\n`;
+  msg+=`🔗 Item: ${c.item} | RCA: ${c.rca||'-'}\n`;
+  msg+=`📋 มาตรการ: ${c.action}\n`;
+  msg+=`👤 Resp: ${c.resp}\n`;
+  msg+=`📆 Target: ${c.target} | Status: ${c.status}\n`;
+  if(c.h_what)msg+=`What: ${c.h_what}\n`;if(c.h_how)msg+=`How: ${c.h_how}\n`;
+  if(c.verify)msg+=`✅ Verify: ${c.verify}\n`;
+  if(c.result)msg+=`📊 Result: ${c.result}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  {let finalMsg=msg;
+    const cards=document.querySelectorAll('#cardCAPA .card');let cardEl=null;
+    cards.forEach(cd=>{if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid '+(c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545')+';';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${c.id}</span><div><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.type==='CA'?'#2E5D8A':'#FD7E14'};margin-right:4px">${c.type}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${c.status==='Closed'?'#28A745':c.status==='In Progress'?'#FD7E14':'#DC3545'}">${c.status}</span></div></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">มาตรการ:</b> ${c.action}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Link:</b> ${c.item} · ${c.rca||'-'}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Resp:</b> ${c.resp}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Target:</b> ${c.target} ${c.actual?'→ '+c.actual:''}</div>`;
+      if(c.h_what)h+=`<div style="margin-bottom:2px;font-size:11px"><b>What:</b> ${c.h_what}</div>`;
+      if(c.h_how)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How:</b> ${c.h_how}</div>`;
+      if(c.h_howmuch)h+=`<div style="margin-bottom:2px;font-size:11px"><b>How Much:</b> ${c.h_howmuch}</div>`;
+      if(c.verify)h+=`<div style="margin-top:4px"><b style="color:#28A745">✅ Verify:</b> ${c.verify}</div>`;
+      if(c.result)h+=`<div><b style="color:#28A745">📊 Result:</b> ${c.result}</div>`;
+      if(c.score)h+=`<div>${'⭐'.repeat(c.score)}</div>`;
+      h+=`</div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  }
+}
+
+function shareLINE_MTG(id){
+  const m=DB.meetings.find(x=>x.id===id);if(!m)return;
+  const its=DB.items.filter(i=>i.mid===m.id),t=its.length,co=its.filter(i=>i.status==='Complete').length,ip=its.filter(i=>i.status==='In Progress').length,od=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(co/t*100)+'%':'-';
+  let msg=`📅 RTK-QC Meeting Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${m.id}\n📅 ${m.date} · ${m.type}\n`;
+  msg+=`📆 Week: ${m.week}\n👤 Facilitator: ${m.fac}\n`;
+  if(m.attendees&&m.attendees.length)msg+=`👥 ผู้เข้าร่วม: ${m.attendees.map(a=>a.name).join(', ')}\n`;
+  msg+=`📊 Items: ${t} total · ${co} ✅ · ${ip} 🔄 · ${od} ⚠️ · ${pc}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  {let finalMsg=msg;
+    const cards=document.querySelectorAll('#cardMtg .card');let cardEl=null;
+    cards.forEach(c=>{if(c.querySelector('.card-id')&&c.querySelector('.card-id').textContent===id)cardEl=c;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid #2E5D8A;';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${m.id}</span><span style="color:#6C757D;font-size:12px">${m.date}</span></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Week:</b> ${m.week} · ${m.type}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Facilitator:</b> ${m.fac}</div>`;
+      if(m.attendees&&m.attendees.length)h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">ผู้เข้าร่วม:</b> ${m.attendees.length} คน — ${m.attendees.map(a=>a.name).join(', ')}</div>`;
+      h+=`<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#2E5D8A;color:#fff;font-size:12px;font-weight:600">${t} Items</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#28A745;color:#fff;font-size:12px;font-weight:600">${co} ✅</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#FD7E14;color:#fff;font-size:12px;font-weight:600">${ip} 🔄</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#DC3545;color:#fff;font-size:12px;font-weight:600">${od} ⚠️</span>`;
+      h+=`<span style="padding:4px 10px;border-radius:8px;background:#17A2B8;color:#fff;font-size:12px;font-weight:600">${pc}</span>`;
+      h+=`</div></div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  }
+}
+
+function shareLINE_SNR(id){
+  if(!DB.snrs)return;
+  const s=DB.snrs.find(x=>x.id===id);if(!s)return;
+  let msg=`🔄 RTK-QC S&R Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${s.id} (${s.type})\n🔗 Item: ${s.item}\n`;
+  msg+=`📋 ${s.detail}\n`;
+  if(s.qty)msg+=`📊 จำนวน: ${s.qty} ชิ้น${s.ng?' (NG: '+s.ng+')':''}\n`;
+  msg+=`👤 Resp: ${s.resp}\n📆 Target: ${s.target} | Status: ${s.status}\n`;
+  if(s.result)msg+=`✅ ผล: ${s.result}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  {let finalMsg=msg;
+    const cards=document.querySelectorAll('#cardSNR .card');let cardEl=null;
+    cards.forEach(cd=>{if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid var(--tl);';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${s.id}</span><div><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:#17A2B8;margin-right:4px">${s.type}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${s.status==='Closed'?'#28A745':s.status==='In Progress'?'#FD7E14':'#DC3545'}">${s.status}</span></div></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Item:</b> ${s.item}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">รายละเอียด:</b> ${s.detail}</div>`;
+      if(s.qty)h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">จำนวน:</b> ${s.qty} ชิ้น ${s.ng?'(NG: '+s.ng+')':''}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Resp:</b> ${s.resp}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Target:</b> ${s.target} ${s.actual?'→ '+s.actual:''}</div>`;
+      if(s.result)h+=`<div style="margin-top:4px"><b style="color:#28A745">✅ ผล:</b> ${s.result}</div>`;
+      h+=`</div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:3,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        const maxW=1200;let w=canvas.width,ht=canvas.height;
+        if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
+        const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
+        c2.getContext('2d').drawImage(canvas,0,0,w,ht);
+        c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  }
+}
+
+function shareLINE_Dashboard(){
+  const t=DB.items.length,co=cnt(DB.items,'status','Complete'),ip=cnt(DB.items,'status','In Progress'),
+    od=cnt(DB.items,'status','Overdue'),pc=t?Math.round(co/t*100):0,
+    ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed');
+  let msg=`📊 RTK-QC Dashboard Summary\n━━━━━━━━━━━━━━━\n`;
+  msg+=`📅 ${new Date().toLocaleDateString('th-TH')}\n`;
+  msg+=`📋 Items: ${t} total\n✅ Complete: ${co} | 🔄 IP: ${ip} | ⚠️ OD: ${od}\n`;
+  msg+=`📈 สำเร็จ: ${pc}%\n📝 CAPA: ${ct} total | Closed: ${cc} | Open: ${ct-cc}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  {let finalMsg=msg;
+    const dashEl=document.getElementById('tab-dashboard');
+    if(dashEl&&typeof html2canvas!=='undefined'){
+      toast('📸 กำลังแคป Dashboard...','var(--tl)');
+      html2canvas(dashEl,{scale:2,backgroundColor:'#fff',useCORS:true,scrollY:-window.scrollY}).then(canvas=>{
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_Dashboard.png',finalMsg);},'image/png');
+      }).catch(()=>{openLINE(finalMsg);});
+    } else {openLINE(finalMsg);}
+  }
+}
+
+// ============ ID GEN ============
+function nxtId(p,a,f){const y=new Date().getFullYear(),ns=a.map(x=>{const m=x[f].match(new RegExp(p+'-'+y+'-(\\d+)'));return m?parseInt(m[1]):0;});return `${p}-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(3,'0')}`;}
+// ===== ATTENDEE HELPERS =====
+let _tmpAtt=[];
+function renderAttList(){
+  const el=$('fm_att_list');if(!el)return;
+  el.innerHTML=_tmpAtt.length?_tmpAtt.map((a,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:#f8f9fa;border-radius:6px;margin-bottom:4px;font-size:12px">
+    <span style="font-weight:700;color:var(--dk);min-width:20px">${i+1}.</span>
+    <span style="flex:2">${a.name}</span>
+    <span style="flex:1.5;color:var(--gr)">${a.pos}</span>
+    <span style="flex:1;color:var(--tl)">${a.time||'-'}</span>
+    <button type="button" onclick="_tmpAtt.splice(${i},1);renderAttList()" style="background:#FFEBEE;color:var(--rd);border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px">✕</button>
+  </div>`).join(''):'<div style="color:#999;font-size:11px;padding:4px">ยังไม่มีผู้เข้าร่วม</div>';
+}
+function addAttendee(){
+  const n=$('fm_att_name').value.trim();
+  if(!n){toast('เลือกชื่อก่อน','var(--rd)');return;}
+  const parts=n.split('-');const pos=$('fm_att_pos').value.trim()||(parts[1]||'');
+  const t=$('fm_att_time').value;
+  if(_tmpAtt.some(a=>a.name===n)){toast('มีชื่อนี้แล้ว','var(--or)');return;}
+  _tmpAtt.push({name:n,pos:pos,time:t});
+  $('fm_att_name').value='';$('fm_att_pos').value='';$('fm_att_time').value='';
+  renderAttList();$('fm_att_name').focus();
+}
+
+function nxtMtg(){const y=new Date().getFullYear(),ns=DB.meetings.map(m=>{const p=m.id.match(/MTG-\d+-(\d+)/);return p?parseInt(p[1]):0;});return `MTG-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(2,'0')}`;}
+
+// ============ TABS ============
+let curTab='dashboard';
+function switchTab(name){
+  curTab=name;
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.tab===name));
+  document.querySelectorAll('.tab-d').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('fabAdd').style.display=name==='dashboard'?'none':'flex';
+  if(name==='dashboard')renderDashboard();
+}
+function fabAction(){const m={items:openItemForm,snr:openSNRForm,rca:openRCAForm,capa:openCAPAForm,meeting:openMtgForm};if(m[curTab])m[curTab]();}
+
+// ============ MODAL ============
+function openModal(t,h,fn){document.getElementById('modalTitle').textContent=t;document.getElementById('modalBody').innerHTML=h;document.getElementById('modalSave').onclick=()=>{fn();closeModal();};document.getElementById('modal').classList.add('show');document.body.style.overflow='hidden';}
+function closeModal(){document.getElementById('modal').classList.remove('show');document.body.style.overflow='';}
+
+// ============ MEETING ============
+function openMtgForm(e){
+  const m=e||{id:nxtMtg(),date:new Date().toISOString().slice(0,10),type:'Weekly QCDMS',week:'',year:new Date().getFullYear(),fac:'ธีรสิทธิ์-QMR',notes:'',attendees:[]};
+  _tmpAtt=m.attendees?JSON.parse(JSON.stringify(m.attendees)):[];
+  openModal(e?'แก้ไขประชุม':'เพิ่มประชุมใหม่',`<div style="display:none" id="fm_att_init"></div><div class="form-grid">
+    <div class="form-group"><label>Meeting ID</label><input id="fm_id" value="${m.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fm_dt" value="${m.date}"></div>
+    <div class="form-group"><label>ประเภท</label><select id="fm_tp">${opts(['Weekly QCDMS','Monthly Review','Special'],m.type)}</select></div>
+    <div class="form-group"><label>สัปดาห์</label><input id="fm_wk" value="${m.week}" placeholder="W01"></div>
+    <div class="form-group"><label>ปี</label><input type="number" id="fm_yr" value="${m.year}"></div>
+    <div class="form-group"><label>ผู้ดำเนินการ</label><input id="fm_fc" value="${m.fac}"></div>
+    <div class="form-group full"><label>หมายเหตุ</label><textarea id="fm_nt">${m.notes||''}</textarea></div>
+    <div class="form-group full" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--md)">
+      <label style="color:var(--md)">👥 ผู้เข้าร่วมประชุม</label>
+      <div id="fm_att_list" style="margin:6px 0"></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <select id="fm_att_name" style="flex:2;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px"><option value="">— เลือกชื่อ —</option><option>ธีรสิทธิ์-QMR</option><option>ธีรสิทธิ์-DCC</option><option>ธีรสิทธิ์-PE</option><option>พัฒนเดช-QA</option><option>มานพ-QC</option><option>มิตรอังคาร-PI</option><option>เกื้อ-PD</option><option>วิละพงษ์-QC</option><option>เตย-QC</option><option>วัชราภรณ์-PC</option><option>วัชราภรณ์-ST</option><option>อลิสา-PL</option><option>ธัญลักษณ์-SA</option><option>ขวัญใจ-AC</option></select>
+        <input id="fm_att_pos" placeholder="ตำแหน่ง/แผนก" style="flex:1.5;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <input id="fm_att_time" type="time" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <button type="button" class="btn btn-success btn-sm" onclick="addAttendee()" style="min-width:40px">＋</button>
+      </div>
+    </div></div>`,()=>{
+    const o={id:$('fm_id').value,date:$('fm_dt').value,type:$('fm_tp').value,week:$('fm_wk').value,year:+$('fm_yr').value,fac:$('fm_fc').value,notes:$('fm_nt').value,attendees:_tmpAtt||[]};
+    if(e){const i=DB.meetings.findIndex(x=>x.id===e.id);DB.meetings[i]=o;}else DB.meetings.push(o);
+    saveDB();toast(e?'อัพเดทแล้ว':'เพิ่มประชุมแล้ว');});
+  setTimeout(renderAttList,100);
+}
+function delMtg(id){if(confirm('ลบ '+id+'?')){DB.meetings=DB.meetings.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+function renderMeetings(){
+  const rows=DB.meetings.map(m=>{const its=DB.items.filter(i=>i.mid===m.id),t=its.length,c=its.filter(i=>i.status==='Complete').length,p=its.filter(i=>i.status==='In Progress').length,o=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(c/t*100)+'%':'-';
+    return{m,t,c,p,o,pc};});
+  // Cards (mobile)
+  document.getElementById('cardMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<div class="card">
+    <div class="card-header"><span class="card-id">${m.id}</span><span style="color:var(--gr);font-size:11px">${m.date}</span></div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">Week</span><span class="val">${m.week} · ${m.type}</span></div>
+      <div class="row"><span class="lbl">Facilitator</span><span class="val">${m.fac}</span></div>
+      ${m.attendees&&m.attendees.length?`<div class="row"><span class="lbl">ผู้เข้าร่วม</span><span class="val">${m.attendees.length} คน: ${m.attendees.map(a=>a.name).join(', ')}</span></div>`:''}
+      <div class="row"><span class="lbl">Items</span><span class="val">${t} total · ${c} ✅ · ${p} 🔄 · ${o} ⚠️ · ${pc}</span></div>
+    </div>
+    <div class="card-footer"><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️ แก้ไข</button>
+      <button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_MTG('${m.id}')">💬LINE</button>
+    </div></div></div>`).join('');
+  // Table (desktop)
+  $('infoMtg').textContent='ทั้งหมด '+rows.length+' ครั้งประชุม';
+  if(!rows.length)$('cardMtg').innerHTML=emptyState('📭','ยังไม่มีการประชุม — กดปุ่ม ➕ เพื่อเพิ่ม');
+  document.getElementById('tbMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️</button><button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_MTG('${m.id}')">💬</button></td>
+    <td><b>${m.id}</b></td><td>${m.date}</td><td>${m.type}</td><td>${m.week}</td><td>${m.year}</td><td>${m.fac}</td>
+    <td>${t}</td><td>${c}</td><td>${p}</td><td>${o}</td><td>${pc}</td></tr>`).join('');
+}
+
+// ============ ITEMS ============
+// Auto-match Meeting จากวันที่ (เลือก Meeting ที่วันที่ใกล้เคียงที่สุด ≤ วันที่ Item)
+function autoMatchMtg(dateStr){
+  if(!dateStr||!DB.meetings.length)return'';
+  const d=new Date(dateStr).getTime();
+  let best='',bestDiff=Infinity;
+  DB.meetings.forEach(m=>{
+    const md=new Date(m.date).getTime();
+    const diff=d-md;
+    if(diff>=0&&diff<bestDiff){bestDiff=diff;best=m.id;}
+  });
+  // ถ้าไม่เจอ (วันที่ก่อน meeting แรก) เลือก meeting ที่ใกล้ที่สุด
+  if(!best){
+    let minDiff=Infinity;
+    DB.meetings.forEach(m=>{
+      const diff=Math.abs(d-new Date(m.date).getTime());
+      if(diff<minDiff){minDiff=diff;best=m.id;}
+    });
+  }
+  return best;
+}
+function autoSetMtg(){
+  const dt=$('fi_dt').value;
+  if(dt){const mid=autoMatchMtg(dt);if(mid)$('fi_mid').value=mid;}
+}
+
+function openItemForm(e){
+  const i=e||{id:nxtId('ITM',DB.items,'id'),mid:'',date:new Date().toISOString().slice(0,10),no:'',part:'',tqm:'Q',dept:'QA',loc:'',pain:'',rca_sum:'',action:'',temp:'',total:0,ok:0,ng:0,remark:'',resp:'',start:new Date().toISOString().slice(0,10),due:'',finish:'',status:'Pending',priority:'Medium',rca_id:'',capa_id:'',snr_id:'',img_ok:'',img_ng:'',img_tag:'',snr:'',maker:''};
+  // Auto-match meeting ตามวันที่ใกล้เคียง
+  if(!e&&!i.mid){i.mid=autoMatchMtg(i.date);}
+  const mo=DB.meetings.map(m=>`<option value="${m.id}" ${m.id===i.mid?'selected':''}>${m.id} — ${m.date}</option>`).join('');
+  openModal(e?'แก้ไขรายการ':'เพิ่มรายการใหม่',`<div class="form-grid">
+    <div class="form-group"><label>Item ID</label><input id="fi_id" value="${i.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>🔗 Meeting</label><select id="fi_mid"><option value="">— เลือก —</option>${mo}</select></div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fi_dt" value="${i.date}" onchange="autoSetMtg()"></div>
+    <div class="form-group"><label>ลำดับ</label><input type="number" id="fi_no" value="${i.no}"></div>
+    <div class="form-group full"><label>Part / Task</label><input id="fi_pt" value="${i.part}" list="partList" autocomplete="off" placeholder="พิมพ์เพื่อค้นหา Part..."></div>
+    <div class="form-group"><label>TQM</label><select id="fi_tq">${opts(['S','Q','D','C','M'],i.tqm)}</select></div>
+    <div class="form-group"><label>แผนก</label><select id="fi_dp">${opts(['QA','QC','PD','SALE','PI','STORE','MT','PE','AC','TOP','QMR','R&D','DCC','PL'],i.dept)}</select></div>
+    <div class="form-group"><label>สถานที่</label><input id="fi_lc" value="${i.loc}"></div>
+    <div class="form-group"><label>MAKER (ผู้ผลิต)</label><input id="fi_mk" value="${i.maker||''}" placeholder="ชื่อผู้ผลิต"></div>
+    <div class="form-group full"><label>Pain Point</label><textarea id="fi_pn">${i.pain}</textarea></div>
+    <div class="form-group full"><label>Temp Action</label><textarea id="fi_tm">${i.temp}</textarea></div>
+    <div class="form-group full"><label>Action Plan</label><textarea id="fi_ac">${i.action}</textarea></div>
+    <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fi_rs" value="${i.resp}"></div>
+    <div class="form-group"><label>วันเริ่ม</label><input type="date" id="fi_st" value="${i.start}"></div>
+    <div class="form-group"><label>กำหนดเสร็จ</label><input type="date" id="fi_du" value="${i.due}"></div>
+    <div class="form-group"><label>วันเสร็จจริง</label><input type="date" id="fi_fn" value="${i.finish}"></div>
+    <div class="form-group"><label>สถานะ</label><select id="fi_ss">${opts(['Pending','In Progress','Complete','Overdue','On Hold'],i.status)}</select></div>
+    <div class="form-group"><label>Priority</label><select id="fi_pr">${opts(['Critical','High','Medium','Low'],i.priority)}</select></div>
+    <div class="form-group full"><label>หมายเหตุ</label><textarea id="fi_rm">${i.remark}</textarea></div>
+    ${photoSlots(i.img_ok,i.img_ng,i.img_tag)}</div>`,()=>{
+    const o={id:$('fi_id').value,mid:$('fi_mid').value,date:$('fi_dt').value,no:+$('fi_no').value||0,part:$('fi_pt').value,tqm:$('fi_tq').value,dept:$('fi_dp').value,loc:$('fi_lc').value,pain:$('fi_pn').value,rca_sum:i.rca_sum,action:$('fi_ac').value,temp:$('fi_tm').value,total:i.total,ok:i.ok,ng:i.ng,remark:$('fi_rm').value,resp:$('fi_rs').value,start:$('fi_st').value,due:$('fi_du').value,finish:$('fi_fn').value,status:$('fi_ss').value,priority:$('fi_pr').value,rca_id:i.rca_id,capa_id:i.capa_id,snr_id:i.snr_id||'',img_ok:$('ps_ok').value,img_ng:$('ps_ng').value,img_tag:$('ps_tag').value,snr:i.snr||'',maker:$('fi_mk').value};
+    if(e){const x=DB.items.findIndex(x=>x.id===e.id);DB.items[x]=o;}else DB.items.push(o);
+    saveDB();toast(e?'อัพเดทแล้ว':'เพิ่มรายการแล้ว');});
+}
+function delItem(id){if(confirm('ลบ '+id+'?')){DB.items=DB.items.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+function qRCA(id){const i=DB.items.find(x=>x.id===id);openRCAForm({id:nxtId('RCA',DB.rcas,'id'),item:id,prob:i.pain,cat:'Method',w1:'',w2:'',w3:'',w4:'',w5:'',root:'',owner:i.resp,date:new Date().toISOString().slice(0,10),verBy:'',verDate:''},true);}
+function qCAPA(id){const i=DB.items.find(x=>x.id===id);const rs=DB.rcas.filter(r=>r.item===id);openCAPAForm({id:nxtId('CAPA',DB.capas,'id'),item:id,rca:rs.length?rs[0].id:'',type:'CA',action:'',resp:i.resp,target:'',actual:'',verify:'',result:'',score:'',status:'Open',recur:'',closeBy:''},true);}
+function qSNR(id){const i=DB.items.find(x=>x.id===id);if(!DB.snrs)DB.snrs=[];openSNRForm({id:nxtId('SNR',DB.snrs,'id'),item:id,type:'Sorting',detail:i.temp||'',qty:'',ng:'',resp:i.resp,target:'',actual:'',result:'',status:'Open',date:new Date().toISOString().slice(0,10)},true);}
+
+function renderItems(){
+  const fs=$('fSt').value,ft=$('fTq').value,fd=$('fDp').value,fp=$('fPr').value,q=$('fQ').value.toLowerCase();
+  const data=DB.items.filter(i=>{if(fs&&i.status!==fs)return!1;if(ft&&i.tqm!==ft)return!1;if(fd&&i.dept!==fd)return!1;if(fp&&i.priority!==fp)return!1;if(q&&![i.part,i.pain,i.id,i.resp,i.loc,i.action,i.maker,i.remark].some(v=>(v||'').toLowerCase().includes(q)))return!1;return!0;});
+  // Cards
+  document.getElementById('cardItems').innerHTML=data.map(i=>{
+    const snrL=i.snr_id?`<span class="link" onclick="switchTab('snr')">${i.snr_id}</span>`:`<button class="act-btn" style="background:#E0F7FA;color:#00838F" onclick="qSNR('${i.id}')">➕S&R</button>`;
+    const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca" onclick="qRCA('${i.id}')">➕RCA</button>`;
+    const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa" onclick="qCAPA('${i.id}')">➕CAPA</button>`;
+    return `<div class="card" style="border-left-color:${i.status==='Complete'?'var(--gn)':i.status==='In Progress'?'var(--or)':'var(--rd)'}">
+      <div class="card-header"><span class="card-id">${i.id}</span><div class="card-badges">${stB(i.status)} ${prB(i.priority)}</div></div>
+      <div class="card-body">
+        <div class="row"><span class="lbl">Part</span><span class="val" style="font-weight:600">${i.part}</span></div>
+        <div class="row"><span class="lbl">Pain</span><span class="val">${i.pain}</span></div>
+        ${i.temp?`<div class="row"><span class="lbl">Temp</span><span class="val" style="color:var(--or)">${i.temp}</span></div>`:''}
+        ${i.maker?`<div class="row"><span class="lbl">Maker</span><span class="val">${i.maker}</span></div>`:''}
+        ${i.action?`<div class="row"><span class="lbl">Action</span><span class="val">${i.action}</span></div>`:''}
+        <div class="row"><span class="lbl">Info</span><span class="val">${i.tqm} · ${i.dept} · ${i.loc} · ${i.resp}</span></div>
+        <div class="row"><span class="lbl">Due</span><span class="val">${i.due} ${dL(i.due,i.finish)}</span></div>
+        ${photoThumbs(i)}
+      </div>
+      <div class="card-footer"><div class="card-link">${snrL} ${rcaL} ${capaL}</div><div class="card-actions">
+        <button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button>
+        <button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button>
+        <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE('${i.id}')">💬LINE</button>
+        <button class="act-btn" style="background:#F3E5F5;color:#7B1FA2" onclick="printItem('${i.id}')">🖨️</button>
+      </div></div></div>`;}).join('');
+  // Table
+  $('infoItems').textContent='แสดง '+data.length+' / '+DB.items.length+' รายการ';
+  if(!data.length)$('cardItems').innerHTML=emptyState(DB.items.length?'🔍':'📭',DB.items.length?'ไม่พบรายการที่ตรงกับการค้นหา/ตัวกรอง':'ยังไม่มีรายการ — กดปุ่ม ➕ เพื่อเพิ่ม');
+  document.getElementById('tbItems').innerHTML=data.map(i=>{
+    const snrL2=i.snr_id?`<span class="link" onclick="switchTab('snr')">${i.snr_id}</span>`:`<button class="act-btn btn-sm" style="background:#E0F7FA;color:#00838F" onclick="qSNR('${i.id}')">+S&R</button>`;
+    const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca btn-sm" onclick="qRCA('${i.id}')">+RCA</button>`;
+    const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa btn-sm" onclick="qCAPA('${i.id}')">+CAPA</button>`;
+    return `<tr><td><button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button><button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE('${i.id}')">💬</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printItem('${i.id}')">🖨️</button></td>
+    <td><b>${i.id}</b></td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
+    <td class="left" style="max-width:160px">${i.pain}</td><td>${i.maker||''}</td><td class="left" style="max-width:120px">${i.temp}</td><td class="left" style="max-width:160px">${i.action}</td>
+    <td>${i.resp}</td><td>${i.due}</td><td>${stB(i.status)}</td><td>${prB(i.priority)}</td><td>${snrL2}</td><td>${rcaL}</td><td>${capaL}</td></tr>`;}).join('');
+}
+
+// ============ S&R (Sorting & Rework) ============
+function openSNRForm(e,isN){
+  if(!DB.snrs)DB.snrs=[];
+  const s=e||{id:nxtId('SNR',DB.snrs,'id'),item:'',type:'Sorting',detail:'',qty:'',ng:'',resp:'',target:'',actual:'',result:'',status:'Open',date:new Date().toISOString().slice(0,10)};
+  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===s.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  openModal(e&&!isN?'แก้ไข S&R':'เพิ่ม S&R',`<div class="form-grid">
+    <div class="form-group"><label>S&R ID</label><input id="fs_id" value="${s.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>ประเภท</label><select id="fs_tp">${opts(['Sorting','Rework','Sorting+Rework'],s.type)}</select></div>
+    <div class="form-group"><label>🔗 Item</label><select id="fs_it" ${isN&&s.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&s.item?`<input type="hidden" id="fs_ith" value="${s.item}">`:''}</div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fs_dt" value="${s.date}"></div>
+    <div class="form-group full"><label>รายละเอียดการคัดแยก/ซ่อม</label><textarea id="fs_dl">${s.detail}</textarea></div>
+    <div class="form-group"><label>จำนวนตรวจ (ชิ้น)</label><input id="fs_qt" value="${s.qty}" placeholder="เช่น 2,000"></div>
+    <div class="form-group"><label>NG พบ (ชิ้น)</label><input id="fs_ng" value="${s.ng}" placeholder="จำนวน NG"></div>
+    <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fs_rs" value="${s.resp}"></div>
+    <div class="form-group"><label>กำหนดเสร็จ</label><input type="date" id="fs_tg" value="${s.target}"></div>
+    <div class="form-group"><label>เสร็จจริง</label><input type="date" id="fs_at" value="${s.actual}"></div>
+    <div class="form-group"><label>สถานะ</label><select id="fs_st">${opts(['Open','In Progress','Closed'],s.status)}</select></div>
+    <div class="form-group full"><label>ผลการดำเนินการ</label><textarea id="fs_re">${s.result}</textarea></div></div>`,()=>{
+    const iv=$('fs_ith')?$('fs_ith').value:$('fs_it').value;
+    const o={id:$('fs_id').value,item:iv,type:$('fs_tp').value,detail:$('fs_dl').value,qty:$('fs_qt').value,ng:$('fs_ng').value,resp:$('fs_rs').value,target:$('fs_tg').value,actual:$('fs_at').value,result:$('fs_re').value,status:$('fs_st').value,date:$('fs_dt').value};
+    if(e&&!isN){const x=DB.snrs.findIndex(x=>x.id===e.id);DB.snrs[x]=o;}else DB.snrs.push(o);
+    const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0&&!DB.items[ix].snr_id)DB.items[ix].snr_id=o.id;
+    saveDB();toast('บันทึก S&R — เชื่อมโยงอัตโนมัติ');});
+}
+function delSNR(id){if(confirm('ลบ '+id+'?')){DB.items.forEach(i=>{if(i.snr_id===id)i.snr_id='';});DB.snrs=DB.snrs.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+
+function renderSNR(){
+  if(!DB.snrs)DB.snrs=[];
+  const fs=$('fSnrSt')?$('fSnrSt').value:'',ft=$('fSnrTy')?$('fSnrTy').value:'',q=$('fSnrQ')?$('fSnrQ').value.toLowerCase():'';
+  const data=DB.snrs.filter(s=>{if(fs&&s.status!==fs)return!1;if(ft&&s.type!==ft)return!1;if(q&&![s.detail,s.id,s.item,s.resp,s.result].some(v=>(v||'').toLowerCase().includes(q)))return!1;return!0;});
+  const el=document.getElementById('cardSNR');if(!el)return;
+  el.innerHTML=data.map(s=>`<div class="card" style="border-left-color:${s.status==='Closed'?'var(--gn)':s.status==='In Progress'?'var(--or)':'var(--tl)'}">
+    <div class="card-header"><span class="card-id">${s.id}</span><div class="card-badges"><span class="badge" style="background:var(--tl);color:#fff">${s.type}</span> ${stB(s.status)}</div></div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">Item</span><span class="val link" onclick="switchTab('items')">${s.item}</span></div>
+      <div class="row"><span class="lbl">รายละเอียด</span><span class="val" style="font-weight:600">${s.detail}</span></div>
+      ${s.qty?`<div class="row"><span class="lbl">จำนวน</span><span class="val">${s.qty} ชิ้น ${s.ng?'(NG: '+s.ng+')':''}</span></div>`:''}
+      <div class="row"><span class="lbl">Resp</span><span class="val">${s.resp}</span></div>
+      <div class="row"><span class="lbl">Target</span><span class="val">${s.target} ${dL(s.target,s.actual)}</span></div>
+      ${s.result?`<div class="row"><span class="lbl">ผล</span><span class="val" style="color:var(--gn)">${s.result}</span></div>`:''}
+    </div>
+    <div class="card-footer"><div></div><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openSNRForm(${esc(s)})'>✏️</button>
+      <button class="act-btn act-del" onclick="delSNR('${s.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_SNR('${s.id}')">💬LINE</button>
+    </div></div></div>`).join('');
+  $('infoSNR').textContent='แสดง '+data.length+' / '+DB.snrs.length+' รายการ';
+  if(!data.length)$('cardSNR').innerHTML=emptyState(DB.snrs.length?'🔍':'📭',DB.snrs.length?'ไม่พบรายการที่ตรงกับการค้นหา/ตัวกรอง':'ยังไม่มี S&R — กดปุ่ม ➕ เพื่อเพิ่ม');
+  document.getElementById('tbSNR').innerHTML=data.map(s=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openSNRForm(${esc(s)})'>✏️</button><button class="act-btn act-del" onclick="delSNR('${s.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_SNR('${s.id}')">💬</button></td>
+    <td><b>${s.id}</b></td><td class="link" onclick="switchTab('items')">${s.item}</td><td><span class="badge" style="background:var(--tl);color:#fff">${s.type}</span></td>
+    <td class="left" style="max-width:220px">${s.detail}</td><td>${s.qty||'-'}</td><td>${s.ng||'-'}</td><td>${s.resp}</td>
+    <td>${s.target}</td><td>${s.actual||'-'}</td><td class="left">${s.result||'-'}</td><td>${stB(s.status)}</td></tr>`).join('');
+}
+
+// ============ RCA ============
+function openRCAForm(e,isN){
+  const r=e||{id:nxtId('RCA',DB.rcas,'id'),item:'',prob:'',cat:'Method',w1:'',w2:'',w3:'',w4:'',w5:'',root:'',fo_what:'',fo_when:'',fo_where:'',fo_who:'',fo_why:'',owner:'',date:new Date().toISOString().slice(0,10),verBy:'',verDate:''};
+  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===r.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  openModal(e&&!isN?'แก้ไข RCA':'เพิ่ม RCA',`<div class="form-grid">
+    <div class="form-group"><label>RCA ID</label><input id="fr_id" value="${r.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>🔗 Item</label><select id="fr_it" ${isN&&r.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&r.item?`<input type="hidden" id="fr_ith" value="${r.item}">`:''}</div>
+    <div class="form-group full"><label>ปัญหา</label><textarea id="fr_pb">${r.prob}</textarea></div>
+    <div class="form-group"><label>4M+E</label><select id="fr_ct">${opts(['Man','Machine','Method','Material','Environment'],r.cat)}</select></div>
+    <div class="form-group"><label>ผู้วิเคราะห์</label><input id="fr_ow" value="${r.owner}"></div>
+    <div class="form-group full"><label>Why #1</label><input id="fr_w1" value="${r.w1}"></div>
+    <div class="form-group full"><label>Why #2</label><input id="fr_w2" value="${r.w2}"></div>
+    <div class="form-group full"><label>Why #3</label><input id="fr_w3" value="${r.w3}"></div>
+    <div class="form-group full"><label>Why #4</label><input id="fr_w4" value="${r.w4}"></div>
+    <div class="form-group full"><label>Why #5 (Root)</label><input id="fr_w5" value="${r.w5}"></div>
+    <div class="form-group full"><label>สรุป Root Cause</label><textarea id="fr_rt">${r.root}</textarea></div>
+    <div class="form-group full" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--or)"><label style="color:var(--or)">🔍 Flow Out Analysis (สาเหตุการหลุดรอด)</label></div>
+    <div class="form-group full"><label>What — หลุดรอดอะไร</label><input id="fr_fow" value="${r.fo_what||''}"></div>
+    <div class="form-group full"><label>When — หลุดรอดเมื่อไหร่</label><input id="fr_fon" value="${r.fo_when||''}"></div>
+    <div class="form-group full"><label>Where — หลุดรอดจุดไหน</label><input id="fr_for" value="${r.fo_where||''}"></div>
+    <div class="form-group full"><label>Who — ใครรับผิดชอบ</label><input id="fr_foo" value="${r.fo_who||''}"></div>
+    <div class="form-group full"><label>Why — ทำไมถึงหลุดรอด</label><textarea id="fr_foy">${r.fo_why||''}</textarea></div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fr_dt" value="${r.date}"></div>
+    <div class="form-group"><label>ผู้ตรวจสอบ</label><input id="fr_vb" value="${r.verBy}"></div></div>`,()=>{
+    const iv=$('fr_ith')?$('fr_ith').value:$('fr_it').value;
+    const o={id:$('fr_id').value,item:iv,prob:$('fr_pb').value,cat:$('fr_ct').value,w1:$('fr_w1').value,w2:$('fr_w2').value,w3:$('fr_w3').value,w4:$('fr_w4').value,w5:$('fr_w5').value,root:$('fr_rt').value,fo_what:$('fr_fow').value,fo_when:$('fr_fon').value,fo_where:$('fr_for').value,fo_who:$('fr_foo').value,fo_why:$('fr_foy').value,owner:$('fr_ow').value,date:$('fr_dt').value,verBy:$('fr_vb').value,verDate:r.verDate};
+    if(e&&!isN){const x=DB.rcas.findIndex(x=>x.id===e.id);DB.rcas[x]=o;}else DB.rcas.push(o);
+    const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0){DB.items[ix].rca_id=o.id;DB.items[ix].rca_sum=o.root;}
+    saveDB();toast('บันทึก RCA — เชื่อมโยงอัตโนมัติ');});
+}
+function delRCA(id){if(confirm('ลบ '+id+'?')){DB.items.forEach(i=>{if(i.rca_id===id)i.rca_id='';});DB.rcas=DB.rcas.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+
+function renderRCA(){
+  const fc=$('fRcaCat').value,q=$('fRcaQ').value.toLowerCase();
+  const data=DB.rcas.filter(r=>{if(fc&&r.cat!==fc)return!1;if(q&&![r.prob,r.root,r.id,r.item,r.owner,r.w1,r.w2,r.w3,r.w4,r.w5].some(v=>(v||'').toLowerCase().includes(q)))return!1;return!0;});
+  // Cards
+  document.getElementById('cardRCA').innerHTML=data.map(r=>`<div class="card" style="border-left-color:${r.cat==='Man'?'var(--rd)':r.cat==='Machine'?'var(--or)':r.cat==='Method'?'var(--md)':'var(--gn)'}">
+    <div class="card-header"><span class="card-id">${r.id}</span>${catB(r.cat)}</div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">Item</span><span class="val link" onclick="switchTab('items')">${r.item}</span></div>
+      <div class="row"><span class="lbl">ปัญหา</span><span class="val" style="font-weight:600">${r.prob}</span></div>
+      <div class="why-chain">
+        ${r.w1?`<div class="why-step"><span class="why-num">W1</span>${r.w1}</div>`:''}
+        ${r.w2?`<div class="why-step"><span class="why-num">W2</span>${r.w2}</div>`:''}
+        ${r.w3?`<div class="why-step"><span class="why-num">W3</span>${r.w3}</div>`:''}
+        ${r.w4?`<div class="why-step"><span class="why-num">W4</span>${r.w4}</div>`:''}
+        ${r.w5?`<div class="why-step"><span class="why-num">W5</span>${r.w5}</div>`:''}
+      </div>
+      ${r.root?`<div class="root-cause">🎯 ${r.root}</div>`:''}
+      <div class="row" style="margin-top:4px"><span class="lbl">Owner</span><span class="val">${r.owner} · ${r.date}</span></div>
+    </div>
+    <div class="card-footer"><div></div><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button>
+      <button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_RCA('${r.id}')">💬LINE</button>
+    </div></div></div>`).join('');
+  // Table
+  $('infoRCA').textContent='แสดง '+data.length+' / '+DB.rcas.length+' รายการ';
+  if(!data.length)$('cardRCA').innerHTML=emptyState(DB.rcas.length?'🔍':'📭',DB.rcas.length?'ไม่พบรายการที่ตรงกับการค้นหา/ตัวกรอง':'ยังไม่มี RCA — กดปุ่ม ➕ เพื่อเพิ่ม');
+  document.getElementById('tbRCA').innerHTML=data.map(r=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button><button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_RCA('${r.id}')">💬</button></td>
+    <td><b>${r.id}</b></td><td class="link" onclick="switchTab('items')">${r.item}</td><td class="left">${r.prob}</td><td>${catB(r.cat)}</td>
+    <td class="left" style="font-size:11px">${r.w1}</td><td class="left" style="font-size:11px">${r.w2}</td><td class="left" style="font-size:11px">${r.w3}</td>
+    <td class="left" style="font-size:11px">${r.w4}</td><td class="left" style="font-size:11px">${r.w5}</td>
+    <td class="left" style="font-weight:700;color:var(--rd)">${r.root}</td><td>${r.owner}</td><td>${r.date}</td></tr>`).join('');
+}
+
+// ============ CAPA ============
+function openCAPAForm(e,isN){
+  const c=e||{id:nxtId('CAPA',DB.capas,'id'),item:'',rca:'',type:'CA',action:'',resp:'',target:'',actual:'',verify:'',result:'',score:'',status:'Open',recur:'',closeBy:'',h_what:'',h_why:'',h_where:'',h_when:'',h_who:'',h_how:'',h_howmuch:''};
+  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===c.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  const ro=DB.rcas.map(r=>`<option value="${r.id}" ${r.id===c.rca?'selected':''}>${r.id}</option>`).join('');
+  openModal(e&&!isN?'แก้ไข CAPA':'เพิ่ม CAPA',`<div class="form-grid">
+    <div class="form-group"><label>CAPA ID</label><input id="fc_id" value="${c.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>ประเภท</label><select id="fc_tp">${opts(['CA','PA','CA+PA'],c.type)}</select></div>
+    <div class="form-group"><label>🔗 Item</label><select id="fc_it" ${isN&&c.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&c.item?`<input type="hidden" id="fc_ith" value="${c.item}">`:''}</div>
+    <div class="form-group"><label>🔗 RCA</label><select id="fc_rc"><option value="">—</option>${ro}</select></div>
+    <div class="form-group full"><label>มาตรการ</label><textarea id="fc_ac">${c.action}</textarea></div>
+    <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fc_rs" value="${c.resp}"></div>
+    <div class="form-group"><label>กำหนดเสร็จ</label><input type="date" id="fc_tg" value="${c.target}"></div>
+    <div class="form-group"><label>เสร็จจริง</label><input type="date" id="fc_at" value="${c.actual}"></div>
+    <div class="form-group"><label>สถานะ</label><select id="fc_st">${opts(['Open','In Progress','Closed'],c.status)}</select></div>
+    <div class="form-group full" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--gn)"><label style="color:var(--gn)">📋 5W2H Analysis</label></div>
+    <div class="form-group full"><label>What — ทำอะไร</label><input id="fc_hw" value="${c.h_what||''}"></div>
+    <div class="form-group full"><label>Why — ทำไมต้องทำ</label><input id="fc_hy" value="${c.h_why||''}"></div>
+    <div class="form-group"><label>Where — ทำที่ไหน</label><input id="fc_hr" value="${c.h_where||''}"></div>
+    <div class="form-group"><label>When — ทำเมื่อไหร่</label><input id="fc_hn" value="${c.h_when||''}"></div>
+    <div class="form-group full"><label>Who — ใครรับผิดชอบ</label><input id="fc_ho" value="${c.h_who||''}"></div>
+    <div class="form-group full"><label>How — ทำอย่างไร</label><textarea id="fc_hh">${c.h_how||''}</textarea></div>
+    <div class="form-group full"><label>How Much — ค่าใช้จ่าย/ปริมาณ</label><input id="fc_hm" value="${c.h_howmuch||''}"></div>
+    <div class="form-group full"><label>วิธีตรวจสอบ</label><textarea id="fc_vr">${c.verify}</textarea></div>
+    <div class="form-group full"><label>ผลตรวจสอบ</label><textarea id="fc_re">${c.result}</textarea></div>
+    <div class="form-group"><label>Score (1-5)</label><input type="number" id="fc_sc" min="1" max="5" value="${c.score}"></div>
+    <div class="form-group"><label>เกิดซ้ำ?</label><select id="fc_rr"><option value="">-</option><option ${c.recur==='Y'?'selected':''}>Y</option><option ${c.recur==='N'?'selected':''}>N</option></select></div>
+    <div class="form-group"><label>ปิดงานโดย</label><input id="fc_cb" value="${c.closeBy}"></div></div>`,()=>{
+    const iv=$('fc_ith')?$('fc_ith').value:$('fc_it').value;
+    const o={id:$('fc_id').value,item:iv,rca:$('fc_rc').value,type:$('fc_tp').value,action:$('fc_ac').value,resp:$('fc_rs').value,target:$('fc_tg').value,actual:$('fc_at').value,verify:$('fc_vr').value,result:$('fc_re').value,score:$('fc_sc').value?+$('fc_sc').value:'',status:$('fc_st').value,recur:$('fc_rr').value,closeBy:$('fc_cb').value,h_what:$('fc_hw').value,h_why:$('fc_hy').value,h_where:$('fc_hr').value,h_when:$('fc_hn').value,h_who:$('fc_ho').value,h_how:$('fc_hh').value,h_howmuch:$('fc_hm').value};
+    if(e&&!isN){const x=DB.capas.findIndex(x=>x.id===e.id);DB.capas[x]=o;}else DB.capas.push(o);
+    const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0&&!DB.items[ix].capa_id)DB.items[ix].capa_id=o.id;
+    saveDB();toast('บันทึก CAPA — เชื่อมโยงอัตโนมัติ');});
+}
+function delCAPA(id){if(confirm('ลบ '+id+'?')){DB.items.forEach(i=>{if(i.capa_id===id)i.capa_id='';});DB.capas=DB.capas.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+
+function renderCAPA(){
+  const fs=$('fCapaSt').value,ft=$('fCapaTy').value,q=$('fCapaQ').value.toLowerCase();
+  const data=DB.capas.filter(c=>{if(fs&&c.status!==fs)return!1;if(ft&&c.type!==ft)return!1;if(q&&![c.action,c.id,c.item,c.rca,c.resp,c.result].some(v=>(v||'').toLowerCase().includes(q)))return!1;return!0;});
+  document.getElementById('cardCAPA').innerHTML=data.map(c=>`<div class="card" style="border-left-color:${c.status==='Closed'?'var(--gn)':c.status==='In Progress'?'var(--or)':'var(--rd)'}">
+    <div class="card-header"><span class="card-id">${c.id}</span><div class="card-badges">${bg(c.type,c.type==='CA'?'ca':'pa')} ${stB(c.status)}</div></div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">มาตรการ</span><span class="val" style="font-weight:600">${c.action}</span></div>
+      <div class="row"><span class="lbl">Link</span><span class="val"><span class="link" onclick="switchTab('items')">${c.item}</span> · <span class="link" onclick="switchTab('rca')">${c.rca||'-'}</span></span></div>
+      <div class="row"><span class="lbl">Resp</span><span class="val">${c.resp}</span></div>
+      <div class="row"><span class="lbl">Target</span><span class="val">${c.target} ${dL(c.target,c.actual)}</span></div>
+      ${c.verify?`<div class="row"><span class="lbl">Verify</span><span class="val">${c.verify} → ${c.result}</span></div>`:''}
+      ${c.score?`<div class="row"><span class="lbl">Score</span><span class="val">${'⭐'.repeat(c.score)}</span></div>`:''}
+    </div>
+    <div class="card-footer"><div></div><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button>
+      <button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_CAPA('${c.id}')">💬LINE</button>
+    </div></div></div>`).join('');
+  $('infoCAPA').textContent='แสดง '+data.length+' / '+DB.capas.length+' รายการ';
+  if(!data.length)$('cardCAPA').innerHTML=emptyState(DB.capas.length?'🔍':'📭',DB.capas.length?'ไม่พบรายการที่ตรงกับการค้นหา/ตัวกรอง':'ยังไม่มี CAPA — กดปุ่ม ➕ เพื่อเพิ่ม');
+  document.getElementById('tbCAPA').innerHTML=data.map(c=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button><button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_CAPA('${c.id}')">💬</button></td>
+    <td><b>${c.id}</b></td><td class="link" onclick="switchTab('items')">${c.item}</td><td class="link" onclick="switchTab('rca')">${c.rca||'-'}</td>
+    <td>${bg(c.type,c.type==='CA'?'ca':'pa')}</td><td class="left" style="max-width:220px">${c.action}</td><td>${c.resp}</td>
+    <td>${c.target}</td><td>${c.actual||'-'}</td><td class="left">${c.verify}</td><td class="left">${c.result}</td>
+    <td>${c.score||'-'}</td><td>${stB(c.status)}</td><td>${dL(c.target,c.actual)}</td><td>${c.recur||'-'}</td></tr>`).join('');
+}
+
+// ============ DASHBOARD ============
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+function renderDashboard(){
+  const t=DB.items.length,co=cnt(DB.items,'status','Complete'),ip=cnt(DB.items,'status','In Progress'),
+    od=cnt(DB.items,'status','Overdue'),pc=t?Math.round(co/t*100):0,
+    ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed'),cx=ct-cc,
+    st=DB.snrs?DB.snrs.length:0,sc=DB.snrs?cnt(DB.snrs,'status','Closed'):0;
+  // Summary strip
+  document.getElementById('summaryStrip').innerHTML=
+    `<div class="summary-chip" style="background:var(--md)"><span class="num">${t}</span>Items</div>
+     <div class="summary-chip" style="background:var(--gn)"><span class="num">${co}</span>Done</div>
+     <div class="summary-chip" style="background:var(--or)"><span class="num">${ip}</span>IP</div>
+     <div class="summary-chip" style="background:var(--rd)"><span class="num">${od}</span>OD</div>
+     <div class="summary-chip" style="background:var(--tl)"><span class="num">${pc}%</span></div>
+     <div class="summary-chip" style="background:#17A2B8"><span class="num">${st}</span>S&R</div>
+     <div class="summary-chip" style="background:var(--md)"><span class="num">${ct}</span>CAPA</div>
+     <div class="summary-chip" style="background:var(--gn)"><span class="num">${cc}</span>Closed</div>`;
+  // KPIs
+  const kpis=[{l:'Total Items',v:t,c:'var(--md)'},{l:'Complete',v:co,c:'var(--gn)'},{l:'In Progress',v:ip,c:'var(--or)'},{l:'Overdue',v:od,c:'var(--rd)'},{l:'% สำเร็จ',v:pc+'%',c:'var(--tl)'},{l:'S&R Total',v:st,c:'#17A2B8'},{l:'CAPA Total',v:ct,c:'var(--md)'},{l:'CAPA Closed',v:cc,c:'var(--gn)'},{l:'CAPA Open',v:cx,c:'var(--rd)'}];
+  document.getElementById('kpiRow').innerHTML=kpis.map(k=>`<div class="kpi"><div class="label">${k.l}</div><div class="value" style="color:${k.c}">${k.v}</div></div>`).join('');
+  // Charts
+  destroyCharts();
+  Chart.register(ChartDataLabels);
+  const dlDnt={datalabels:{color:'#fff',font:{weight:'bold',size:12},formatter:(v,ctx)=>{if(!v)return'';const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return t?Math.round(v/t*100)+'%':'';},display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
+  const dlBar={datalabels:{anchor:'end',align:'end',color:'#333',font:{weight:'bold',size:11},formatter:v=>v||'',display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
+  const dlBarH={datalabels:{anchor:'end',align:'right',color:'#333',font:{weight:'bold',size:11},formatter:v=>v||'',display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
+  const dlLine={datalabels:{color:'#333',font:{weight:'bold',size:10},anchor:'end',align:'top',formatter:v=>v||'',display:ctx=>ctx.dataset.data[ctx.dataIndex]>0}};
+  const O={responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}}}};
+  charts.push(new Chart($('cStatus'),{type:'doughnut',data:{labels:['Complete','In Progress','Overdue','Pending'],datasets:[{data:[co,ip,od,cnt(DB.items,'status','Pending')],backgroundColor:['#28A745','#FD7E14','#DC3545','#6C757D'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
+  charts.push(new Chart($('cTQM'),{type:'bar',data:{labels:['S','Q','D','C','M'],datasets:[{data:['S','Q','D','C','M'].map(x=>cnt(DB.items,'tqm',x)),backgroundColor:['#DC3545','#2E5D8A','#17A2B8','#FFC107','#28A745'],borderRadius:4}]},options:{...O,plugins:{legend:{display:false},...dlBar},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cPri'),{type:'bar',data:{labels:['Critical','High','Medium','Low'],datasets:[{data:['Critical','High','Medium','Low'].map(x=>cnt(DB.items,'priority',x)),backgroundColor:['#DC3545','#FD7E14','#FFC107','#17A2B8'],borderRadius:4}]},options:{...O,indexAxis:'y',plugins:{legend:{display:false},...dlBarH},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cRCA'),{type:'doughnut',data:{labels:['Man','Machine','Method','Material','Env'],datasets:[{data:['Man','Machine','Method','Material','Environment'].map(x=>cnt(DB.rcas,'cat',x)),backgroundColor:['#DC3545','#FD7E14','#2E5D8A','#28A745','#17A2B8'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
+  charts.push(new Chart($('cCAPA'),{type:'doughnut',data:{labels:['Closed','In Progress','Open'],datasets:[{data:['Closed','In Progress','Open'].map(x=>cnt(DB.capas,'status',x)),backgroundColor:['#28A745','#FFC107','#DC3545'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
+  const ds=['QA','QC','PD','SALE','STORE','MT','PE'];
+  charts.push(new Chart($('cDept'),{type:'bar',data:{labels:ds,datasets:[{data:ds.map(x=>cnt(DB.items,'dept',x)),backgroundColor:'#17A2B8',borderRadius:4}]},options:{...O,plugins:{legend:{display:false},...dlBar},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+  charts.push(new Chart($('cType'),{type:'doughnut',data:{labels:['CA','PA'],datasets:[{data:[cnt(DB.capas,'type','CA'),cnt(DB.capas,'type','PA')],backgroundColor:['#2E5D8A','#FD7E14'],borderWidth:2}]},options:{...O,cutout:'40%',plugins:{...O.plugins,...dlDnt}}}));
+  const mw=DB.meetings.filter(m=>DB.items.some(i=>i.mid===m.id));
+  charts.push(new Chart($('cTrend'),{type:'line',data:{labels:mw.map(m=>m.week),datasets:[
+    {label:'Total',data:mw.map(m=>DB.items.filter(i=>i.mid===m.id).length),borderColor:'#2E5D8A',backgroundColor:'rgba(46,93,138,.1)',fill:true,tension:.3,pointRadius:4},
+    {label:'Done',data:mw.map(m=>DB.items.filter(i=>i.mid===m.id&&i.status==='Complete').length),borderColor:'#28A745',backgroundColor:'rgba(40,167,69,.1)',fill:true,tension:.3,pointRadius:4}
+  ]},options:{...O,plugins:{...O.plugins,...dlLine},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}}));
+}
+
+// ============ EXPORT/IMPORT ============
+// ============ PRINT / PDF ============
+function printPage(){
+  // พิมพ์หน้าปัจจุบัน (Dashboard/Items/RCA/CAPA/Meeting)
+  const style=document.createElement('style');
+  style.id='printCSS';
+  style.textContent=`@media print{
+    .header,.bottom-nav,.tabs-desktop,.toolbar,.filter-row,.btn-fab,.card-actions,.card-link,.act-btn,.photo-lightbox{display:none!important;}
+    .tab-content{display:block!important;padding:0!important;}
+    .tab-content:not(.active){display:none!important;}
+    .card-list{display:flex!important;flex-direction:column!important;}
+    .table-wrap{display:block!important;overflow:visible!important;}
+    .scroll-table{max-height:none!important;overflow:visible!important;}
+    body{padding:0!important;font-size:11px!important;}
+    .kpi-row{grid-template-columns:repeat(4,1fr)!important;}
+    .chart-grid{grid-template-columns:1fr 1fr!important;}
+    @page{size:A4 landscape;margin:10mm;}
+  }`;
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(()=>{const s=document.getElementById('printCSS');if(s)s.remove();},1000);
+}
+
+function printItem(id){
+  const i=DB.items.find(x=>x.id===id);if(!i)return;
+  // หา RCA และ CAPA ที่เชื่อมโยง
+  const rcas=DB.rcas.filter(r=>r.item===id);
+  const capas=DB.capas.filter(c=>c.item===id);
+
+  let h=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>RTK-QC ${id}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;font-size:13px;color:#333;}
+    .header{background:#1B3A5C;color:#fff;padding:12px 16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .header h1{font-size:16px;}
+    .header span{font-size:11px;opacity:.8;}
+    .card{border:1px solid #ddd;border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid ${i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545'};}
+    .card h2{font-size:15px;color:#1B3A5C;margin-bottom:8px;display:flex;justify-content:space-between;}
+    .badge{padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;color:#fff;display:inline-block;}
+    .row{display:flex;gap:8px;margin-bottom:4px;}
+    .lbl{font-weight:600;color:#1B3A5C;min-width:100px;font-size:12px;}
+    .val{flex:1;}
+    .photos{display:flex;gap:8px;margin-top:8px;}
+    .photos img{width:120px;height:120px;object-fit:cover;border-radius:6px;border:2px solid #ddd;}
+    .photos .ok{border-color:#28A745;} .photos .ng{border-color:#DC3545;} .photos .tag{border-color:#FD7E14;}
+    .section{margin-top:16px;padding-top:12px;border-top:2px solid #ddd;}
+    .section h3{font-size:14px;color:#1B3A5C;margin-bottom:8px;}
+    .why{background:#f8f9fa;padding:4px 8px;border-radius:4px;margin-bottom:3px;font-size:12px;}
+    .root{background:#FFEBEE;padding:6px 8px;border-radius:6px;font-weight:600;color:#DC3545;margin-top:4px;}
+    .flowout{background:#FFF3E0;padding:6px 8px;border-radius:6px;margin-top:8px;font-size:12px;}
+    .h5w2h{background:#E8F5E9;padding:6px 8px;border-radius:6px;margin-top:8px;font-size:12px;}
+    table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+    th{background:#1B3A5C;color:#fff;padding:6px;text-align:left;}
+    td{padding:6px;border-bottom:1px solid #eee;}
+    @media print{@page{size:A4;margin:15mm;}}
+    .btn-print{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-top:16px;}
+    @media print{.btn-print,.no-print{display:none!important;}}
+  </style></head><body>`;
+
+  // Header
+  h+=`<div class="header"><h1>📋 RTK-QC Item Report</h1><span>${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
+
+  // Item Card
+  h+=`<div class="card"><h2>${i.id} <span>`;
+  h+=`<span class="badge" style="background:${i.status==='Complete'?'#28A745':i.status==='In Progress'?'#FD7E14':'#DC3545'}">${i.status}</span> `;
+  h+=`<span class="badge" style="background:${i.priority==='Critical'?'#DC3545':i.priority==='High'?'#FD7E14':i.priority==='Medium'?'#FFC107':'#17A2B8'};${i.priority==='Medium'?'color:#333':''}">${i.priority}</span>`;
+  h+=`</span></h2>`;
+  h+=`<div class="row"><span class="lbl">Meeting</span><span class="val">${i.mid} — ${i.date}</span></div>`;
+  h+=`<div class="row"><span class="lbl">Part / Task</span><span class="val" style="font-weight:600">${i.part||'-'}</span></div>`;
+  if(i.maker)h+=`<div class="row"><span class="lbl">Maker</span><span class="val">${i.maker}</span></div>`;
+  h+=`<div class="row"><span class="lbl">TQM / Dept / Loc</span><span class="val">${i.tqm} · ${i.dept} · ${i.loc}</span></div>`;
+  h+=`<div class="row"><span class="lbl">Pain Point</span><span class="val">${i.pain||'-'}</span></div>`;
+  if(i.temp)h+=`<div class="row"><span class="lbl">Temp Action</span><span class="val" style="color:#FD7E14">${i.temp}</span></div>`;
+  if(i.snr_id)h+=`<div class="row"><span class="lbl">S&R</span><span class="val" style="color:#17A2B8">${i.snr_id}</span></div>`;
+  else if(i.snr)h+=`<div class="row"><span class="lbl">S&R</span><span class="val" style="color:#17A2B8">${i.snr}</span></div>`;
+  if(i.action)h+=`<div class="row"><span class="lbl">Action Plan</span><span class="val">${i.action}</span></div>`;
+  h+=`<div class="row"><span class="lbl">ผู้รับผิดชอบ</span><span class="val">${i.resp}</span></div>`;
+  h+=`<div class="row"><span class="lbl">Due / Finish</span><span class="val">${i.due} ${i.finish?'→ '+i.finish+' ✅':''}</span></div>`;
+  if(i.remark)h+=`<div class="row"><span class="lbl">หมายเหตุ</span><span class="val">${i.remark}</span></div>`;
+  // Photos
+  if(i.img_ok||i.img_ng||i.img_tag){
+    h+=`<div class="photos">`;
+    if(i.img_ok)h+=`<div><img src="${i.img_ok}" class="ok"><div style="text-align:center;font-size:10px;font-weight:600;color:#28A745">OK</div></div>`;
+    if(i.img_ng)h+=`<div><img src="${i.img_ng}" class="ng"><div style="text-align:center;font-size:10px;font-weight:600;color:#DC3545">NG</div></div>`;
+    if(i.img_tag)h+=`<div><img src="${i.img_tag}" class="tag"><div style="text-align:center;font-size:10px;font-weight:600;color:#FD7E14">TAG LOT NC</div></div>`;
+    h+=`</div>`;
+  }
+  h+=`</div>`;
+
+  // RCA Section
+  rcas.forEach(r=>{
+    h+=`<div class="section"><h3>🔍 RCA — ${r.id}</h3>`;
+    h+=`<div class="row"><span class="lbl">ปัญหา</span><span class="val">${r.prob}</span></div>`;
+    h+=`<div class="row"><span class="lbl">4M+E</span><span class="val">${r.cat}</span></div>`;
+    if(r.w1)h+=`<div class="why"><b>W1:</b> ${r.w1}</div>`;
+    if(r.w2)h+=`<div class="why"><b>W2:</b> ${r.w2}</div>`;
+    if(r.w3)h+=`<div class="why"><b>W3:</b> ${r.w3}</div>`;
+    if(r.w4)h+=`<div class="why"><b>W4:</b> ${r.w4}</div>`;
+    if(r.w5)h+=`<div class="why"><b>W5:</b> ${r.w5}</div>`;
+    if(r.root)h+=`<div class="root">🎯 Root Cause: ${r.root}</div>`;
+    if(r.fo_what||r.fo_why)h+=`<div class="flowout"><b>🔍 Flow Out:</b> What: ${r.fo_what||'-'} | When: ${r.fo_when||'-'} | Where: ${r.fo_where||'-'} | Who: ${r.fo_who||'-'} | Why: ${r.fo_why||'-'}</div>`;
+    h+=`<div class="row"><span class="lbl">Owner / Date</span><span class="val">${r.owner} — ${r.date}</span></div>`;
+    h+=`</div>`;
+  });
+
+  // CAPA Section
+  capas.forEach(c=>{
+    h+=`<div class="section"><h3>✅ CAPA — ${c.id} (${c.type})</h3>`;
+    h+=`<div class="row"><span class="lbl">มาตรการ</span><span class="val">${c.action}</span></div>`;
+    h+=`<div class="row"><span class="lbl">ผู้รับผิดชอบ</span><span class="val">${c.resp}</span></div>`;
+    h+=`<div class="row"><span class="lbl">Target / Actual</span><span class="val">${c.target} ${c.actual?'→ '+c.actual:''}</span></div>`;
+    h+=`<div class="row"><span class="lbl">Status</span><span class="val">${c.status}</span></div>`;
+    if(c.verify)h+=`<div class="row"><span class="lbl">ตรวจสอบ</span><span class="val">${c.verify} → ${c.result||'-'}</span></div>`;
+    if(c.h_what||c.h_how)h+=`<div class="h5w2h"><b>📋 5W2H:</b> What: ${c.h_what||'-'} | Why: ${c.h_why||'-'} | Where: ${c.h_where||'-'} | When: ${c.h_when||'-'} | Who: ${c.h_who||'-'} | How: ${c.h_how||'-'} | How Much: ${c.h_howmuch||'-'}</div>`;
+    h+=`</div>`;
+  });
+
+  h+=`<button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button>`;
+  h+=`<button class="btn-print no-print" onclick="window.close()" style="background:#eee;color:#333;margin-left:8px">✕ ปิด</button>`;
+  h+=`</body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(h);
+  w.document.close();
+}
+
+function exportJSON(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`QCDMS_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Export สำเร็จ','var(--tl)');}
+function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.meetings&&d.items&&d.rcas&&d.capas){if(!d.snrs)d.snrs=[];DB=d;saveDB();toast('Import สำเร็จ','var(--gn)');}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};r.readAsText(f);e.target.value='';}
+
+// ============ UTIL ============
+function $(id){return document.getElementById(id);}
+function refreshAll(){renderDashboard();renderItems();renderSNR();renderRCA();renderCAPA();renderMeetings();}
+
+// ============ INIT ============
+$('dtNow').textContent=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+loadDB();refreshAll();showCloudId();
+// Auto-pull จาก Cloud เมื่อเปิดหน้าเว็บ + poll ทุก 30 วินาที
+if(getGhToken()){cloudPull(true);setInterval(()=>{if(getGhToken())cloudPull(true);},30000);}
+$('fabAdd').style.display='none';
+</script>
+</body>
+</html>
