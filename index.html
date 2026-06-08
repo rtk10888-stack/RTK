@@ -1066,11 +1066,11 @@ function renderItems(){
 function openSNRForm(e,isN){
   if(!DB.snrs)DB.snrs=[];
   const s=e||{id:nxtId('SNR',DB.snrs,'id'),item:'',type:'Sorting',detail:'',qty:'',ng:'',resp:'',target:'',actual:'',result:'',status:'Open',date:new Date().toISOString().slice(0,10)};
-  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===s.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  const io=DB.items.slice().sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(i=>`<option value="${i.id}" ${i.id===s.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
   openModal(e&&!isN?'แก้ไข S&R':'เพิ่ม S&R',`<div class="form-grid">
     <div class="form-group"><label>S&R ID</label><input id="fs_id" value="${s.id}" class="auto-id" readonly></div>
     <div class="form-group"><label>ประเภท</label><select id="fs_tp">${opts(['Sorting','Rework','Sorting+Rework'],s.type)}</select></div>
-    <div class="form-group"><label>🔗 Item</label><select id="fs_it" ${isN&&s.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&s.item?`<input type="hidden" id="fs_ith" value="${s.item}">`:''}</div>
+    <div class="form-group"><label>🔗 Item</label><select id="fs_it"><option value="">—</option>${io}</select></div>
     <div class="form-group"><label>วันที่</label><input type="date" id="fs_dt" value="${s.date}"></div>
     <div class="form-group full"><label>รายละเอียดการคัดแยก/ซ่อม</label><textarea id="fs_dl">${s.detail}</textarea></div>
     <div class="form-group"><label>จำนวนตรวจ (ชิ้น)</label><input id="fs_qt" value="${s.qty}" placeholder="เช่น 2,000"></div>
@@ -1080,7 +1080,7 @@ function openSNRForm(e,isN){
     <div class="form-group"><label>เสร็จจริง</label><input type="date" id="fs_at" value="${s.actual}"></div>
     <div class="form-group"><label>สถานะ</label><select id="fs_st">${opts(['Open','In Progress','Closed'],s.status)}</select></div>
     <div class="form-group full"><label>ผลการดำเนินการ</label><textarea id="fs_re">${s.result}</textarea></div></div>`,()=>{
-    const iv=$('fs_ith')?$('fs_ith').value:$('fs_it').value;
+    const iv=$('fs_it').value;
     const o={id:$('fs_id').value,item:iv,type:$('fs_tp').value,detail:$('fs_dl').value,qty:$('fs_qt').value,ng:$('fs_ng').value,resp:$('fs_rs').value,target:$('fs_tg').value,actual:$('fs_at').value,result:$('fs_re').value,status:$('fs_st').value,date:$('fs_dt').value};
     if(e&&!isN){const x=DB.snrs.findIndex(x=>x.id===e.id);DB.snrs[x]=o;}else DB.snrs.push(o);
     const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0&&!DB.items[ix].snr_id)DB.items[ix].snr_id=o.id;
@@ -1120,10 +1120,10 @@ function renderSNR(){
 // ============ RCA ============
 function openRCAForm(e,isN){
   const r=e||{id:nxtId('RCA',DB.rcas,'id'),item:'',prob:'',cat:'Method',w1:'',w2:'',w3:'',w4:'',w5:'',root:'',fo_what:'',fo_when:'',fo_where:'',fo_who:'',fo_why:'',owner:'',date:new Date().toISOString().slice(0,10),verBy:'',verDate:''};
-  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===r.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  const io=DB.items.slice().sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(i=>`<option value="${i.id}" ${i.id===r.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
   openModal(e&&!isN?'แก้ไข RCA':'เพิ่ม RCA',`<div class="form-grid">
     <div class="form-group"><label>RCA ID</label><input id="fr_id" value="${r.id}" class="auto-id" readonly></div>
-    <div class="form-group"><label>🔗 Item</label><select id="fr_it" ${isN&&r.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&r.item?`<input type="hidden" id="fr_ith" value="${r.item}">`:''}</div>
+    <div class="form-group"><label>🔗 Item</label><select id="fr_it"><option value="">—</option>${io}</select></div>
     <div class="form-group full"><label>ปัญหา</label><textarea id="fr_pb">${r.prob}</textarea></div>
     <div class="form-group"><label>4M+E</label><select id="fr_ct">${opts(['Man','Machine','Method','Material','Environment'],r.cat)}</select></div>
     <div class="form-group"><label>ผู้วิเคราะห์</label><input id="fr_ow" value="${r.owner}"></div>
@@ -1141,7 +1141,7 @@ function openRCAForm(e,isN){
     <div class="form-group full"><label>Why — ทำไมถึงหลุดรอด</label><textarea id="fr_foy">${r.fo_why||''}</textarea></div>
     <div class="form-group"><label>วันที่</label><input type="date" id="fr_dt" value="${r.date}"></div>
     <div class="form-group"><label>ผู้ตรวจสอบ</label><input id="fr_vb" value="${r.verBy}"></div></div>`,()=>{
-    const iv=$('fr_ith')?$('fr_ith').value:$('fr_it').value;
+    const iv=$('fr_it').value;
     const o={id:$('fr_id').value,item:iv,prob:$('fr_pb').value,cat:$('fr_ct').value,w1:$('fr_w1').value,w2:$('fr_w2').value,w3:$('fr_w3').value,w4:$('fr_w4').value,w5:$('fr_w5').value,root:$('fr_rt').value,fo_what:$('fr_fow').value,fo_when:$('fr_fon').value,fo_where:$('fr_for').value,fo_who:$('fr_foo').value,fo_why:$('fr_foy').value,owner:$('fr_ow').value,date:$('fr_dt').value,verBy:$('fr_vb').value,verDate:r.verDate};
     if(e&&!isN){const x=DB.rcas.findIndex(x=>x.id===e.id);DB.rcas[x]=o;}else DB.rcas.push(o);
     const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0){DB.items[ix].rca_id=o.id;DB.items[ix].rca_sum=o.root;}
@@ -1187,12 +1187,12 @@ function renderRCA(){
 // ============ CAPA ============
 function openCAPAForm(e,isN){
   const c=e||{id:nxtId('CAPA',DB.capas,'id'),item:'',rca:'',type:'CA',action:'',resp:'',target:'',actual:'',verify:'',result:'',score:'',status:'Open',recur:'',closeBy:'',h_what:'',h_why:'',h_where:'',h_when:'',h_who:'',h_how:'',h_howmuch:''};
-  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===c.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
-  const ro=DB.rcas.map(r=>`<option value="${r.id}" ${r.id===c.rca?'selected':''}>${r.id}</option>`).join('');
+  const io=DB.items.slice().sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(i=>`<option value="${i.id}" ${i.id===c.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  const ro=DB.rcas.slice().sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(r=>`<option value="${r.id}" ${r.id===c.rca?'selected':''}>${r.id}</option>`).join('');
   openModal(e&&!isN?'แก้ไข CAPA':'เพิ่ม CAPA',`<div class="form-grid">
     <div class="form-group"><label>CAPA ID</label><input id="fc_id" value="${c.id}" class="auto-id" readonly></div>
     <div class="form-group"><label>ประเภท</label><select id="fc_tp">${opts(['CA','PA','CA+PA'],c.type)}</select></div>
-    <div class="form-group"><label>🔗 Item</label><select id="fc_it" ${isN&&c.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&c.item?`<input type="hidden" id="fc_ith" value="${c.item}">`:''}</div>
+    <div class="form-group"><label>🔗 Item</label><select id="fc_it"><option value="">—</option>${io}</select></div>
     <div class="form-group"><label>🔗 RCA</label><select id="fc_rc"><option value="">—</option>${ro}</select></div>
     <div class="form-group full"><label>มาตรการ</label><textarea id="fc_ac">${c.action}</textarea></div>
     <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fc_rs" value="${c.resp}"></div>
@@ -1212,7 +1212,7 @@ function openCAPAForm(e,isN){
     <div class="form-group"><label>Score (1-5)</label><input type="number" id="fc_sc" min="1" max="5" value="${c.score}"></div>
     <div class="form-group"><label>เกิดซ้ำ?</label><select id="fc_rr"><option value="">-</option><option ${c.recur==='Y'?'selected':''}>Y</option><option ${c.recur==='N'?'selected':''}>N</option></select></div>
     <div class="form-group"><label>ปิดงานโดย</label><input id="fc_cb" value="${c.closeBy}"></div></div>`,()=>{
-    const iv=$('fc_ith')?$('fc_ith').value:$('fc_it').value;
+    const iv=$('fc_it').value;
     const o={id:$('fc_id').value,item:iv,rca:$('fc_rc').value,type:$('fc_tp').value,action:$('fc_ac').value,resp:$('fc_rs').value,target:$('fc_tg').value,actual:$('fc_at').value,verify:$('fc_vr').value,result:$('fc_re').value,score:$('fc_sc').value?+$('fc_sc').value:'',status:$('fc_st').value,recur:$('fc_rr').value,closeBy:$('fc_cb').value,h_what:$('fc_hw').value,h_why:$('fc_hy').value,h_where:$('fc_hr').value,h_when:$('fc_hn').value,h_who:$('fc_ho').value,h_how:$('fc_hh').value,h_howmuch:$('fc_hm').value};
     if(e&&!isN){const x=DB.capas.findIndex(x=>x.id===e.id);DB.capas[x]=o;}else DB.capas.push(o);
     const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0&&!DB.items[ix].capa_id)DB.items[ix].capa_id=o.id;
