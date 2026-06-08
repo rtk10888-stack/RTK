@@ -1056,7 +1056,8 @@
       "img_ng": "",
       "img_tag": "",
       "snr": "",
-      "maker": "มหาจักร"
+      "maker": "มหาจักร",
+      "snr_id": "SNR-2026-003"
     },
     {
       "id": "ITM-2026-029",
@@ -1628,6 +1629,20 @@
       "actual": "",
       "result": "",
       "status": "Open",
+      "date": "2026-06-05"
+    },
+    {
+      "id": "SNR-2026-003",
+      "item": "ITM-2026-028",
+      "type": "Sorting",
+      "detail": "QC Final คัดแยก 100% ด้วย Plug gauge ผู้รับผิดชอบ กินารี PO6900237",
+      "qty": "17,086",
+      "ng": "3,086",
+      "resp": "พัฒนเดช-QA",
+      "target": "2026-06-08",
+      "actual": "2026-06-08",
+      "result": "",
+      "status": "Closed",
       "date": "2026-06-05"
     }
   ]
