@@ -220,6 +220,7 @@ td.left{text-align:left;}
 <div class="tabs-desktop">
   <div class="tab-d active" onclick="switchTab('dashboard')">📊 Dashboard</div>
   <div class="tab-d" onclick="switchTab('items')">📌 Items</div>
+  <div class="tab-d" onclick="switchTab('snr')">🔄 S&R</div>
   <div class="tab-d" onclick="switchTab('rca')">🔍 RCA</div>
   <div class="tab-d" onclick="switchTab('capa')">✅ CAPA</div>
   <div class="tab-d" onclick="switchTab('meeting')">📋 Meeting</div>
@@ -256,8 +257,25 @@ td.left{text-align:left;}
   </div>
   <div class="card-list" id="cardItems"></div>
   <div class="table-wrap scroll-table"><table>
-    <thead><tr><th></th><th>ID</th><th>Meeting</th><th>Date</th><th>Part</th><th>TQM</th><th>Dept</th><th>Loc</th><th>Pain Point</th><th>Maker</th><th>Temp Action</th><th>S&R</th><th>Action Plan</th><th>Resp</th><th>Due</th><th>Status</th><th>Priority</th><th>RCA</th><th>CAPA</th></tr></thead>
+    <thead><tr><th></th><th>ID</th><th>Meeting</th><th>Date</th><th>Part</th><th>TQM</th><th>Dept</th><th>Loc</th><th>Pain Point</th><th>Maker</th><th>Temp Action</th><th>Action Plan</th><th>Resp</th><th>Due</th><th>Status</th><th>Priority</th><th>S&R</th><th>RCA</th><th>CAPA</th></tr></thead>
     <tbody id="tbItems"></tbody>
+  </table></div>
+</div>
+
+<!-- ==================== S&R (Sorting & Rework) ==================== -->
+<div class="tab-content" id="tab-snr">
+  <div class="toolbar">
+    <button class="btn btn-success" onclick="openSNRForm()">➕ เพิ่ม S&R</button>
+    <input id="fSnrQ" placeholder="🔍 ค้นหา..." oninput="renderSNR()" style="flex:2">
+  </div>
+  <div class="filter-row">
+    <select id="fSnrSt" onchange="renderSNR()"><option value="">ทุกสถานะ</option><option>Open</option><option>In Progress</option><option>Closed</option></select>
+    <select id="fSnrTy" onchange="renderSNR()"><option value="">ทุกประเภท</option><option>Sorting</option><option>Rework</option><option>Sorting+Rework</option></select>
+  </div>
+  <div class="card-list" id="cardSNR"></div>
+  <div class="table-wrap scroll-table"><table>
+    <thead><tr><th></th><th>S&R_ID</th><th>Item</th><th>ประเภท</th><th>รายละเอียด</th><th>จำนวนตรวจ</th><th>NG</th><th>Resp</th><th>Target</th><th>Actual</th><th>ผล</th><th>Status</th></tr></thead>
+    <tbody id="tbSNR"></tbody>
   </table></div>
 </div>
 
@@ -313,6 +331,7 @@ td.left{text-align:left;}
 <div class="bottom-nav">
   <div class="nav-item active" onclick="switchTab('dashboard')" data-tab="dashboard"><span class="icon">📊</span>Dashboard</div>
   <div class="nav-item" onclick="switchTab('items')" data-tab="items"><span class="icon">📌</span>Items</div>
+  <div class="nav-item" onclick="switchTab('snr')" data-tab="snr"><span class="icon">🔄</span>S&R</div>
   <div class="nav-item" onclick="switchTab('rca')" data-tab="rca"><span class="icon">🔍</span>RCA</div>
   <div class="nav-item" onclick="switchTab('capa')" data-tab="capa"><span class="icon">✅</span>CAPA</div>
   <div class="nav-item" onclick="switchTab('meeting')" data-tab="meeting"><span class="icon">📋</span>Meeting</div>
@@ -413,11 +432,11 @@ capas:[
 {id:"CAPA-2026-008",item:"ITM-2026-013",rca:"RCA-2026-009",type:"CA",action:"ประกาศ DWG Version ใหม่ ยกเลิกฉบับเก่า",resp:"ธีรสิทธิ์-PE",target:"2026-01-24",actual:"2026-01-24",verify:"Document Control",result:"OK อัพเดทแล้ว",score:5,status:"Closed",recur:"N",closeBy:"ธีรสิทธิ์-PE"},
 {id:"CAPA-2026-008b",item:"ITM-2026-013",rca:"RCA-2026-009",type:"PA",action:"ปรับปรุง Document Control Procedure / Training",resp:"ธีรสิทธิ์-PE",target:"2026-03-31",actual:"",verify:"Training Record + Procedure",result:"รอดำเนินการ",score:"",status:"Open",recur:"",closeBy:""},
 {id:"CAPA-2026-009",item:"ITM-2026-015",rca:"RCA-2026-011",type:"CA",action:"QC Recheck 100% Visual inspection Stock RTK",resp:"พัฒนเดช-QA",target:"2026-01-27",actual:"",verify:"Inspection Record",result:"กำลังตรวจ",score:"",status:"In Progress",recur:"",closeBy:""},
-{id:"CAPA-2026-009b",item:"ITM-2026-015",rca:"RCA-2026-011",type:"PA",action:"ออกแบบ Jig ป้องกัน Skip / ประเมิน Poka-yoke",resp:"ธีรสิทธิ์-PE",target:"2026-03-15",actual:"",verify:"Poka-yoke Design",result:"รอออกแบบ",score:"",status:"Open",recur:"",closeBy:""}]};
+{id:"CAPA-2026-009b",item:"ITM-2026-015",rca:"RCA-2026-011",type:"PA",action:"ออกแบบ Jig ป้องกัน Skip / ประเมิน Poka-yoke",resp:"ธีรสิทธิ์-PE",target:"2026-03-15",actual:"",verify:"Poka-yoke Design",result:"รอออกแบบ",score:"",status:"Open",recur:"",closeBy:""}],snrs:[]};
 
 let DB;
 
-function loadDB(){const s=localStorage.getItem(SK);DB=s?JSON.parse(s):JSON.parse(JSON.stringify(defaultData));}
+function loadDB(){const s=localStorage.getItem(SK);DB=s?JSON.parse(s):JSON.parse(JSON.stringify(defaultData));if(!DB.snrs)DB.snrs=[];}
 function saveDB(){localStorage.setItem(SK,JSON.stringify(DB));refreshAll();cloudAutoSync();}
 
 // ===== CLOUD SYNC (GitHub API) =====
@@ -465,6 +484,7 @@ function cloudPull(silent){
     const raw=decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))));
     const data=JSON.parse(raw);
     if(data&&data.items){
+      if(!data.snrs)data.snrs=[];
       const newJson=JSON.stringify(data);
       const oldJson=JSON.stringify(DB);
       if(newJson!==oldJson){DB=data;localStorage.setItem(SK,JSON.stringify(DB));refreshAll();
@@ -572,9 +592,9 @@ function shareLINE(id){
   msg+=`📊 TQM: ${i.tqm} | Dept: ${i.dept} | Loc: ${i.loc}\n`;
   msg+=`⚠️ Pain: ${i.pain}\n`;
   if(i.temp)msg+=`🔄 Temp: ${i.temp}\n`;
-  if(i.snr)msg+=`🔍 S&R: ${i.snr}\n`;
   if(i.action)msg+=`✅ Action: ${i.action}\n`;
   msg+=`👤 Resp: ${i.resp}\n📆 Due: ${i.due} | Status: ${i.status}\n`;
+  if(i.snr_id)msg+=`🔄 S&R: ${i.snr_id}\n`;
   if(i.rca_id)msg+=`🔬 RCA: ${i.rca_id}\n`;
   if(i.capa_id)msg+=`📝 CAPA: ${i.capa_id}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
@@ -595,7 +615,7 @@ function _doShareItem(id,i,msg){
   h+=row('Part',i.part||'-');
   h+=row('Pain',i.pain||'-');
   if(i.temp)h+=row('Temp',i.temp,'#FD7E14');
-  if(i.snr)h+=row('S&R',i.snr,'#17A2B8');
+  if(i.snr_id)h+=row('S&R',i.snr_id,'#17A2B8');
   if(i.maker)h+=row('Maker',i.maker);
   h+=row('Info',`${i.tqm} · ${i.dept} · ${i.loc} · ${i.resp}`);
   h+=`<div style="display:flex;gap:8px;margin-bottom:5px;line-height:1.5"><span style="font-weight:600;color:#7A8A9E;min-width:55px;font-size:13px">Due</span><span style="font-size:13px">${i.due||'-'} ${dDays}</span></div>`;
@@ -608,8 +628,9 @@ function _doShareItem(id,i,msg){
     if(i.img_tag)h+=`<img src="${i.img_tag}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid #FD7E14">`;
     h+=`</div>`;
   }
-  // RCA / CAPA links
+  // S&R / RCA / CAPA links
   const links=[];
+  if(i.snr_id)links.push(`<span style="color:#17A2B8;font-weight:600;text-decoration:underline">${i.snr_id}</span>`);
   if(i.rca_id)links.push(`<span style="color:#1B3A5C;font-weight:600;text-decoration:underline">${i.rca_id}</span>`);
   if(i.capa_id)links.push(`<span style="color:#1B3A5C;font-weight:600;text-decoration:underline">${i.capa_id}</span>`);
   if(links.length)h+=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid #eee;font-size:13px">${links.join(' · ')}</div>`;
@@ -777,6 +798,47 @@ function shareLINE_MTG(id){
   }
 }
 
+function shareLINE_SNR(id){
+  if(!DB.snrs)return;
+  const s=DB.snrs.find(x=>x.id===id);if(!s)return;
+  let msg=`🔄 RTK-QC S&R Report\n━━━━━━━━━━━━━━━\n`;
+  msg+=`🔖 ${s.id} (${s.type})\n🔗 Item: ${s.item}\n`;
+  msg+=`📋 ${s.detail}\n`;
+  if(s.qty)msg+=`📊 จำนวน: ${s.qty} ชิ้น${s.ng?' (NG: '+s.ng+')':''}\n`;
+  msg+=`👤 Resp: ${s.resp}\n📆 Target: ${s.target} | Status: ${s.status}\n`;
+  if(s.result)msg+=`✅ ผล: ${s.result}\n`;
+  msg+=`━━━━━━━━━━━━━━━`;
+  {let finalMsg=msg;
+    const cards=document.querySelectorAll('#cardSNR .card');let cardEl=null;
+    cards.forEach(cd=>{if(cd.querySelector('.card-id')&&cd.querySelector('.card-id').textContent===id)cardEl=cd;});
+    if(cardEl){shareCardLINE(cardEl,id,finalMsg);}
+    else{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;border-radius:12px;padding:16px;width:380px;font-family:Segoe UI,Arial,sans-serif;border-left:4px solid var(--tl);';
+      let h=`<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-weight:700;color:#1B3A5C;font-size:15px">${s.id}</span><div><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:#17A2B8;margin-right:4px">${s.type}</span><span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;background:${s.status==='Closed'?'#28A745':s.status==='In Progress'?'#FD7E14':'#DC3545'}">${s.status}</span></div></div>`;
+      h+=`<div style="font-size:13px;color:#555;line-height:1.6">`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Item:</b> ${s.item}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">รายละเอียด:</b> ${s.detail}</div>`;
+      if(s.qty)h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">จำนวน:</b> ${s.qty} ชิ้น ${s.ng?'(NG: '+s.ng+')':''}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Resp:</b> ${s.resp}</div>`;
+      h+=`<div style="margin-bottom:3px"><b style="color:#1B3A5C">Target:</b> ${s.target} ${s.actual?'→ '+s.actual:''}</div>`;
+      if(s.result)h+=`<div style="margin-top:4px"><b style="color:#28A745">✅ ผล:</b> ${s.result}</div>`;
+      h+=`</div>`;
+      wrap.innerHTML=h;document.body.appendChild(wrap);
+      html2canvas(wrap,{scale:3,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
+        document.body.removeChild(wrap);
+        const maxW=1200;let w=canvas.width,ht=canvas.height;
+        if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
+        const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
+        c2.getContext('2d').drawImage(canvas,0,0,w,ht);
+        c2.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='RTK-QC_'+id+'.png';a.click();URL.revokeObjectURL(url);
+          toast('📸 บันทึกภาพแล้ว','var(--gn)');setTimeout(()=>{openLINE(finalMsg);},300);
+        },'image/png');
+      }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
+    }
+  }
+}
+
 function shareLINE_Dashboard(){
   const t=DB.items.length,co=cnt(DB.items,'status','Complete'),ip=cnt(DB.items,'status','In Progress'),
     od=cnt(DB.items,'status','Overdue'),pc=t?Math.round(co/t*100):0,
@@ -834,11 +896,11 @@ function switchTab(name){
   curTab=name;
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.tab===name));
-  document.querySelectorAll('.tab-d').forEach((t,i)=>t.classList.toggle('active',['dashboard','items','rca','capa','meeting'][i]===name));
+  document.querySelectorAll('.tab-d').forEach((t,i)=>t.classList.toggle('active',['dashboard','items','snr','rca','capa','meeting'][i]===name));
   document.getElementById('fabAdd').style.display=name==='dashboard'?'none':'flex';
   if(name==='dashboard')renderDashboard();
 }
-function fabAction(){const m={items:openItemForm,rca:openRCAForm,capa:openCAPAForm,meeting:openMtgForm};if(m[curTab])m[curTab]();}
+function fabAction(){const m={items:openItemForm,snr:openSNRForm,rca:openRCAForm,capa:openCAPAForm,meeting:openMtgForm};if(m[curTab])m[curTab]();}
 
 // ============ MODAL ============
 function openModal(t,h,fn){document.getElementById('modalTitle').textContent=t;document.getElementById('modalBody').innerHTML=h;document.getElementById('modalSave').onclick=()=>{fn();closeModal();};document.getElementById('modal').classList.add('show');document.body.style.overflow='hidden';}
@@ -923,7 +985,7 @@ function autoSetMtg(){
 }
 
 function openItemForm(e){
-  const i=e||{id:nxtId('ITM',DB.items,'id'),mid:'',date:new Date().toISOString().slice(0,10),no:'',part:'',tqm:'Q',dept:'QA',loc:'',pain:'',rca_sum:'',action:'',temp:'',total:0,ok:0,ng:0,remark:'',resp:'',start:new Date().toISOString().slice(0,10),due:'',finish:'',status:'Pending',priority:'Medium',rca_id:'',capa_id:'',img_ok:'',img_ng:'',img_tag:'',snr:'',maker:''};
+  const i=e||{id:nxtId('ITM',DB.items,'id'),mid:'',date:new Date().toISOString().slice(0,10),no:'',part:'',tqm:'Q',dept:'QA',loc:'',pain:'',rca_sum:'',action:'',temp:'',total:0,ok:0,ng:0,remark:'',resp:'',start:new Date().toISOString().slice(0,10),due:'',finish:'',status:'Pending',priority:'Medium',rca_id:'',capa_id:'',snr_id:'',img_ok:'',img_ng:'',img_tag:'',snr:'',maker:''};
   // Auto-match meeting ตามวันที่ใกล้เคียง
   if(!e&&!i.mid){i.mid=autoMatchMtg(i.date);}
   const mo=DB.meetings.map(m=>`<option value="${m.id}" ${m.id===i.mid?'selected':''}>${m.id} — ${m.date}</option>`).join('');
@@ -939,7 +1001,6 @@ function openItemForm(e){
     <div class="form-group"><label>MAKER (ผู้ผลิต)</label><input id="fi_mk" value="${i.maker||''}" placeholder="ชื่อผู้ผลิต"></div>
     <div class="form-group full"><label>Pain Point</label><textarea id="fi_pn">${i.pain}</textarea></div>
     <div class="form-group full"><label>Temp Action</label><textarea id="fi_tm">${i.temp}</textarea></div>
-    <div class="form-group full"><label>S&R (Sorting & Rework)</label><textarea id="fi_snr" placeholder="รายละเอียดการคัดแยก/ซ่อม เชื่อมโยง Temp Action">${i.snr||''}</textarea></div>
     <div class="form-group full"><label>Action Plan</label><textarea id="fi_ac">${i.action}</textarea></div>
     <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fi_rs" value="${i.resp}"></div>
     <div class="form-group"><label>วันเริ่ม</label><input type="date" id="fi_st" value="${i.start}"></div>
@@ -949,19 +1010,21 @@ function openItemForm(e){
     <div class="form-group"><label>Priority</label><select id="fi_pr">${opts(['Critical','High','Medium','Low'],i.priority)}</select></div>
     <div class="form-group full"><label>หมายเหตุ</label><textarea id="fi_rm">${i.remark}</textarea></div>
     ${photoSlots(i.img_ok,i.img_ng,i.img_tag)}</div>`,()=>{
-    const o={id:$('fi_id').value,mid:$('fi_mid').value,date:$('fi_dt').value,no:+$('fi_no').value||0,part:$('fi_pt').value,tqm:$('fi_tq').value,dept:$('fi_dp').value,loc:$('fi_lc').value,pain:$('fi_pn').value,rca_sum:i.rca_sum,action:$('fi_ac').value,temp:$('fi_tm').value,total:i.total,ok:i.ok,ng:i.ng,remark:$('fi_rm').value,resp:$('fi_rs').value,start:$('fi_st').value,due:$('fi_du').value,finish:$('fi_fn').value,status:$('fi_ss').value,priority:$('fi_pr').value,rca_id:i.rca_id,capa_id:i.capa_id,img_ok:$('ps_ok').value,img_ng:$('ps_ng').value,img_tag:$('ps_tag').value,snr:$('fi_snr').value,maker:$('fi_mk').value};
+    const o={id:$('fi_id').value,mid:$('fi_mid').value,date:$('fi_dt').value,no:+$('fi_no').value||0,part:$('fi_pt').value,tqm:$('fi_tq').value,dept:$('fi_dp').value,loc:$('fi_lc').value,pain:$('fi_pn').value,rca_sum:i.rca_sum,action:$('fi_ac').value,temp:$('fi_tm').value,total:i.total,ok:i.ok,ng:i.ng,remark:$('fi_rm').value,resp:$('fi_rs').value,start:$('fi_st').value,due:$('fi_du').value,finish:$('fi_fn').value,status:$('fi_ss').value,priority:$('fi_pr').value,rca_id:i.rca_id,capa_id:i.capa_id,snr_id:i.snr_id||'',img_ok:$('ps_ok').value,img_ng:$('ps_ng').value,img_tag:$('ps_tag').value,snr:i.snr||'',maker:$('fi_mk').value};
     if(e){const x=DB.items.findIndex(x=>x.id===e.id);DB.items[x]=o;}else DB.items.push(o);
     saveDB();toast(e?'อัพเดทแล้ว':'เพิ่มรายการแล้ว');});
 }
 function delItem(id){if(confirm('ลบ '+id+'?')){DB.items=DB.items.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
 function qRCA(id){const i=DB.items.find(x=>x.id===id);openRCAForm({id:nxtId('RCA',DB.rcas,'id'),item:id,prob:i.pain,cat:'Method',w1:'',w2:'',w3:'',w4:'',w5:'',root:'',owner:i.resp,date:new Date().toISOString().slice(0,10),verBy:'',verDate:''},true);}
 function qCAPA(id){const i=DB.items.find(x=>x.id===id);const rs=DB.rcas.filter(r=>r.item===id);openCAPAForm({id:nxtId('CAPA',DB.capas,'id'),item:id,rca:rs.length?rs[0].id:'',type:'CA',action:'',resp:i.resp,target:'',actual:'',verify:'',result:'',score:'',status:'Open',recur:'',closeBy:''},true);}
+function qSNR(id){const i=DB.items.find(x=>x.id===id);if(!DB.snrs)DB.snrs=[];openSNRForm({id:nxtId('SNR',DB.snrs,'id'),item:id,type:'Sorting',detail:i.temp||'',qty:'',ng:'',resp:i.resp,target:'',actual:'',result:'',status:'Open',date:new Date().toISOString().slice(0,10)},true);}
 
 function renderItems(){
   const fs=$('fSt').value,ft=$('fTq').value,fd=$('fDp').value,fp=$('fPr').value,q=$('fQ').value.toLowerCase();
   const data=DB.items.filter(i=>{if(fs&&i.status!==fs)return!1;if(ft&&i.tqm!==ft)return!1;if(fd&&i.dept!==fd)return!1;if(fp&&i.priority!==fp)return!1;if(q&&!i.part.toLowerCase().includes(q)&&!i.pain.toLowerCase().includes(q)&&!i.id.toLowerCase().includes(q))return!1;return!0;});
   // Cards
   document.getElementById('cardItems').innerHTML=data.map(i=>{
+    const snrL=i.snr_id?`<span class="link" onclick="switchTab('snr')">${i.snr_id}</span>`:`<button class="act-btn" style="background:#E0F7FA;color:#00838F" onclick="qSNR('${i.id}')">➕S&R</button>`;
     const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca" onclick="qRCA('${i.id}')">➕RCA</button>`;
     const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa" onclick="qCAPA('${i.id}')">➕CAPA</button>`;
     return `<div class="card" style="border-left-color:${i.status==='Complete'?'var(--gn)':i.status==='In Progress'?'var(--or)':'var(--rd)'}">
@@ -970,14 +1033,13 @@ function renderItems(){
         <div class="row"><span class="lbl">Part</span><span class="val" style="font-weight:600">${i.part}</span></div>
         <div class="row"><span class="lbl">Pain</span><span class="val">${i.pain}</span></div>
         ${i.temp?`<div class="row"><span class="lbl">Temp</span><span class="val" style="color:var(--or)">${i.temp}</span></div>`:''}
-        ${i.snr?`<div class="row"><span class="lbl">S&R</span><span class="val" style="color:var(--tl)">${i.snr}</span></div>`:''}
         ${i.maker?`<div class="row"><span class="lbl">Maker</span><span class="val">${i.maker}</span></div>`:''}
         ${i.action?`<div class="row"><span class="lbl">Action</span><span class="val">${i.action}</span></div>`:''}
         <div class="row"><span class="lbl">Info</span><span class="val">${i.tqm} · ${i.dept} · ${i.loc} · ${i.resp}</span></div>
         <div class="row"><span class="lbl">Due</span><span class="val">${i.due} ${dL(i.due,i.finish)}</span></div>
         ${photoThumbs(i)}
       </div>
-      <div class="card-footer"><div class="card-link">${rcaL} ${capaL}</div><div class="card-actions">
+      <div class="card-footer"><div class="card-link">${snrL} ${rcaL} ${capaL}</div><div class="card-actions">
         <button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button>
         <button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button>
         <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE('${i.id}')">💬LINE</button>
@@ -985,12 +1047,66 @@ function renderItems(){
       </div></div></div>`;}).join('');
   // Table
   document.getElementById('tbItems').innerHTML=data.map(i=>{
+    const snrL2=i.snr_id?`<span class="link" onclick="switchTab('snr')">${i.snr_id}</span>`:`<button class="act-btn btn-sm" style="background:#E0F7FA;color:#00838F" onclick="qSNR('${i.id}')">+S&R</button>`;
     const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca btn-sm" onclick="qRCA('${i.id}')">+RCA</button>`;
     const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa btn-sm" onclick="qCAPA('${i.id}')">+CAPA</button>`;
     return `<tr><td><button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button><button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE('${i.id}')">💬</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printItem('${i.id}')">🖨️</button></td>
     <td><b>${i.id}</b></td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
-    <td class="left" style="max-width:160px">${i.pain}</td><td>${i.maker||''}</td><td class="left" style="max-width:120px">${i.temp}</td><td class="left" style="max-width:100px;color:var(--tl)">${i.snr||''}</td><td class="left" style="max-width:160px">${i.action}</td>
-    <td>${i.resp}</td><td>${i.due}</td><td>${stB(i.status)}</td><td>${prB(i.priority)}</td><td>${rcaL}</td><td>${capaL}</td></tr>`;}).join('');
+    <td class="left" style="max-width:160px">${i.pain}</td><td>${i.maker||''}</td><td class="left" style="max-width:120px">${i.temp}</td><td class="left" style="max-width:160px">${i.action}</td>
+    <td>${i.resp}</td><td>${i.due}</td><td>${stB(i.status)}</td><td>${prB(i.priority)}</td><td>${snrL2}</td><td>${rcaL}</td><td>${capaL}</td></tr>`;}).join('');
+}
+
+// ============ S&R (Sorting & Rework) ============
+function openSNRForm(e,isN){
+  if(!DB.snrs)DB.snrs=[];
+  const s=e||{id:nxtId('SNR',DB.snrs,'id'),item:'',type:'Sorting',detail:'',qty:'',ng:'',resp:'',target:'',actual:'',result:'',status:'Open',date:new Date().toISOString().slice(0,10)};
+  const io=DB.items.map(i=>`<option value="${i.id}" ${i.id===s.item?'selected':''}>${i.id} — ${i.part}</option>`).join('');
+  openModal(e&&!isN?'แก้ไข S&R':'เพิ่ม S&R',`<div class="form-grid">
+    <div class="form-group"><label>S&R ID</label><input id="fs_id" value="${s.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>ประเภท</label><select id="fs_tp">${opts(['Sorting','Rework','Sorting+Rework'],s.type)}</select></div>
+    <div class="form-group"><label>🔗 Item</label><select id="fs_it" ${isN&&s.item?'disabled':''}><option value="">—</option>${io}</select>${isN&&s.item?`<input type="hidden" id="fs_ith" value="${s.item}">`:''}</div>
+    <div class="form-group"><label>วันที่</label><input type="date" id="fs_dt" value="${s.date}"></div>
+    <div class="form-group full"><label>รายละเอียดการคัดแยก/ซ่อม</label><textarea id="fs_dl">${s.detail}</textarea></div>
+    <div class="form-group"><label>จำนวนตรวจ (ชิ้น)</label><input id="fs_qt" value="${s.qty}" placeholder="เช่น 2,000"></div>
+    <div class="form-group"><label>NG พบ (ชิ้น)</label><input id="fs_ng" value="${s.ng}" placeholder="จำนวน NG"></div>
+    <div class="form-group"><label>ผู้รับผิดชอบ</label><input id="fs_rs" value="${s.resp}"></div>
+    <div class="form-group"><label>กำหนดเสร็จ</label><input type="date" id="fs_tg" value="${s.target}"></div>
+    <div class="form-group"><label>เสร็จจริง</label><input type="date" id="fs_at" value="${s.actual}"></div>
+    <div class="form-group"><label>สถานะ</label><select id="fs_st">${opts(['Open','In Progress','Closed'],s.status)}</select></div>
+    <div class="form-group full"><label>ผลการดำเนินการ</label><textarea id="fs_re">${s.result}</textarea></div></div>`,()=>{
+    const iv=$('fs_ith')?$('fs_ith').value:$('fs_it').value;
+    const o={id:$('fs_id').value,item:iv,type:$('fs_tp').value,detail:$('fs_dl').value,qty:$('fs_qt').value,ng:$('fs_ng').value,resp:$('fs_rs').value,target:$('fs_tg').value,actual:$('fs_at').value,result:$('fs_re').value,status:$('fs_st').value,date:$('fs_dt').value};
+    if(e&&!isN){const x=DB.snrs.findIndex(x=>x.id===e.id);DB.snrs[x]=o;}else DB.snrs.push(o);
+    const ix=DB.items.findIndex(x=>x.id===iv);if(ix>=0&&!DB.items[ix].snr_id)DB.items[ix].snr_id=o.id;
+    saveDB();toast('บันทึก S&R — เชื่อมโยงอัตโนมัติ');});
+}
+function delSNR(id){if(confirm('ลบ '+id+'?')){DB.items.forEach(i=>{if(i.snr_id===id)i.snr_id='';});DB.snrs=DB.snrs.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
+
+function renderSNR(){
+  if(!DB.snrs)DB.snrs=[];
+  const fs=$('fSnrSt')?$('fSnrSt').value:'',ft=$('fSnrTy')?$('fSnrTy').value:'',q=$('fSnrQ')?$('fSnrQ').value.toLowerCase():'';
+  const data=DB.snrs.filter(s=>{if(fs&&s.status!==fs)return!1;if(ft&&s.type!==ft)return!1;if(q&&!s.detail.toLowerCase().includes(q)&&!s.id.toLowerCase().includes(q))return!1;return!0;});
+  const el=document.getElementById('cardSNR');if(!el)return;
+  el.innerHTML=data.map(s=>`<div class="card" style="border-left-color:${s.status==='Closed'?'var(--gn)':s.status==='In Progress'?'var(--or)':'var(--tl)'}">
+    <div class="card-header"><span class="card-id">${s.id}</span><div class="card-badges"><span class="badge" style="background:var(--tl);color:#fff">${s.type}</span> ${stB(s.status)}</div></div>
+    <div class="card-body">
+      <div class="row"><span class="lbl">Item</span><span class="val link" onclick="switchTab('items')">${s.item}</span></div>
+      <div class="row"><span class="lbl">รายละเอียด</span><span class="val" style="font-weight:600">${s.detail}</span></div>
+      ${s.qty?`<div class="row"><span class="lbl">จำนวน</span><span class="val">${s.qty} ชิ้น ${s.ng?'(NG: '+s.ng+')':''}</span></div>`:''}
+      <div class="row"><span class="lbl">Resp</span><span class="val">${s.resp}</span></div>
+      <div class="row"><span class="lbl">Target</span><span class="val">${s.target} ${dL(s.target,s.actual)}</span></div>
+      ${s.result?`<div class="row"><span class="lbl">ผล</span><span class="val" style="color:var(--gn)">${s.result}</span></div>`:''}
+    </div>
+    <div class="card-footer"><div></div><div class="card-actions">
+      <button class="act-btn act-edit" onclick='openSNRForm(${esc(s)})'>✏️</button>
+      <button class="act-btn act-del" onclick="delSNR('${s.id}')">🗑️</button>
+      <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_SNR('${s.id}')">💬LINE</button>
+    </div></div></div>`).join('');
+  document.getElementById('tbSNR').innerHTML=data.map(s=>`<tr>
+    <td><button class="act-btn act-edit" onclick='openSNRForm(${esc(s)})'>✏️</button><button class="act-btn act-del" onclick="delSNR('${s.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_SNR('${s.id}')">💬</button></td>
+    <td><b>${s.id}</b></td><td class="link" onclick="switchTab('items')">${s.item}</td><td><span class="badge" style="background:var(--tl);color:#fff">${s.type}</span></td>
+    <td class="left" style="max-width:220px">${s.detail}</td><td>${s.qty||'-'}</td><td>${s.ng||'-'}</td><td>${s.resp}</td>
+    <td>${s.target}</td><td>${s.actual||'-'}</td><td class="left">${s.result||'-'}</td><td>${stB(s.status)}</td></tr>`).join('');
 }
 
 // ============ RCA ============
@@ -1126,7 +1242,8 @@ function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
 function renderDashboard(){
   const t=DB.items.length,co=cnt(DB.items,'status','Complete'),ip=cnt(DB.items,'status','In Progress'),
     od=cnt(DB.items,'status','Overdue'),pc=t?Math.round(co/t*100):0,
-    ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed'),cx=ct-cc;
+    ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed'),cx=ct-cc,
+    st=DB.snrs?DB.snrs.length:0,sc=DB.snrs?cnt(DB.snrs,'status','Closed'):0;
   // Summary strip
   document.getElementById('summaryStrip').innerHTML=
     `<div class="summary-chip" style="background:var(--md)"><span class="num">${t}</span>Items</div>
@@ -1134,10 +1251,11 @@ function renderDashboard(){
      <div class="summary-chip" style="background:var(--or)"><span class="num">${ip}</span>IP</div>
      <div class="summary-chip" style="background:var(--rd)"><span class="num">${od}</span>OD</div>
      <div class="summary-chip" style="background:var(--tl)"><span class="num">${pc}%</span></div>
+     <div class="summary-chip" style="background:#17A2B8"><span class="num">${st}</span>S&R</div>
      <div class="summary-chip" style="background:var(--md)"><span class="num">${ct}</span>CAPA</div>
      <div class="summary-chip" style="background:var(--gn)"><span class="num">${cc}</span>Closed</div>`;
   // KPIs
-  const kpis=[{l:'Total Items',v:t,c:'var(--md)'},{l:'Complete',v:co,c:'var(--gn)'},{l:'In Progress',v:ip,c:'var(--or)'},{l:'Overdue',v:od,c:'var(--rd)'},{l:'% สำเร็จ',v:pc+'%',c:'var(--tl)'},{l:'CAPA Total',v:ct,c:'var(--md)'},{l:'CAPA Closed',v:cc,c:'var(--gn)'},{l:'CAPA Open',v:cx,c:'var(--rd)'}];
+  const kpis=[{l:'Total Items',v:t,c:'var(--md)'},{l:'Complete',v:co,c:'var(--gn)'},{l:'In Progress',v:ip,c:'var(--or)'},{l:'Overdue',v:od,c:'var(--rd)'},{l:'% สำเร็จ',v:pc+'%',c:'var(--tl)'},{l:'S&R Total',v:st,c:'#17A2B8'},{l:'CAPA Total',v:ct,c:'var(--md)'},{l:'CAPA Closed',v:cc,c:'var(--gn)'},{l:'CAPA Open',v:cx,c:'var(--rd)'}];
   document.getElementById('kpiRow').innerHTML=kpis.map(k=>`<div class="kpi"><div class="label">${k.l}</div><div class="value" style="color:${k.c}">${k.v}</div></div>`).join('');
   // Charts
   destroyCharts();
@@ -1231,7 +1349,8 @@ function printItem(id){
   h+=`<div class="row"><span class="lbl">TQM / Dept / Loc</span><span class="val">${i.tqm} · ${i.dept} · ${i.loc}</span></div>`;
   h+=`<div class="row"><span class="lbl">Pain Point</span><span class="val">${i.pain||'-'}</span></div>`;
   if(i.temp)h+=`<div class="row"><span class="lbl">Temp Action</span><span class="val" style="color:#FD7E14">${i.temp}</span></div>`;
-  if(i.snr)h+=`<div class="row"><span class="lbl">S&R</span><span class="val" style="color:#17A2B8">${i.snr}</span></div>`;
+  if(i.snr_id)h+=`<div class="row"><span class="lbl">S&R</span><span class="val" style="color:#17A2B8">${i.snr_id}</span></div>`;
+  else if(i.snr)h+=`<div class="row"><span class="lbl">S&R</span><span class="val" style="color:#17A2B8">${i.snr}</span></div>`;
   if(i.action)h+=`<div class="row"><span class="lbl">Action Plan</span><span class="val">${i.action}</span></div>`;
   h+=`<div class="row"><span class="lbl">ผู้รับผิดชอบ</span><span class="val">${i.resp}</span></div>`;
   h+=`<div class="row"><span class="lbl">Due / Finish</span><span class="val">${i.due} ${i.finish?'→ '+i.finish+' ✅':''}</span></div>`;
@@ -1284,11 +1403,11 @@ function printItem(id){
 }
 
 function exportJSON(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`QCDMS_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Export สำเร็จ','var(--tl)');}
-function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.meetings&&d.items&&d.rcas&&d.capas){DB=d;saveDB();toast('Import สำเร็จ','var(--gn)');}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};r.readAsText(f);e.target.value='';}
+function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.meetings&&d.items&&d.rcas&&d.capas){if(!d.snrs)d.snrs=[];DB=d;saveDB();toast('Import สำเร็จ','var(--gn)');}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};r.readAsText(f);e.target.value='';}
 
 // ============ UTIL ============
 function $(id){return document.getElementById(id);}
-function refreshAll(){renderDashboard();renderItems();renderRCA();renderCAPA();renderMeetings();}
+function refreshAll(){renderDashboard();renderItems();renderSNR();renderRCA();renderCAPA();renderMeetings();}
 
 // ============ INIT ============
 $('dtNow').textContent=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
