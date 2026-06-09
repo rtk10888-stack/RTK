@@ -773,8 +773,13 @@ function shareLINE_MTG(id){
   const its=DB.items.filter(i=>i.mid===m.id),t=its.length,co=its.filter(i=>i.status==='Complete').length,ip=its.filter(i=>i.status==='In Progress').length,od=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(co/t*100)+'%':'-';
   let msg=`📅 RTK-QC Meeting Report\n━━━━━━━━━━━━━━━\n`;
   msg+=`🔖 ${m.id}\n📅 ${m.date} · ${m.type}\n`;
+  if(m.topic)msg+=`📌 หัวข้อ: ${m.topic}\n`;
+  if(m.loc||m.tStart)msg+=`📍 ${m.loc||'-'}${m.tStart?' · '+m.tStart+(m.tEnd?'-'+m.tEnd:''):''}\n`;
   msg+=`📆 Week: ${m.week}\n👤 Facilitator: ${m.fac}\n`;
   if(m.attendees&&m.attendees.length)msg+=`👥 ผู้เข้าร่วม: ${m.attendees.map(a=>a.name).join(', ')}\n`;
+  if(m.agenda&&m.agenda.length)msg+=`📋 วาระ: ${m.agenda.length} ข้อ\n`;
+  if(m.actions&&m.actions.length)msg+=`🎯 มอบหมายงาน: ${m.actions.length} งาน\n`;
+  if(m.nextDate)msg+=`📅 ครั้งถัดไป: ${m.nextDate}\n`;
   msg+=`📊 Items: ${t} total · ${co} ✅ · ${ip} 🔄 · ${od} ⚠️ · ${pc}\n`;
   msg+=`━━━━━━━━━━━━━━━`;
   {let finalMsg=msg;
@@ -889,7 +894,39 @@ function addAttendee(){
   renderAttList();$('fm_att_name').focus();
 }
 
-function nxtMtg(){const y=new Date().getFullYear(),ns=DB.meetings.map(m=>{const p=m.id.match(/MTG-\d+-(\d+)/);return p?parseInt(p[1]):0;});return `MTG-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(2,'0')}`;}
+let _tmpAgenda=[];
+let _tmpAct=[];
+let _mtgNew=false;
+function renderAgendaList(){
+  const el=$('fm_ag_list');if(!el)return;
+  el.innerHTML=_tmpAgenda.length?_tmpAgenda.map((a,i)=>`<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 8px;background:#f8f9fa;border-radius:6px;margin-bottom:4px;font-size:12px"><span style="font-weight:700;color:var(--dk);min-width:20px">${i+1}.</span><span style="flex:1">${a}</span><button type="button" onclick="_tmpAgenda.splice(${i},1);renderAgendaList()" style="background:#FFEBEE;color:var(--rd);border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px">✕</button></div>`).join(''):'<div style="color:#999;font-size:11px;padding:4px">ยังไม่มีวาระ</div>';
+}
+function addAgenda(){
+  const v=$('fm_ag_in').value.trim();
+  if(!v){toast('พิมพ์วาระก่อน','var(--rd)');return;}
+  _tmpAgenda.push(v);$('fm_ag_in').value='';renderAgendaList();$('fm_ag_in').focus();
+}
+function renderActList(){
+  const el=$('fm_act_list');if(!el)return;
+  el.innerHTML=_tmpAct.length?_tmpAct.map((a,i)=>`<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 8px;background:#f8f9fa;border-radius:6px;margin-bottom:4px;font-size:12px"><span style="font-weight:700;color:var(--dk);min-width:20px">${i+1}.</span><span style="flex:2">${a.task}</span><span style="flex:1;color:var(--md)">${a.who||'-'}</span><span style="flex:1;color:var(--rd)">${a.due||'-'}</span><button type="button" onclick="_tmpAct.splice(${i},1);renderActList()" style="background:#FFEBEE;color:var(--rd);border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px">✕</button></div>`).join(''):'<div style="color:#999;font-size:11px;padding:4px">ยังไม่มีงานที่มอบหมาย</div>';
+}
+function addAct(){
+  const task=$('fm_act_task').value.trim();
+  if(!task){toast('พิมพ์งานที่มอบหมายก่อน','var(--rd)');return;}
+  _tmpAct.push({task:task,who:$('fm_act_who').value.trim(),due:$('fm_act_due').value});
+  $('fm_act_task').value='';$('fm_act_who').value='';$('fm_act_due').value='';
+  renderActList();$('fm_act_task').focus();
+}
+function nxtMtg(type){
+  const y=new Date().getFullYear();
+  if(type==='Special'){
+    const ns=DB.meetings.map(m=>{const p=m.id.match(/^MTG-SP-\d+-(\d+)/);return p?parseInt(p[1]):0;});
+    return `MTG-SP-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(2,'0')}`;
+  }
+  const ns=DB.meetings.map(m=>{const p=m.id.match(/^MTG-\d+-(\d+)/);return p?parseInt(p[1]):0;});
+  return `MTG-${y}-${String((ns.length?Math.max(...ns):0)+1).padStart(2,'0')}`;
+}
+function onMtgTypeChange(){ if(_mtgNew){$('fm_id').value=nxtMtg($('fm_tp').value);} }
 
 // ============ TABS ============
 let curTab='dashboard';
@@ -910,18 +947,23 @@ function closeModal(){document.getElementById('modal').classList.remove('show');
 
 // ============ MEETING ============
 function openMtgForm(e){
-  const m=e||{id:nxtMtg(),date:new Date().toISOString().slice(0,10),type:'Weekly QCDMS',week:'',year:new Date().getFullYear(),fac:'ธีรสิทธิ์-QMR',notes:'',attendees:[]};
+  const m=e||{id:nxtMtg('Weekly QCDMS'),date:new Date().toISOString().slice(0,10),type:'Weekly QCDMS',topic:'',week:'',year:new Date().getFullYear(),loc:'',tStart:'',tEnd:'',fac:'ธีรสิทธิ์-QMR',notes:'',agenda:[],resolution:'',actions:[],nextDate:'',attendees:[]};
+  _mtgNew=!e;
   _tmpAtt=m.attendees?JSON.parse(JSON.stringify(m.attendees)):[];
-  openModal(e?'แก้ไขประชุม':'เพิ่มประชุมใหม่',`<div style="display:none" id="fm_att_init"></div><div class="form-grid">
+  _tmpAgenda=m.agenda?JSON.parse(JSON.stringify(m.agenda)):[];
+  _tmpAct=m.actions?JSON.parse(JSON.stringify(m.actions)):[];
+  openModal(e?'แก้ไขรายงานการประชุม (MoM)':'รายงานการประชุมใหม่ (MoM)',`<div class="form-grid">
     <div class="form-group"><label>Meeting ID</label><input id="fm_id" value="${m.id}" class="auto-id" readonly></div>
+    <div class="form-group"><label>ประเภท</label><select id="fm_tp" onchange="onMtgTypeChange()">${opts(['Weekly QCDMS','Monthly Review','Special'],m.type)}</select></div>
+    <div class="form-group full"><label>หัวข้อการประชุม (Topic)</label><input id="fm_topic" value="${m.topic||''}" placeholder="เช่น ทบทวนปัญหาคุณภาพ / วาระพิเศษ..."></div>
     <div class="form-group"><label>วันที่</label><input type="date" id="fm_dt" value="${m.date}"></div>
-    <div class="form-group"><label>ประเภท</label><select id="fm_tp">${opts(['Weekly QCDMS','Monthly Review','Special'],m.type)}</select></div>
     <div class="form-group"><label>สัปดาห์</label><input id="fm_wk" value="${m.week}" placeholder="W01"></div>
+    <div class="form-group"><label>เวลาเริ่ม</label><input type="time" id="fm_ts" value="${m.tStart||''}"></div>
+    <div class="form-group"><label>เวลาเลิก</label><input type="time" id="fm_te" value="${m.tEnd||''}"></div>
+    <div class="form-group"><label>สถานที่</label><input id="fm_loc" value="${m.loc||''}" placeholder="ห้องประชุม..."></div>
     <div class="form-group"><label>ปี</label><input type="number" id="fm_yr" value="${m.year}"></div>
-    <div class="form-group"><label>ผู้ดำเนินการ</label><input id="fm_fc" value="${m.fac}"></div>
-    <div class="form-group full"><label>หมายเหตุ</label><textarea id="fm_nt">${m.notes||''}</textarea></div>
-    <div class="form-group full" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--md)">
-      <label style="color:var(--md)">👥 ผู้เข้าร่วมประชุม</label>
+    <div class="form-group full"><label>ผู้ดำเนินการประชุม</label><input id="fm_fc" value="${m.fac}"></div>
+    <div class="form-group full" style="margin-top:6px;padding-top:8px;border-top:2px solid var(--md)"><label style="color:var(--md)">👥 ผู้เข้าร่วมประชุม</label>
       <div id="fm_att_list" style="margin:6px 0"></div>
       <div style="display:flex;gap:4px;flex-wrap:wrap">
         <select id="fm_att_name" style="flex:2;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px"><option value="">— เลือกชื่อ —</option><option>ธีรสิทธิ์-QMR</option><option>ธีรสิทธิ์-DCC</option><option>ธีรสิทธิ์-PE</option><option>พัฒนเดช-QA</option><option>มานพ-QC</option><option>มิตรอังคาร-PI</option><option>เกื้อ-PD</option><option>วิละพงษ์-QC</option><option>เตย-QC</option><option>วัชราภรณ์-PC</option><option>วัชราภรณ์-ST</option><option>อลิสา-PL</option><option>ธัญลักษณ์-SA</option><option>ขวัญใจ-AC</option></select>
@@ -929,60 +971,138 @@ function openMtgForm(e){
         <input id="fm_att_time" type="time" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
         <button type="button" class="btn btn-success btn-sm" onclick="addAttendee()" style="min-width:40px">＋</button>
       </div>
-    </div></div>`,()=>{
-    const o={id:$('fm_id').value,date:$('fm_dt').value,type:$('fm_tp').value,week:$('fm_wk').value,year:+$('fm_yr').value,fac:$('fm_fc').value,notes:$('fm_nt').value,attendees:_tmpAtt||[]};
+    </div>
+    <div class="form-group full" style="margin-top:6px;padding-top:8px;border-top:2px solid var(--tl)"><label style="color:var(--tl)">📋 วาระการประชุม (Agenda)</label>
+      <div id="fm_ag_list" style="margin:6px 0"></div>
+      <div style="display:flex;gap:4px">
+        <input id="fm_ag_in" placeholder="พิมพ์วาระแล้วกด ＋ หรือ Enter" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px" onkeydown="if(event.key==='Enter'){event.preventDefault();addAgenda();}">
+        <button type="button" class="btn btn-info btn-sm" onclick="addAgenda()" style="min-width:40px">＋</button>
+      </div>
+    </div>
+    <div class="form-group full"><label>📝 บันทึกการประชุม / ประเด็นหารือ</label><textarea id="fm_nt" rows="3">${m.notes||''}</textarea></div>
+    <div class="form-group full"><label>✅ สรุปมติ / ข้อสรุปที่ประชุม</label><textarea id="fm_rs" rows="3">${m.resolution||''}</textarea></div>
+    <div class="form-group full" style="margin-top:6px;padding-top:8px;border-top:2px solid var(--gn)"><label style="color:var(--gn)">🎯 มอบหมายงาน (Action Items)</label>
+      <div id="fm_act_list" style="margin:6px 0"></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <input id="fm_act_task" placeholder="งานที่ต้องทำ" style="flex:2;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <input id="fm_act_who" placeholder="ผู้รับผิดชอบ" style="flex:1.2;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <input id="fm_act_due" type="date" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;min-height:36px;font-size:13px">
+        <button type="button" class="btn btn-success btn-sm" onclick="addAct()" style="min-width:40px">＋</button>
+      </div>
+    </div>
+    <div class="form-group full"><label>📅 วันประชุมครั้งถัดไป</label><input type="date" id="fm_nx" value="${m.nextDate||''}"></div>
+  </div>`,()=>{
+    const o={id:$('fm_id').value,date:$('fm_dt').value,type:$('fm_tp').value,topic:$('fm_topic').value,week:$('fm_wk').value,year:+$('fm_yr').value,loc:$('fm_loc').value,tStart:$('fm_ts').value,tEnd:$('fm_te').value,fac:$('fm_fc').value,notes:$('fm_nt').value,agenda:_tmpAgenda.slice(),resolution:$('fm_rs').value,actions:_tmpAct.slice(),nextDate:$('fm_nx').value,attendees:_tmpAtt||[]};
     if(e){const i=DB.meetings.findIndex(x=>x.id===e.id);DB.meetings[i]=o;}else DB.meetings.push(o);
     saveDB();toast(e?'อัพเดทแล้ว':'เพิ่มประชุมแล้ว');});
-  setTimeout(renderAttList,100);
+  setTimeout(()=>{renderAttList();renderAgendaList();renderActList();},100);
 }
+
 function delMtg(id){if(confirm('ลบ '+id+'?')){DB.meetings=DB.meetings.filter(x=>x.id!==id);saveDB();toast('ลบแล้ว','var(--rd)');}}
 function renderMeetings(){
-  const rows=DB.meetings.map(m=>{const its=DB.items.filter(i=>i.mid===m.id),t=its.length,c=its.filter(i=>i.status==='Complete').length,p=its.filter(i=>i.status==='In Progress').length,o=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(c/t*100)+'%':'-';
-    return{m,t,c,p,o,pc};});
-  // Cards (mobile)
-  document.getElementById('cardMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<div class="card">
-    <div class="card-header"><span class="card-id">${m.id}</span><span style="color:var(--gr);font-size:11px">${m.date}</span></div>
+  const rows=DB.meetings.map(m=>{const its=DB.items.filter(i=>i.mid===m.id),t=its.length,c=its.filter(i=>i.status==='Complete').length,p=its.filter(i=>i.status==='In Progress').length,o=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(c/t*100)+'%':'-';return{m,t,c,p,o,pc};});
+  document.getElementById('cardMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<div class="card" style="${m.type==='Special'?'border-left-color:var(--rd)':''}">
+    <div class="card-header"><span class="card-id">${m.id}</span><span style="display:flex;gap:4px;align-items:center">${m.type==='Special'?'<span class="badge" style="background:var(--rd);color:#fff">SPECIAL</span>':''}<span style="color:var(--gr);font-size:11px">${m.date}</span></span></div>
     <div class="card-body">
-      <div class="row"><span class="lbl">Week</span><span class="val">${m.week} · ${m.type}</span></div>
-      <div class="row"><span class="lbl">Facilitator</span><span class="val">${m.fac}</span></div>
+      ${m.topic?`<div class="row"><span class="lbl">หัวข้อ</span><span class="val" style="font-weight:600">${m.topic}</span></div>`:''}
+      <div class="row"><span class="lbl">ประเภท</span><span class="val">${m.type}${m.week?' · '+m.week:''}</span></div>
+      ${(m.loc||m.tStart)?`<div class="row"><span class="lbl">สถานที่/เวลา</span><span class="val">${m.loc||'-'}${m.tStart?' · '+m.tStart+(m.tEnd?'-'+m.tEnd:''):''}</span></div>`:''}
+      <div class="row"><span class="lbl">ผู้ดำเนินการ</span><span class="val">${m.fac}</span></div>
       ${m.attendees&&m.attendees.length?`<div class="row"><span class="lbl">ผู้เข้าร่วม</span><span class="val">${m.attendees.length} คน: ${m.attendees.map(a=>a.name).join(', ')}</span></div>`:''}
+      ${m.agenda&&m.agenda.length?`<div class="row"><span class="lbl">วาระ</span><span class="val">${m.agenda.length} ข้อ</span></div>`:''}
+      ${m.actions&&m.actions.length?`<div class="row"><span class="lbl">มอบหมาย</span><span class="val">${m.actions.length} งาน</span></div>`:''}
+      ${m.nextDate?`<div class="row"><span class="lbl">ครั้งถัดไป</span><span class="val" style="color:var(--md)">${m.nextDate}</span></div>`:''}
       <div class="row"><span class="lbl">Items</span><span class="val">${t} total · ${c} ✅ · ${p} 🔄 · ${o} ⚠️ · ${pc}</span></div>
     </div>
     <div class="card-footer"><div class="card-actions">
       <button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️ แก้ไข</button>
       <button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button>
+      <button class="act-btn" style="background:#F3E5F5;color:#7B1FA2" onclick="printMtg('${m.id}')">📄 MoM</button>
       <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_MTG('${m.id}')">💬LINE</button>
     </div></div></div>`).join('');
-  // Table (desktop)
   $('infoMtg').textContent='ทั้งหมด '+rows.length+' ครั้งประชุม';
   if(!rows.length)$('cardMtg').innerHTML=emptyState('📭','ยังไม่มีการประชุม — กดปุ่ม ➕ เพื่อเพิ่ม');
   document.getElementById('tbMtg').innerHTML=rows.map(({m,t,c,p,o,pc})=>`<tr>
-    <td><button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️</button><button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_MTG('${m.id}')">💬</button></td>
-    <td><b>${m.id}</b></td><td>${m.date}</td><td>${m.type}</td><td>${m.week}</td><td>${m.year}</td><td>${m.fac}</td>
+    <td><button class="act-btn act-edit" onclick='openMtgForm(${esc(m)})'>✏️</button><button class="act-btn act-del" onclick="delMtg('${m.id}')">🗑️</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printMtg('${m.id}')">📄</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_MTG('${m.id}')">💬</button></td>
+    <td><b>${m.id}</b></td><td>${m.date}</td><td>${m.type}${m.topic?'<br><span style="font-size:10px;color:#666">'+m.topic+'</span>':''}</td><td>${m.week}</td><td>${m.year}</td><td>${m.fac}</td>
     <td>${t}</td><td>${c}</td><td>${p}</td><td>${o}</td><td>${pc}</td></tr>`).join('');
+}
+function printMtg(id){
+  const m=DB.meetings.find(x=>x.id===id);if(!m)return;
+  const its=DB.items.filter(i=>i.mid===m.id);
+  const E=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let h=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>MoM ${E(m.id)}</title><style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',Arial,sans-serif;padding:24px;font-size:13px;color:#222;line-height:1.5;}
+    .doc-title{text-align:center;border-bottom:3px solid #1B3A5C;padding-bottom:10px;margin-bottom:14px;}
+    .doc-title h1{font-size:20px;color:#1B3A5C;}
+    .doc-title .sub{font-size:12px;color:#666;margin-top:2px;}
+    .meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-bottom:6px;}
+    .meta .it{display:flex;gap:6px;font-size:13px;}
+    .meta .it b{color:#1B3A5C;min-width:90px;}
+    .sec{margin-top:14px;}
+    .sec h3{font-size:14px;color:#fff;background:#2E5D8A;padding:5px 10px;border-radius:4px;margin-bottom:6px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;}
+    th{background:#1B3A5C;color:#fff;padding:6px;text-align:left;}
+    td{padding:6px;border-bottom:1px solid #e3e3e3;vertical-align:top;}
+    ol{margin-left:20px;} ol li{margin-bottom:3px;}
+    .box{background:#f7f9fb;border:1px solid #e3e3e3;border-radius:6px;padding:10px;white-space:pre-wrap;}
+    .sp-badge{display:inline-block;background:#DC3545;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;}
+    .btns{margin-top:18px;}
+    .btn{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
+    @media print{.btns{display:none;}@page{size:A4;margin:14mm;}}
+  </style></head><body>`;
+  h+=`<div class="doc-title"><h1>รายงานการประชุม (Minutes of Meeting)</h1><div class="sub">RTK-QC — Quality Management System</div></div>`;
+  h+=`<div class="meta">`;
+  h+=`<div class="it"><b>รหัสประชุม</b><span>${E(m.id)} ${m.type==='Special'?'<span class="sp-badge">SPECIAL</span>':''}</span></div>`;
+  h+=`<div class="it"><b>ประเภท</b><span>${E(m.type)}</span></div>`;
+  if(m.topic)h+=`<div class="it"><b>หัวข้อ</b><span>${E(m.topic)}</span></div>`;
+  h+=`<div class="it"><b>วันที่</b><span>${E(m.date)}${m.week?' ('+E(m.week)+')':''}</span></div>`;
+  h+=`<div class="it"><b>เวลา</b><span>${m.tStart?E(m.tStart)+(m.tEnd?' - '+E(m.tEnd):''):'-'}</span></div>`;
+  h+=`<div class="it"><b>สถานที่</b><span>${E(m.loc)||'-'}</span></div>`;
+  h+=`<div class="it"><b>ผู้ดำเนินการ</b><span>${E(m.fac)}</span></div>`;
+  h+=`</div>`;
+  if(m.attendees&&m.attendees.length){
+    h+=`<div class="sec"><h3>ผู้เข้าร่วมประชุม</h3><table><tr><th style="width:40px">#</th><th>ชื่อ</th><th>ตำแหน่ง/แผนก</th><th style="width:80px">เวลา</th></tr>`;
+    m.attendees.forEach((a,i)=>{h+=`<tr><td>${i+1}</td><td>${E(a.name)}</td><td>${E(a.pos)}</td><td>${E(a.time)||'-'}</td></tr>`;});
+    h+=`</table></div>`;
+  }
+  if(m.agenda&&m.agenda.length){
+    h+=`<div class="sec"><h3>วาระการประชุม (Agenda)</h3><ol>`;
+    m.agenda.forEach(a=>{h+=`<li>${E(a)}</li>`;});
+    h+=`</ol></div>`;
+  }
+  if(m.notes)h+=`<div class="sec"><h3>ประเด็นหารือ / บันทึกการประชุม</h3><div class="box">${E(m.notes)}</div></div>`;
+  if(its.length){
+    h+=`<div class="sec"><h3>รายการที่พิจารณา (Items)</h3><table><tr><th style="width:110px">ID</th><th>Part / ปัญหา</th><th style="width:100px">ผู้รับผิดชอบ</th><th style="width:90px">สถานะ</th></tr>`;
+    its.forEach(i=>{h+=`<tr><td>${E(i.id)}</td><td><b>${E(i.part)}</b><br>${E(i.pain)}</td><td>${E(i.resp)}</td><td>${E(i.status)}</td></tr>`;});
+    h+=`</table></div>`;
+  }
+  if(m.resolution)h+=`<div class="sec"><h3>สรุปมติ / ข้อสรุปที่ประชุม</h3><div class="box">${E(m.resolution)}</div></div>`;
+  if(m.actions&&m.actions.length){
+    h+=`<div class="sec"><h3>มอบหมายงาน (Action Items)</h3><table><tr><th style="width:40px">#</th><th>งานที่ต้องทำ</th><th style="width:120px">ผู้รับผิดชอบ</th><th style="width:100px">กำหนดเสร็จ</th></tr>`;
+    m.actions.forEach((a,i)=>{h+=`<tr><td>${i+1}</td><td>${E(a.task)}</td><td>${E(a.who)||'-'}</td><td>${E(a.due)||'-'}</td></tr>`;});
+    h+=`</table></div>`;
+  }
+  if(m.nextDate)h+=`<div class="sec"><h3>การประชุมครั้งถัดไป</h3><div class="box">${E(m.nextDate)}</div></div>`;
+  h+=`<div class="btns"><button class="btn" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button> <button class="btn" style="background:#888" onclick="window.close()">✕ ปิด</button></div>`;
+  h+=`</body></html>`;
+  const w=window.open('','_blank');w.document.write(h);w.document.close();
 }
 
 // ============ ITEMS ============
 // Auto-match Meeting จากวันที่ (เลือก Meeting ที่วันที่ใกล้เคียงที่สุด ≤ วันที่ Item)
 function autoMatchMtg(dateStr){
-  if(!dateStr||!DB.meetings.length)return'';
+  if(!dateStr)return'';
+  const pool=DB.meetings.filter(m=>m.type!=='Special');
+  if(!pool.length)return'';
   const d=new Date(dateStr).getTime();
   let best='',bestDiff=Infinity;
-  DB.meetings.forEach(m=>{
-    const md=new Date(m.date).getTime();
-    const diff=d-md;
-    if(diff>=0&&diff<bestDiff){bestDiff=diff;best=m.id;}
-  });
-  // ถ้าไม่เจอ (วันที่ก่อน meeting แรก) เลือก meeting ที่ใกล้ที่สุด
-  if(!best){
-    let minDiff=Infinity;
-    DB.meetings.forEach(m=>{
-      const diff=Math.abs(d-new Date(m.date).getTime());
-      if(diff<minDiff){minDiff=diff;best=m.id;}
-    });
-  }
+  pool.forEach(m=>{const md=new Date(m.date).getTime();const diff=d-md;if(diff>=0&&diff<bestDiff){bestDiff=diff;best=m.id;}});
+  if(!best){let minDiff=Infinity;pool.forEach(m=>{const diff=Math.abs(d-new Date(m.date).getTime());if(diff<minDiff){minDiff=diff;best=m.id;}});}
   return best;
 }
+
 function autoSetMtg(){
   const dt=$('fi_dt').value;
   if(dt){const mid=autoMatchMtg(dt);if(mid)$('fi_mid').value=mid;}
