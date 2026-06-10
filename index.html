@@ -1226,12 +1226,13 @@ function renderSNR(){
     <div class="card-footer"><div></div><div class="card-actions">
       <button class="act-btn act-edit" onclick='openSNRForm(${esc(s)})'>✏️</button>
       <button class="act-btn act-del" onclick="delSNR('${s.id}')">🗑️</button>
+      <button class="act-btn" style="background:#F3E5F5;color:#7B1FA2" onclick="printSNR('${s.id}')">🖨️</button>
       <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_SNR('${s.id}')">💬LINE</button>
     </div></div></div>`).join('');
   $('infoSNR').textContent='แสดง '+data.length+' / '+DB.snrs.length+' รายการ';
   if(!data.length)$('cardSNR').innerHTML=emptyState(DB.snrs.length?'🔍':'📭',DB.snrs.length?'ไม่พบรายการที่ตรงกับการค้นหา/ตัวกรอง':'ยังไม่มี S&R — กดปุ่ม ➕ เพื่อเพิ่ม');
   document.getElementById('tbSNR').innerHTML=data.map(s=>`<tr>
-    <td><button class="act-btn act-edit" onclick='openSNRForm(${esc(s)})'>✏️</button><button class="act-btn act-del" onclick="delSNR('${s.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_SNR('${s.id}')">💬</button></td>
+    <td><button class="act-btn act-edit" onclick='openSNRForm(${esc(s)})'>✏️</button><button class="act-btn act-del" onclick="delSNR('${s.id}')">🗑️</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printSNR('${s.id}')">🖨️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_SNR('${s.id}')">💬</button></td>
     <td><b>${s.id}</b></td><td class="link" onclick="switchTab('items')">${s.item}</td><td><span class="badge" style="background:var(--tl);color:#fff">${s.type}</span></td>
     <td class="left" style="max-width:220px">${s.detail}</td><td>${s.qty||'-'}</td><td>${s.ng||'-'}</td><td>${s.resp}</td>
     <td>${s.target}</td><td>${s.actual||'-'}</td><td class="left">${s.result||'-'}</td><td>${stB(s.status)}</td></tr>`).join('');
@@ -1291,13 +1292,14 @@ function renderRCA(){
     <div class="card-footer"><div></div><div class="card-actions">
       <button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button>
       <button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button>
+      <button class="act-btn" style="background:#F3E5F5;color:#7B1FA2" onclick="printRCA('${r.id}')">🖨️</button>
       <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_RCA('${r.id}')">💬LINE</button>
     </div></div></div>`).join('');
   // Table
   $('infoRCA').textContent='แสดง '+data.length+' / '+DB.rcas.length+' รายการ';
   if(!data.length)$('cardRCA').innerHTML=emptyState(DB.rcas.length?'🔍':'📭',DB.rcas.length?'ไม่พบรายการที่ตรงกับการค้นหา/ตัวกรอง':'ยังไม่มี RCA — กดปุ่ม ➕ เพื่อเพิ่ม');
   document.getElementById('tbRCA').innerHTML=data.map(r=>`<tr>
-    <td><button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button><button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_RCA('${r.id}')">💬</button></td>
+    <td><button class="act-btn act-edit" onclick='openRCAForm(${esc(r)})'>✏️</button><button class="act-btn act-del" onclick="delRCA('${r.id}')">🗑️</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printRCA('${r.id}')">🖨️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_RCA('${r.id}')">💬</button></td>
     <td><b>${r.id}</b></td><td class="link" onclick="switchTab('items')">${r.item}</td><td class="left">${r.prob}</td><td>${catB(r.cat)}</td>
     <td class="left" style="font-size:11px">${r.w1}</td><td class="left" style="font-size:11px">${r.w2}</td><td class="left" style="font-size:11px">${r.w3}</td>
     <td class="left" style="font-size:11px">${r.w4}</td><td class="left" style="font-size:11px">${r.w5}</td>
@@ -1356,12 +1358,13 @@ function renderCAPA(){
     <div class="card-footer"><div></div><div class="card-actions">
       <button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button>
       <button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button>
+      <button class="act-btn" style="background:#F3E5F5;color:#7B1FA2" onclick="printCAPA('${c.id}')">🖨️</button>
       <button class="act-btn" style="background:#E8FFE8;color:#06C755" onclick="shareLINE_CAPA('${c.id}')">💬LINE</button>
     </div></div></div>`).join('');
   $('infoCAPA').textContent='แสดง '+data.length+' / '+DB.capas.length+' รายการ';
   if(!data.length)$('cardCAPA').innerHTML=emptyState(DB.capas.length?'🔍':'📭',DB.capas.length?'ไม่พบรายการที่ตรงกับการค้นหา/ตัวกรอง':'ยังไม่มี CAPA — กดปุ่ม ➕ เพื่อเพิ่ม');
   document.getElementById('tbCAPA').innerHTML=data.map(c=>`<tr>
-    <td><button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button><button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_CAPA('${c.id}')">💬</button></td>
+    <td><button class="act-btn act-edit" onclick='openCAPAForm(${esc(c)})'>✏️</button><button class="act-btn act-del" onclick="delCAPA('${c.id}')">🗑️</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printCAPA('${c.id}')">🖨️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE_CAPA('${c.id}')">💬</button></td>
     <td><b>${c.id}</b></td><td class="link" onclick="switchTab('items')">${c.item}</td><td class="link" onclick="switchTab('rca')">${c.rca||'-'}</td>
     <td>${bg(c.type,c.type==='CA'?'ca':'pa')}</td><td class="left" style="max-width:220px">${c.action}</td><td>${c.resp}</td>
     <td>${c.target}</td><td>${c.actual||'-'}</td><td class="left">${c.verify}</td><td class="left">${c.result}</td>
@@ -1539,6 +1542,90 @@ function printItem(id){
   w.document.close();
 }
 
+function _pesc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function _printWin(title,inner){
+  let h=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${title}</title><style>
+   *{margin:0;padding:0;box-sizing:border-box;}
+   body{font-family:'Segoe UI',Arial,sans-serif;padding:24px;font-size:13px;color:#222;line-height:1.55;}
+   .hd{background:#1B3A5C;color:#fff;padding:12px 16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+   .hd h1{font-size:17px;} .hd span{font-size:11px;opacity:.85;}
+   .row{display:flex;gap:8px;margin-bottom:5px;}
+   .lbl{font-weight:600;color:#1B3A5C;min-width:120px;font-size:12px;}
+   .val{flex:1;}
+   .sec{margin-top:14px;}
+   .sec h3{font-size:14px;color:#fff;background:#2E5D8A;padding:5px 10px;border-radius:4px;margin-bottom:6px;}
+   .why{background:#f7f9fb;padding:5px 8px;border-radius:4px;margin-bottom:3px;font-size:12px;}
+   .root{background:#FFEBEE;padding:6px 8px;border-radius:6px;font-weight:600;color:#DC3545;margin-top:4px;}
+   .box{background:#f7f9fb;border:1px solid #e3e3e3;border-radius:6px;padding:8px;white-space:pre-wrap;margin-top:4px;}
+   .btns{margin-top:18px;} .btn{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
+   @media print{.btns{display:none;}@page{size:A4;margin:14mm;}}
+  </style></head><body>`;
+  h+=`<div class="hd"><h1>${title}</h1><span>${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
+  h+=inner;
+  h+=`<div class="btns"><button class="btn" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button> <button class="btn" style="background:#888" onclick="window.close()">✕ ปิด</button></div>`;
+  h+=`</body></html>`;
+  const w=window.open('','_blank');w.document.write(h);w.document.close();
+}
+function printSNR(id){
+  const s=DB.snrs.find(x=>x.id===id);if(!s)return;const E=_pesc;
+  let b=`<div class="row"><span class="lbl">S&R ID</span><span class="val"><b>${E(s.id)}</b> (${E(s.type)})</span></div>`;
+  b+=`<div class="row"><span class="lbl">Item</span><span class="val">${E(s.item)}</span></div>`;
+  b+=`<div class="row"><span class="lbl">วันที่</span><span class="val">${E(s.date)}</span></div>`;
+  b+=`<div class="sec"><h3>รายละเอียดการคัดแยก/ซ่อม</h3><div class="box">${E(s.detail)}</div></div>`;
+  b+=`<div class="row" style="margin-top:10px"><span class="lbl">จำนวนตรวจ</span><span class="val">${E(s.qty)||'-'} ${s.ng?'(NG: '+E(s.ng)+')':''}</span></div>`;
+  b+=`<div class="row"><span class="lbl">ผู้รับผิดชอบ</span><span class="val">${E(s.resp)}</span></div>`;
+  b+=`<div class="row"><span class="lbl">Target / Actual</span><span class="val">${E(s.target)||'-'} ${s.actual?'→ '+E(s.actual):''}</span></div>`;
+  b+=`<div class="row"><span class="lbl">สถานะ</span><span class="val">${E(s.status)}</span></div>`;
+  if(s.result)b+=`<div class="sec"><h3>ผลการดำเนินการ</h3><div class="box">${E(s.result)}</div></div>`;
+  _printWin('RTK-QC S&R Report — '+E(s.id),b);
+}
+function printRCA(id){
+  const r=DB.rcas.find(x=>x.id===id);if(!r)return;const E=_pesc;
+  let b=`<div class="row"><span class="lbl">RCA ID</span><span class="val"><b>${E(r.id)}</b></span></div>`;
+  b+=`<div class="row"><span class="lbl">Item</span><span class="val">${E(r.item)}</span></div>`;
+  b+=`<div class="row"><span class="lbl">ปัญหา</span><span class="val">${E(r.prob)}</span></div>`;
+  b+=`<div class="row"><span class="lbl">4M+E</span><span class="val">${E(r.cat)}</span></div>`;
+  b+=`<div class="sec"><h3>5 Why Analysis</h3>`;
+  ['w1','w2','w3','w4','w5'].forEach((k,i)=>{if(r[k])b+=`<div class="why"><b>W${i+1}:</b> ${E(r[k])}</div>`;});
+  if(r.root)b+=`<div class="root">🎯 Root Cause: ${E(r.root)}</div>`;
+  b+=`</div>`;
+  if(r.fo_what||r.fo_why||r.fo_where||r.fo_who||r.fo_when){
+    b+=`<div class="sec"><h3>Flow Out Analysis (สาเหตุการหลุดรอด)</h3>`;
+    b+=`<div class="row"><span class="lbl">What</span><span class="val">${E(r.fo_what)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">When</span><span class="val">${E(r.fo_when)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">Where</span><span class="val">${E(r.fo_where)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">Who</span><span class="val">${E(r.fo_who)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">Why</span><span class="val">${E(r.fo_why)||'-'}</span></div>`;
+    b+=`</div>`;
+  }
+  b+=`<div class="row" style="margin-top:10px"><span class="lbl">ผู้วิเคราะห์</span><span class="val">${E(r.owner)} · ${E(r.date)}</span></div>`;
+  if(r.verBy)b+=`<div class="row"><span class="lbl">ผู้ตรวจสอบ</span><span class="val">${E(r.verBy)} ${r.verDate?'· '+E(r.verDate):''}</span></div>`;
+  _printWin('RTK-QC RCA Report — '+E(r.id),b);
+}
+function printCAPA(id){
+  const c=DB.capas.find(x=>x.id===id);if(!c)return;const E=_pesc;
+  let b=`<div class="row"><span class="lbl">CAPA ID</span><span class="val"><b>${E(c.id)}</b> (${E(c.type)})</span></div>`;
+  b+=`<div class="row"><span class="lbl">Item / RCA</span><span class="val">${E(c.item)} / ${E(c.rca)||'-'}</span></div>`;
+  b+=`<div class="sec"><h3>มาตรการ (Action)</h3><div class="box">${E(c.action)}</div></div>`;
+  b+=`<div class="row" style="margin-top:10px"><span class="lbl">ผู้รับผิดชอบ</span><span class="val">${E(c.resp)}</span></div>`;
+  b+=`<div class="row"><span class="lbl">Target / Actual</span><span class="val">${E(c.target)||'-'} ${c.actual?'→ '+E(c.actual):''}</span></div>`;
+  b+=`<div class="row"><span class="lbl">สถานะ</span><span class="val">${E(c.status)}</span></div>`;
+  if(c.h_what||c.h_how||c.h_why||c.h_where||c.h_when||c.h_who||c.h_howmuch){
+    b+=`<div class="sec"><h3>5W2H Analysis</h3>`;
+    b+=`<div class="row"><span class="lbl">What</span><span class="val">${E(c.h_what)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">Why</span><span class="val">${E(c.h_why)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">Where</span><span class="val">${E(c.h_where)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">When</span><span class="val">${E(c.h_when)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">Who</span><span class="val">${E(c.h_who)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">How</span><span class="val">${E(c.h_how)||'-'}</span></div>`;
+    b+=`<div class="row"><span class="lbl">How Much</span><span class="val">${E(c.h_howmuch)||'-'}</span></div>`;
+    b+=`</div>`;
+  }
+  if(c.verify||c.result)b+=`<div class="sec"><h3>การตรวจสอบ</h3><div class="row"><span class="lbl">วิธีตรวจสอบ</span><span class="val">${E(c.verify)||'-'}</span></div><div class="row"><span class="lbl">ผลตรวจสอบ</span><span class="val">${E(c.result)||'-'}</span></div></div>`;
+  b+=`<div class="row" style="margin-top:10px"><span class="lbl">Score</span><span class="val">${c.score?'⭐'.repeat(c.score)+' ('+E(c.score)+'/5)':'-'}</span></div>`;
+  b+=`<div class="row"><span class="lbl">เกิดซ้ำ / ปิดโดย</span><span class="val">${E(c.recur)||'-'} / ${E(c.closeBy)||'-'}</span></div>`;
+  _printWin('RTK-QC CAPA Report — '+E(c.id),b);
+}
 function exportJSON(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`QCDMS_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Export สำเร็จ','var(--tl)');}
 function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.meetings&&d.items&&d.rcas&&d.capas){if(!d.snrs)d.snrs=[];DB=d;saveDB();toast('Import สำเร็จ','var(--gn)');}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};r.readAsText(f);e.target.value='';}
 
