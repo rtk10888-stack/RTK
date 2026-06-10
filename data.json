@@ -211,11 +211,10 @@
       "loc": "RTK Meeting room",
       "tStart": "13:00",
       "tEnd": "16:00",
-      "fac": " ธีรสิทธิ์-QMR",
+      "fac": "พัฒนเดช-QA (Team Customer : K. Anan-PJ, K.Thawatchai-SQA, K.Natchariya-PUR)",
       "notes": "1. Store Material : ป้ายไม่ถูกต้อง\n2. PI : ไม่มี Master list มาตรฐานเหล็ก, ใบรับรองไม่มีลายเซ็นต์อนุมัตประทับตา\n3. PD. WI NO. 2 ไม่ตรงกับปฏิบัติจริง, Check sheet ไม่มี JUST ระหว่างตรวจสอบ\n4. Packing stand : ไม่มีการสอบเทียบตราชั่ง\n",
       "agenda": [
-        "Audit Product",
-        "Team Customer : K. Anan-PJ, K.Thawatchai-SQA, K.Natchariya-PUR"
+        "Audit Product"
       ],
       "resolution": "",
       "actions": [],
