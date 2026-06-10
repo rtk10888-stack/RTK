@@ -217,7 +217,28 @@
         "Audit Product"
       ],
       "resolution": "",
-      "actions": [],
+      "actions": [
+        {
+          "task": "แก้ไขป้าย",
+          "who": "วัชราภรณ์-ST",
+          "due": "2026-06-10"
+        },
+        {
+          "task": "จัดทำ Master List Cemical Material",
+          "who": "ธีรสิทธิ์-DCC",
+          "due": "2026-06-13"
+        },
+        {
+          "task": "แก้ไข WI, Check sheet",
+          "who": "ธีรสิทธิ์-DCC",
+          "due": "2026-06-13"
+        },
+        {
+          "task": "สอบเทียบตาชั่ง บันทึกทะเบียนประวัติ",
+          "who": "พัฒนเดช-QA",
+          "due": "2026-06-13"
+        }
+      ],
       "nextDate": "",
       "attendees": [
         {
