@@ -205,25 +205,33 @@
       "id": "MTG-2026-19",
       "date": "2026-06-09",
       "type": "Special",
+      "topic": "",
       "week": "",
       "year": 2026,
+      "loc": "",
+      "tStart": "",
+      "tEnd": "",
       "fac": "ธีรสิทธิ์-QMR",
       "notes": "",
+      "agenda": [],
+      "resolution": "",
+      "actions": [],
+      "nextDate": "",
       "attendees": [
+        {
+          "name": "ธีรสิทธิ์-PE",
+          "pos": "PE",
+          "time": "13:00"
+        },
         {
           "name": "พัฒนเดช-QA",
           "pos": "QA",
-          "time": "09:30"
+          "time": "13:00"
         },
         {
           "name": "ธัญลักษณ์-SA",
           "pos": "SA",
-          "time": "09:30"
-        },
-        {
-          "name": "ธีรสิทธิ์-PE",
-          "pos": "PE",
-          "time": "09:30"
+          "time": "13:00"
         }
       ]
     }
