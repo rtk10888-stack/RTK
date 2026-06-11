@@ -1334,8 +1334,8 @@
       "part": "40051899_INSERTO",
       "tqm": "Q",
       "dept": "QA",
-      "loc": "",
-      "pain": "",
+      "loc": "RTK",
+      "pain": "ชิ้นงานสั้น",
       "rca_sum": "",
       "action": "",
       "temp": "",
@@ -1356,7 +1356,7 @@
       "img_ng": "",
       "img_tag": "",
       "snr": "",
-      "maker": ""
+      "maker": "RTK-K"
     }
   ],
   "rcas": [
