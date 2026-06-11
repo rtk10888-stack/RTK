@@ -1050,7 +1050,7 @@ function printMtg(id){
     .sp-badge{display:inline-block;background:#DC3545;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;}
     .btns{margin-top:18px;}
     .btn{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
-    @media print{.btns{display:none;}@page{size:A4;margin:14mm;}}
+    .docfoot{margin-top:24px;border-top:1px solid #bbb;padding-top:6px;text-align:right;font-size:11px;color:#555;font-weight:700;}@media print{.btns{display:none;}.docfoot{position:fixed;bottom:6mm;left:0;right:0;text-align:center;border:none;margin:0;}body{padding-bottom:16mm;}@page{size:A4;margin:14mm;}}
   </style></head><body>`;
   h+=`<div class="doc-title"><h1>รายงานการประชุม (Minutes of Meeting)</h1><div class="sub">RTK-QC — Quality Management System</div></div>`;
   h+=`<div class="meta">`;
@@ -1085,6 +1085,7 @@ function printMtg(id){
     h+=`</table></div>`;
   }
   if(m.nextDate)h+=`<div class="sec"><h3>การประชุมครั้งถัดไป</h3><div class="box">${E(m.nextDate)}</div></div>`;
+  h+=`<div class="docfoot">FM-QMR-21 Rev.00</div>`;
   h+=`<div class="btns"><button class="btn" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button> <button class="btn" style="background:#888" onclick="window.close()">✕ ปิด</button></div>`;
   h+=`</body></html>`;
   const w=window.open('','_blank');w.document.write(h);w.document.close();
@@ -1445,7 +1446,7 @@ function printItem(id){
   const capas=DB.capas.filter(c=>c.item===id);
 
   let h=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <title>RTK-QC ${id}</title>
+  <title>Non Conformance Report ${id}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;font-size:13px;color:#333;}
@@ -1473,10 +1474,12 @@ function printItem(id){
     @media print{@page{size:A4;margin:15mm;}}
     .btn-print{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-top:16px;}
     @media print{.btn-print,.no-print{display:none!important;}}
+    .docfoot{margin-top:24px;border-top:1px solid #bbb;padding-top:6px;text-align:right;font-size:11px;color:#555;font-weight:700;}
+    @media print{.docfoot{position:fixed;bottom:6mm;left:0;right:0;text-align:center;border:none;margin:0;}body{padding-bottom:16mm;}}
   </style></head><body>`;
 
   // Header
-  h+=`<div class="header"><h1>📋 RTK-QC Item Report</h1><span>${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
+  h+=`<div class="header"><h1>Non Conformance Report</h1><span>${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
 
   // Item Card
   h+=`<div class="card"><h2>${i.id} <span>`;
@@ -1533,6 +1536,7 @@ function printItem(id){
     h+=`</div>`;
   });
 
+  h+=`<div class="docfoot">FM-QC-39 Rev.00</div>`;
   h+=`<button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button>`;
   h+=`<button class="btn-print no-print" onclick="window.close()" style="background:#eee;color:#333;margin-left:8px">✕ ปิด</button>`;
   h+=`</body></html>`;
@@ -1543,7 +1547,7 @@ function printItem(id){
 }
 
 function _pesc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function _printWin(title,inner){
+function _printWin(title,inner,foot){
   let h=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${title}</title><style>
    *{margin:0;padding:0;box-sizing:border-box;}
    body{font-family:'Segoe UI',Arial,sans-serif;padding:24px;font-size:13px;color:#222;line-height:1.55;}
@@ -1558,10 +1562,11 @@ function _printWin(title,inner){
    .root{background:#FFEBEE;padding:6px 8px;border-radius:6px;font-weight:600;color:#DC3545;margin-top:4px;}
    .box{background:#f7f9fb;border:1px solid #e3e3e3;border-radius:6px;padding:8px;white-space:pre-wrap;margin-top:4px;}
    .btns{margin-top:18px;} .btn{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
-   @media print{.btns{display:none;}@page{size:A4;margin:14mm;}}
+   .docfoot{margin-top:24px;border-top:1px solid #bbb;padding-top:6px;text-align:right;font-size:11px;color:#555;font-weight:700;}@media print{.btns{display:none;}.docfoot{position:fixed;bottom:6mm;left:0;right:0;text-align:center;border:none;margin:0;}body{padding-bottom:16mm;}@page{size:A4;margin:14mm;}}
   </style></head><body>`;
   h+=`<div class="hd"><h1>${title}</h1><span>${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
   h+=inner;
+  h+=`<div class="docfoot">${foot||''}</div>`;
   h+=`<div class="btns"><button class="btn" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button> <button class="btn" style="background:#888" onclick="window.close()">✕ ปิด</button></div>`;
   h+=`</body></html>`;
   const w=window.open('','_blank');w.document.write(h);w.document.close();
@@ -1577,7 +1582,7 @@ function printSNR(id){
   b+=`<div class="row"><span class="lbl">Target / Actual</span><span class="val">${E(s.target)||'-'} ${s.actual?'→ '+E(s.actual):''}</span></div>`;
   b+=`<div class="row"><span class="lbl">สถานะ</span><span class="val">${E(s.status)}</span></div>`;
   if(s.result)b+=`<div class="sec"><h3>ผลการดำเนินการ</h3><div class="box">${E(s.result)}</div></div>`;
-  _printWin('RTK-QC S&R Report — '+E(s.id),b);
+  _printWin('RTK-QC S&R Report — '+E(s.id),b,'FM-QC-38 Rev.00');
 }
 function printRCA(id){
   const r=DB.rcas.find(x=>x.id===id);if(!r)return;const E=_pesc;
@@ -1600,7 +1605,7 @@ function printRCA(id){
   }
   b+=`<div class="row" style="margin-top:10px"><span class="lbl">ผู้วิเคราะห์</span><span class="val">${E(r.owner)} · ${E(r.date)}</span></div>`;
   if(r.verBy)b+=`<div class="row"><span class="lbl">ผู้ตรวจสอบ</span><span class="val">${E(r.verBy)} ${r.verDate?'· '+E(r.verDate):''}</span></div>`;
-  _printWin('RTK-QC RCA Report — '+E(r.id),b);
+  _printWin('RTK-QC RCA Report — '+E(r.id),b,'FM-QC-47 Rev.00');
 }
 function printCAPA(id){
   const c=DB.capas.find(x=>x.id===id);if(!c)return;const E=_pesc;
@@ -1624,7 +1629,7 @@ function printCAPA(id){
   if(c.verify||c.result)b+=`<div class="sec"><h3>การตรวจสอบ</h3><div class="row"><span class="lbl">วิธีตรวจสอบ</span><span class="val">${E(c.verify)||'-'}</span></div><div class="row"><span class="lbl">ผลตรวจสอบ</span><span class="val">${E(c.result)||'-'}</span></div></div>`;
   b+=`<div class="row" style="margin-top:10px"><span class="lbl">Score</span><span class="val">${c.score?'⭐'.repeat(c.score)+' ('+E(c.score)+'/5)':'-'}</span></div>`;
   b+=`<div class="row"><span class="lbl">เกิดซ้ำ / ปิดโดย</span><span class="val">${E(c.recur)||'-'} / ${E(c.closeBy)||'-'}</span></div>`;
-  _printWin('RTK-QC CAPA Report — '+E(c.id),b);
+  _printWin('RTK-QC CAPA Report — '+E(c.id),b,'FM-QC-02 Rev.00');
 }
 function exportJSON(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`QCDMS_Backup_${new Date().toISOString().slice(0,10)}.json`;a.click();toast('Export สำเร็จ','var(--tl)');}
 function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.meetings&&d.items&&d.rcas&&d.capas){if(!d.snrs)d.snrs=[];DB=d;saveDB();toast('Import สำเร็จ','var(--gn)');}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};r.readAsText(f);e.target.value='';}
