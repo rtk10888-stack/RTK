@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1B3A5C">
-<title>RTK-QC</title>
+<title>RTK-TQM (QCDMS)</title>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUUNETVMgRGFzaGJvYXJkIiwic2hvcnRfbmFtZSI6IlFDRE1TIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0YwRjJGNSIsInRoZW1lX2NvbG9yIjoiIzFCM0E1QyJ9">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
@@ -208,7 +208,7 @@ td.left{text-align:left;}
 <!-- HEADER -->
 <div class="header">
   <div>
-    <h1>📊 RTK-QC</h1>
+    <h1>📊 RTK-TQM (QCDMS)</h1>
     <span class="date" id="dtNow"></span>
   </div>
   <div class="right">
@@ -626,7 +626,7 @@ function _dl(blob,filename){
 // ============ LINE SHARE ============
 function shareLINE(id){
   const i=DB.items.find(x=>x.id===id);if(!i)return;
-  let msg=`📋 RTK-QC Item Report\n`;
+  let msg=`📋 RTK-TQM (QCDMS) Item Report\n`;
   msg+=`━━━━━━━━━━━━━━━\n`;
   msg+=`🔖 ${i.id}\n📅 ${i.date}\n🔧 Part: ${i.part}\n`;
   if(i.maker)msg+=`🏭 Maker: ${i.maker}\n`;
@@ -662,7 +662,7 @@ function _doShareItem(id,i,msg){
     if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
     const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
     c2.getContext('2d').drawImage(canvas,0,0,w,ht);
-    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',msg);},'image/png');
+    c2.toBlob(blob=>{_shareBlob(blob,'RTK-TQM_'+id+'.png',msg);},'image/png');
   }).catch(()=>{document.body.removeChild(wrap);openLINE(msg);});
 }
 
@@ -683,7 +683,7 @@ function shareCardLINE(cardEl, title, msg){
     if(w>maxW){h=Math.round(h*(maxW/w));w=maxW;}
     const c2=document.createElement('canvas');c2.width=w;c2.height=h;
     c2.getContext('2d').drawImage(canvas,0,0,w,h);
-    c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+title+'.png',msg);},'image/png');
+    c2.toBlob(blob=>{_shareBlob(blob,'RTK-TQM_'+title+'.png',msg);},'image/png');
   }).catch(()=>{
     document.body.removeChild(wrap);
     openLINE(msg);
@@ -692,7 +692,7 @@ function shareCardLINE(cardEl, title, msg){
 
 function shareLINE_RCA(id){
   const r=DB.rcas.find(x=>x.id===id);if(!r)return;
-  let msg=`🔬 RTK-QC RCA Report\n━━━━━━━━━━━━━━━\n`;
+  let msg=`🔬 RTK-TQM (QCDMS) RCA Report\n━━━━━━━━━━━━━━━\n`;
   msg+=`🔖 ${r.id}\n📅 ${r.date}\n🔗 Item: ${r.item}\n⚠️ ปัญหา: ${r.prob}\n📂 ${r.cat}\n`;
   if(r.w1)msg+=`W1: ${r.w1}\n`;if(r.w2)msg+=`W2: ${r.w2}\n`;if(r.w3)msg+=`W3: ${r.w3}\n`;
   if(r.w4)msg+=`W4: ${r.w4}\n`;if(r.w5)msg+=`W5: ${r.w5}\n`;
@@ -721,7 +721,7 @@ function shareLINE_RCA(id){
       wrap.innerHTML=h;document.body.appendChild(wrap);
       html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         document.body.removeChild(wrap);
-        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-TQM_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -729,7 +729,7 @@ function shareLINE_RCA(id){
 
 function shareLINE_CAPA(id){
   const c=DB.capas.find(x=>x.id===id);if(!c)return;
-  let msg=`📝 RTK-QC CAPA Report\n━━━━━━━━━━━━━━━\n`;
+  let msg=`📝 RTK-TQM (QCDMS) CAPA Report\n━━━━━━━━━━━━━━━\n`;
   msg+=`🔖 ${c.id} (${c.type})\n`;
   msg+=`🔗 Item: ${c.item} | RCA: ${c.rca||'-'}\n`;
   msg+=`📋 มาตรการ: ${c.action}\n`;
@@ -762,7 +762,7 @@ function shareLINE_CAPA(id){
       wrap.innerHTML=h;document.body.appendChild(wrap);
       html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         document.body.removeChild(wrap);
-        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-TQM_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -771,7 +771,7 @@ function shareLINE_CAPA(id){
 function shareLINE_MTG(id){
   const m=DB.meetings.find(x=>x.id===id);if(!m)return;
   const its=DB.items.filter(i=>i.mid===m.id),t=its.length,co=its.filter(i=>i.status==='Complete').length,ip=its.filter(i=>i.status==='In Progress').length,od=its.filter(i=>i.status==='Overdue').length,pc=t?Math.round(co/t*100)+'%':'-';
-  let msg=`📅 RTK-QC Meeting Report\n━━━━━━━━━━━━━━━\n`;
+  let msg=`📅 RTK-TQM (QCDMS) Meeting Report\n━━━━━━━━━━━━━━━\n`;
   msg+=`🔖 ${m.id}\n📅 ${m.date} · ${m.type}\n`;
   if(m.topic)msg+=`📌 หัวข้อ: ${m.topic}\n`;
   if(m.loc||m.tStart)msg+=`📍 ${m.loc||'-'}${m.tStart?' · '+m.tStart+(m.tEnd?'-'+m.tEnd:''):''}\n`;
@@ -804,7 +804,7 @@ function shareLINE_MTG(id){
       wrap.innerHTML=h;document.body.appendChild(wrap);
       html2canvas(wrap,{scale:2,backgroundColor:'#fff',useCORS:true}).then(canvas=>{
         document.body.removeChild(wrap);
-        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-TQM_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -813,7 +813,7 @@ function shareLINE_MTG(id){
 function shareLINE_SNR(id){
   if(!DB.snrs)return;
   const s=DB.snrs.find(x=>x.id===id);if(!s)return;
-  let msg=`🔄 RTK-QC S&R Report\n━━━━━━━━━━━━━━━\n`;
+  let msg=`🔄 RTK-TQM (QCDMS) S&R Report\n━━━━━━━━━━━━━━━\n`;
   msg+=`🔖 ${s.id} (${s.type})\n🔗 Item: ${s.item}\n`;
   msg+=`📋 ${s.detail}\n`;
   if(s.qty)msg+=`📊 จำนวน: ${s.qty} ชิ้น${s.ng?' (NG: '+s.ng+')':''}\n`;
@@ -843,7 +843,7 @@ function shareLINE_SNR(id){
         if(w>maxW){ht=Math.round(ht*(maxW/w));w=maxW;}
         const c2=document.createElement('canvas');c2.width=w;c2.height=ht;
         c2.getContext('2d').drawImage(canvas,0,0,w,ht);
-        c2.toBlob(blob=>{_shareBlob(blob,'RTK-QC_'+id+'.png',finalMsg);},'image/png');
+        c2.toBlob(blob=>{_shareBlob(blob,'RTK-TQM_'+id+'.png',finalMsg);},'image/png');
       }).catch(()=>{document.body.removeChild(wrap);openLINE(finalMsg);});
     }
   }
@@ -853,7 +853,7 @@ function shareLINE_Dashboard(){
   const t=DB.items.length,co=cnt(DB.items,'status','Complete'),ip=cnt(DB.items,'status','In Progress'),
     od=cnt(DB.items,'status','Overdue'),pc=t?Math.round(co/t*100):0,
     ct=DB.capas.length,cc=cnt(DB.capas,'status','Closed');
-  let msg=`📊 RTK-QC Dashboard Summary\n━━━━━━━━━━━━━━━\n`;
+  let msg=`📊 RTK-TQM (QCDMS) Dashboard Summary\n━━━━━━━━━━━━━━━\n`;
   msg+=`📅 ${new Date().toLocaleDateString('th-TH')}\n`;
   msg+=`📋 Items: ${t} total\n✅ Complete: ${co} | 🔄 IP: ${ip} | ⚠️ OD: ${od}\n`;
   msg+=`📈 สำเร็จ: ${pc}%\n📝 CAPA: ${ct} total | Closed: ${cc} | Open: ${ct-cc}\n`;
@@ -863,7 +863,7 @@ function shareLINE_Dashboard(){
     if(dashEl&&typeof html2canvas!=='undefined'){
       toast('📸 กำลังแคป Dashboard...','var(--tl)');
       html2canvas(dashEl,{scale:2,backgroundColor:'#fff',useCORS:true,scrollY:-window.scrollY}).then(canvas=>{
-        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-QC_Dashboard.png',finalMsg);},'image/png');
+        canvas.toBlob(blob=>{_shareBlob(blob,'RTK-TQM_Dashboard.png',finalMsg);},'image/png');
       }).catch(()=>{openLINE(finalMsg);});
     } else {openLINE(finalMsg);}
   }
@@ -1052,7 +1052,7 @@ function printMtg(id){
     .btn{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
     .docfoot{margin-top:30px;border-top:2px solid #1B3A5C;padding-top:8px;text-align:right;font-size:12px;color:#1B3A5C;font-weight:700;letter-spacing:.3px;}@media print{.btns{display:none;}@page{size:A4;margin:14mm;}}
   </style></head><body>`;
-  h+=`<div class="doc-title"><h1>รายงานการประชุม (Minutes of Meeting)</h1><div class="sub">RTK-QC — Quality Management System</div></div>`;
+  h+=`<div class="doc-title"><h1>รายงานการประชุม (Minutes of Meeting)</h1><div class="sub">RTK-TQM (QCDMS) — Quality Management System</div></div>`;
   h+=`<div class="meta">`;
   h+=`<div class="it"><b>รหัสประชุม</b><span>${E(m.id)} ${m.type==='Special'?'<span class="sp-badge">SPECIAL</span>':''}</span></div>`;
   h+=`<div class="it"><b>ประเภท</b><span>${E(m.type)}</span></div>`;
@@ -1593,9 +1593,9 @@ function _printDoc(o){
    @media print{body{background:#fff;} .page{padding:0;max-width:none;} .form{border:1px solid ${ac};box-shadow:none;border-radius:0;} .btns{display:none;} @page{size:A4;margin:11mm;}}`;
   let h=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${o.title} ${o.code||''}</title><style>${css}</style></head><body>
    <div class="page"><div class="form">
-     <div class="banner"><div><div class="eyebrow">RTK-QC · Quality Management System</div><h1>${o.title}</h1>${o.subtitle?`<div class="sub">${o.subtitle}</div>`:''}</div><div class="docbox">${meta}</div></div>
+     <div class="banner"><div><div class="eyebrow">RTK-TQM (QCDMS) · Quality Management System</div><h1>${o.title}</h1>${o.subtitle?`<div class="sub">${o.subtitle}</div>`:''}</div><div class="docbox">${meta}</div></div>
      <div class="body">${o.body}</div>
-     <div class="footer"><span>เอกสารควบคุม (Controlled Document): <b>${o.code||'-'}</b></span><span>RTK-QC Quality Management System</span></div>
+     <div class="footer"><span>เอกสารควบคุม (Controlled Document): <b>${o.code||'-'}</b></span><span>RTK-TQM (QCDMS) Quality Management System</span></div>
    </div></div>
    <div class="btns"><button class="btn" onclick="window.print()">🖨️ พิมพ์ / Save PDF</button><button class="btn" style="background:#6b7280" onclick="window.close()">✕ ปิด</button></div>
    </body></html>`;
