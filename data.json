@@ -4,10 +4,19 @@
       "id": "MTG-2026-01",
       "date": "2026-01-09",
       "type": "Weekly QCDMS",
+      "topic": "",
       "week": "W01",
       "year": 2026,
+      "loc": "",
+      "tStart": "",
+      "tEnd": "",
       "fac": "ธีรสิทธิ์-QMR",
-      "notes": ""
+      "notes": "",
+      "agenda": [],
+      "resolution": "",
+      "actions": [],
+      "nextDate": "",
+      "attendees": []
     },
     {
       "id": "MTG-2026-02",
