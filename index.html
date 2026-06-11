@@ -1050,7 +1050,7 @@ function printMtg(id){
     .sp-badge{display:inline-block;background:#DC3545;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;}
     .btns{margin-top:18px;}
     .btn{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
-    .docfoot{margin-top:24px;border-top:1px solid #bbb;padding-top:6px;text-align:right;font-size:11px;color:#555;font-weight:700;}@media print{.btns{display:none;}.docfoot{position:fixed;bottom:6mm;left:0;right:0;text-align:center;border:none;margin:0;}body{padding-bottom:16mm;}@page{size:A4;margin:14mm;}}
+    .docfoot{margin-top:30px;border-top:2px solid #1B3A5C;padding-top:8px;text-align:right;font-size:12px;color:#1B3A5C;font-weight:700;letter-spacing:.3px;}@media print{.btns{display:none;}@page{size:A4;margin:14mm;}}
   </style></head><body>`;
   h+=`<div class="doc-title"><h1>รายงานการประชุม (Minutes of Meeting)</h1><div class="sub">RTK-QC — Quality Management System</div></div>`;
   h+=`<div class="meta">`;
@@ -1474,8 +1474,8 @@ function printItem(id){
     @media print{@page{size:A4;margin:15mm;}}
     .btn-print{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-top:16px;}
     @media print{.btn-print,.no-print{display:none!important;}}
-    .docfoot{margin-top:24px;border-top:1px solid #bbb;padding-top:6px;text-align:right;font-size:11px;color:#555;font-weight:700;}
-    @media print{.docfoot{position:fixed;bottom:6mm;left:0;right:0;text-align:center;border:none;margin:0;}body{padding-bottom:16mm;}}
+    .docfoot{margin-top:30px;border-top:2px solid #1B3A5C;padding-top:8px;text-align:right;font-size:12px;color:#1B3A5C;font-weight:700;letter-spacing:.3px;}
+    @media print{}
   </style></head><body>`;
 
   // Header
@@ -1562,7 +1562,7 @@ function _printWin(title,inner,foot){
    .root{background:#FFEBEE;padding:6px 8px;border-radius:6px;font-weight:600;color:#DC3545;margin-top:4px;}
    .box{background:#f7f9fb;border:1px solid #e3e3e3;border-radius:6px;padding:8px;white-space:pre-wrap;margin-top:4px;}
    .btns{margin-top:18px;} .btn{background:#1B3A5C;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
-   .docfoot{margin-top:24px;border-top:1px solid #bbb;padding-top:6px;text-align:right;font-size:11px;color:#555;font-weight:700;}@media print{.btns{display:none;}.docfoot{position:fixed;bottom:6mm;left:0;right:0;text-align:center;border:none;margin:0;}body{padding-bottom:16mm;}@page{size:A4;margin:14mm;}}
+   .docfoot{margin-top:30px;border-top:2px solid #1B3A5C;padding-top:8px;text-align:right;font-size:12px;color:#1B3A5C;font-weight:700;letter-spacing:.3px;}@media print{.btns{display:none;}@page{size:A4;margin:14mm;}}
   </style></head><body>`;
   h+=`<div class="hd"><h1>${title}</h1><span>${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
   h+=inner;
