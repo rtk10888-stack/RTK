@@ -1963,13 +1963,13 @@
       "item": "ITM-2026-035",
       "type": "Sorting",
       "detail": "WIP-PI PO6900216 = 3,100 ชิ้น",
-      "qty": "3,100",
-      "ng": "",
+      "qty": "2400",
+      "ng": "758",
       "resp": "มิตรอังคาร-PI",
       "target": "2026-06-13",
-      "actual": "",
+      "actual": "2026-06-12",
       "result": "",
-      "status": "Open",
+      "status": "Closed",
       "date": "2026-06-11"
     }
   ]
