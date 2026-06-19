@@ -273,6 +273,24 @@
           "time": "13:00"
         }
       ]
+    },
+    {
+      "id": "MTG-2026-20",
+      "date": "2026-06-19",
+      "type": "Weekly QCDMS",
+      "topic": "",
+      "week": "",
+      "year": 2026,
+      "loc": "",
+      "tStart": "",
+      "tEnd": "",
+      "fac": "ธีรสิทธิ์-QMR",
+      "notes": "",
+      "agenda": [],
+      "resolution": "",
+      "actions": [],
+      "nextDate": "",
+      "attendees": []
     }
   ],
   "items": [
