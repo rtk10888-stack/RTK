@@ -260,6 +260,7 @@ td.left{text-align:left;}
     <select id="fTq" onchange="renderItems()"><option value="">ทุก TQM</option><option>S</option><option>Q</option><option>D</option><option>C</option><option>M</option></select>
     <select id="fDp" onchange="renderItems()"><option value="">ทุกแผนก</option><option>QA</option><option>QC</option><option>PD</option><option>SALE</option><option>PI</option><option>STORE</option><option>MT</option><option>PE</option><option>AC</option><option>TOP</option><option>QMR</option><option>R&D</option><option>DCC</option><option>PL</option></select>
     <select id="fPr" onchange="renderItems()"><option value="">ทุก Priority</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+    <select id="fSrc" onchange="renderItems()"><option value="">ทุกแหล่งที่มา</option><option value="store">🔗 จาก Store Control</option><option value="tqm">สร้างใน TQM</option></select>
   </div>
   <div class="list-info" id="infoItems"></div>
   <div class="card-list" id="cardItems"></div>
@@ -1144,16 +1145,18 @@ function qRCA(id){const i=DB.items.find(x=>x.id===id);openRCAForm({id:nxtId('RCA
 function qCAPA(id){const i=DB.items.find(x=>x.id===id);const rs=DB.rcas.filter(r=>r.item===id);openCAPAForm({id:nxtId('CAPA',DB.capas,'id'),item:id,rca:rs.length?rs[0].id:'',type:'CA',action:'',resp:i.resp,target:'',actual:'',verify:'',result:'',score:'',status:'Open',recur:'',closeBy:''},true);}
 function qSNR(id){const i=DB.items.find(x=>x.id===id);if(!DB.snrs)DB.snrs=[];openSNRForm({id:nxtId('SNR',DB.snrs,'id'),item:id,type:'Sorting',detail:i.temp||'',qty:'',ng:'',resp:i.resp,target:'',actual:'',result:'',status:'Open',date:new Date().toISOString().slice(0,10)},true);}
 
+function openSrcNC(srcId){ var u='/stock/index.html'+(srcId?('#ncsrc='+encodeURIComponent(srcId)):''); window.open(u,'_blank'); }
 function renderItems(){
   const fs=$('fSt').value,ft=$('fTq').value,fd=$('fDp').value,fp=$('fPr').value,q=$('fQ').value.toLowerCase();
-  const data=DB.items.filter(i=>{if(fs&&i.status!==fs)return!1;if(ft&&i.tqm!==ft)return!1;if(fd&&i.dept!==fd)return!1;if(fp&&i.priority!==fp)return!1;if(q&&![i.part,i.pain,i.id,i.resp,i.loc,i.action,i.maker,i.remark].some(v=>(v||'').toLowerCase().includes(q)))return!1;return!0;});
+  const fsrc=($('fSrc')||{}).value||'';
+  const data=DB.items.filter(i=>{if(fsrc==='store'&&!i.src)return!1;if(fsrc==='tqm'&&i.src)return!1;if(fs&&i.status!==fs)return!1;if(ft&&i.tqm!==ft)return!1;if(fd&&i.dept!==fd)return!1;if(fp&&i.priority!==fp)return!1;if(q&&![i.part,i.pain,i.id,i.resp,i.loc,i.action,i.maker,i.remark].some(v=>(v||'').toLowerCase().includes(q)))return!1;return!0;});
   // Cards
   document.getElementById('cardItems').innerHTML=data.map(i=>{
     const snrL=i.snr_id?`<span class="link" onclick="switchTab('snr')">${i.snr_id}</span>`:`<button class="act-btn" style="background:#E0F7FA;color:#00838F" onclick="qSNR('${i.id}')">➕S&R</button>`;
     const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca" onclick="qRCA('${i.id}')">➕RCA</button>`;
     const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa" onclick="qCAPA('${i.id}')">➕CAPA</button>`;
     return `<div class="card" style="border-left-color:${i.status==='Complete'?'var(--gn)':i.status==='In Progress'?'var(--or)':'var(--rd)'}">
-      <div class="card-header"><span class="card-id">${i.id}</span>${i.src?`<span style="background:#dbeafe;color:#1e40af;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px" title="เชื่อมจาก Store Control ${i.srcNo||''}">🔗 Store Control${i.srcNo?(' · '+i.srcNo):''}</span>`:''}<div class="card-badges">${stB(i.status)} ${prB(i.priority)}</div></div>
+      <div class="card-header"><span class="card-id">${i.id}</span>${i.src?`<span onclick="openSrcNC('${i.srcId||''}')" style="background:#dbeafe;color:#1e40af;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px;cursor:pointer" title="คลิกเพื่อเปิด NC ต้นทางใน Store Control (${i.srcNo||''})">🔗 Store Control${i.srcNo?(' · '+i.srcNo):''} ↗</span>`:''}<div class="card-badges">${stB(i.status)} ${prB(i.priority)}</div></div>
       <div class="card-body">
         <div class="row"><span class="lbl">Part</span><span class="val" style="font-weight:600">${i.part}</span></div>
         <div class="row"><span class="lbl">Pain</span><span class="val">${i.pain}</span></div>
@@ -1178,7 +1181,7 @@ function renderItems(){
     const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca btn-sm" onclick="qRCA('${i.id}')">+RCA</button>`;
     const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa btn-sm" onclick="qCAPA('${i.id}')">+CAPA</button>`;
     return `<tr><td><button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button><button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE('${i.id}')">💬</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printItem('${i.id}')">🖨️</button></td>
-    <td><b>${i.id}</b>${i.src?`<br><span style="background:#dbeafe;color:#1e40af;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px" title="เชื่อมจาก Store Control ${i.srcNo||''}">🔗 Store${i.srcNo?(' '+i.srcNo):''}</span>`:''}</td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
+    <td><b>${i.id}</b>${i.src?`<br><span onclick="openSrcNC('${i.srcId||''}')" style="background:#dbeafe;color:#1e40af;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;cursor:pointer" title="คลิกเพื่อเปิด NC ต้นทางใน Store Control (${i.srcNo||''})">🔗 Store${i.srcNo?(' '+i.srcNo):''} ↗</span>`:''}</td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
     <td class="left" style="max-width:160px">${i.pain}</td><td>${i.maker||''}</td><td class="left" style="max-width:120px">${i.temp}</td><td class="left" style="max-width:160px">${i.action}</td>
     <td>${i.resp}</td><td>${i.due}</td><td>${stB(i.status)}</td><td>${prB(i.priority)}</td><td>${snrL2}</td><td>${rcaL}</td><td>${capaL}</td></tr>`;}).join('');
 }
