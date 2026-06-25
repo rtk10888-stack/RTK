@@ -1153,7 +1153,7 @@ function renderItems(){
     const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca" onclick="qRCA('${i.id}')">➕RCA</button>`;
     const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa" onclick="qCAPA('${i.id}')">➕CAPA</button>`;
     return `<div class="card" style="border-left-color:${i.status==='Complete'?'var(--gn)':i.status==='In Progress'?'var(--or)':'var(--rd)'}">
-      <div class="card-header"><span class="card-id">${i.id}</span><div class="card-badges">${stB(i.status)} ${prB(i.priority)}</div></div>
+      <div class="card-header"><span class="card-id">${i.id}</span>${i.src?`<span style="background:#dbeafe;color:#1e40af;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px" title="เชื่อมจาก Store Control ${i.srcNo||''}">🔗 Store Control${i.srcNo?(' · '+i.srcNo):''}</span>`:''}<div class="card-badges">${stB(i.status)} ${prB(i.priority)}</div></div>
       <div class="card-body">
         <div class="row"><span class="lbl">Part</span><span class="val" style="font-weight:600">${i.part}</span></div>
         <div class="row"><span class="lbl">Pain</span><span class="val">${i.pain}</span></div>
@@ -1178,7 +1178,7 @@ function renderItems(){
     const rcaL=i.rca_id?`<span class="link" onclick="switchTab('rca')">${i.rca_id}</span>`:`<button class="act-btn act-rca btn-sm" onclick="qRCA('${i.id}')">+RCA</button>`;
     const capaL=i.capa_id?`<span class="link" onclick="switchTab('capa')">${i.capa_id}</span>`:`<button class="act-btn act-capa btn-sm" onclick="qCAPA('${i.id}')">+CAPA</button>`;
     return `<tr><td><button class="act-btn act-edit" onclick='openItemForm(${esc(i)})'>✏️</button><button class="act-btn act-del" onclick="delItem('${i.id}')">🗑️</button><button class="act-btn" style="background:#E8FFE8;color:#06C755;padding:2px 6px" onclick="shareLINE('${i.id}')">💬</button><button class="act-btn" style="background:#F3E5F5;color:#7B1FA2;padding:2px 6px" onclick="printItem('${i.id}')">🖨️</button></td>
-    <td><b>${i.id}</b></td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
+    <td><b>${i.id}</b>${i.src?`<br><span style="background:#dbeafe;color:#1e40af;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px" title="เชื่อมจาก Store Control ${i.srcNo||''}">🔗 Store${i.srcNo?(' '+i.srcNo):''}</span>`:''}</td><td>${i.mid}</td><td>${i.date}</td><td class="left">${i.part}</td><td>${i.tqm}</td><td>${i.dept}</td><td>${i.loc}</td>
     <td class="left" style="max-width:160px">${i.pain}</td><td>${i.maker||''}</td><td class="left" style="max-width:120px">${i.temp}</td><td class="left" style="max-width:160px">${i.action}</td>
     <td>${i.resp}</td><td>${i.due}</td><td>${stB(i.status)}</td><td>${prB(i.priority)}</td><td>${snrL2}</td><td>${rcaL}</td><td>${capaL}</td></tr>`;}).join('');
 }
