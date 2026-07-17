@@ -414,7 +414,18 @@
       "resolution": "",
       "actions": [],
       "nextDate": "",
-      "attendees": []
+      "attendees": [
+        {
+          "name": "ธีรสิทธิ์-QMR",
+          "pos": "QMR",
+          "time": "22:05"
+        },
+        {
+          "name": "ขวัญใจ-AC",
+          "pos": "AC",
+          "time": "23:04"
+        }
+      ]
     }
   ],
   "items": [
