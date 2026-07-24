@@ -441,6 +441,24 @@
           "time": "11:09"
         }
       ]
+    },
+    {
+      "id": "MTG-2026-23",
+      "date": "2026-07-24",
+      "type": "Weekly QCDMS",
+      "topic": "",
+      "week": "W22",
+      "year": 2026,
+      "loc": "",
+      "tStart": "",
+      "tEnd": "",
+      "fac": "ธีรสิทธิ์-QMR",
+      "notes": "",
+      "agenda": [],
+      "resolution": "",
+      "actions": [],
+      "nextDate": "",
+      "attendees": []
     }
   ],
   "items": [
