@@ -490,6 +490,24 @@
           "time": "11:04"
         }
       ]
+    },
+    {
+      "id": "MTG-2026-24",
+      "date": "2026-07-31",
+      "type": "Weekly QCDMS",
+      "topic": "",
+      "week": "W23",
+      "year": 2026,
+      "loc": "RTK Meeting room",
+      "tStart": "11:00",
+      "tEnd": "",
+      "fac": "ธีรสิทธิ์-QMR",
+      "notes": "",
+      "agenda": [],
+      "resolution": "",
+      "actions": [],
+      "nextDate": "",
+      "attendees": []
     }
   ],
   "items": [
