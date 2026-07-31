@@ -507,7 +507,23 @@
       "resolution": "",
       "actions": [],
       "nextDate": "",
-      "attendees": []
+      "attendees": [
+        {
+          "name": "ธีรสิทธิ์-QMR",
+          "pos": "QMR",
+          "time": "11:00"
+        },
+        {
+          "name": "พัฒนเดช-QA",
+          "pos": "QA",
+          "time": "11:02"
+        },
+        {
+          "name": "มิตรอังคาร-PI",
+          "pos": "PI",
+          "time": "11:03"
+        }
+      ]
     }
   ],
   "items": [
