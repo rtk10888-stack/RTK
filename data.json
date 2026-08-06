@@ -640,7 +640,18 @@
           "min": 5
         }
       ],
-      "minutes": [],
+      "minutes": [
+        {
+          "date": "2026-07-31",
+          "topic": "",
+          "ref": "",
+          "issue": "",
+          "res": "",
+          "owner": "",
+          "due": "",
+          "status": "เปิด"
+        }
+      ],
       "resolution": "",
       "actions": [],
       "nextDate": "",
