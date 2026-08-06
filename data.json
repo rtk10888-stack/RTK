@@ -500,7 +500,7 @@
       "year": 2026,
       "loc": "RTK Meeting room",
       "tStart": "11:00",
-      "tEnd": "",
+      "tEnd": "12:05",
       "fac": "ธีรสิทธิ์-QMR",
       "notes": "",
       "agenda": [],
@@ -522,6 +522,31 @@
           "name": "มิตรอังคาร-PI",
           "pos": "PI",
           "time": "11:03"
+        },
+        {
+          "name": "วัชราภรณ์-PC",
+          "pos": "PC",
+          "time": "11:05"
+        },
+        {
+          "name": "อลิสา-PL",
+          "pos": "PL",
+          "time": "11:06"
+        },
+        {
+          "name": "ธัญลักษณ์-SA",
+          "pos": "SA",
+          "time": "11:06"
+        },
+        {
+          "name": "ขวัญใจ-AC",
+          "pos": "AC",
+          "time": "11:07"
+        },
+        {
+          "name": "มานพ-QC",
+          "pos": "QC",
+          "time": "11:09"
         }
       ]
     }
